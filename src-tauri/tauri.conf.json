@@ -6,8 +6,8 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "customwatch",
-    "version": "0.0.0"
+    "productName": "CustomWatch",
+    "version": "0.1.0"
   },
   "tauri": {
     "allowlist": {
@@ -36,7 +36,7 @@
       {
         "fullscreen": false,
         "resizable": true,
-        "title": "customwatch",
+        "title": "CustomWatch",
         "width": 800,
         "height": 600
       }
