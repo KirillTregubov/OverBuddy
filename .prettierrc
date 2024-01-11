@@ -1,10 +1,8 @@
 {
-    "arrowParens": "always",
-    "semi": false,
-    "singleQuote": true,
-    "tabWidth": 2,
-    "trailingComma": "none",
-    "plugins": [
-        "prettier-plugin-tailwindcss"
-    ]
+  "arrowParens": "always",
+  "semi": false,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "none",
+  "plugins": ["prettier-plugin-tailwindcss"]
 }
