@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { invoke } from '@tauri-apps/api/tauri'
+import { exists, BaseDirectory, readDir } from '@tauri-apps/api/fs'
 
 function App() {
   const [response, setResponse] = useState('')
@@ -15,7 +16,23 @@ function App() {
         className="select-none rounded-lg bg-black px-5 py-2.5 text-sm font-medium text-white transition-[color,background-color,border-color,text-decoration-color,fill,stroke,transform] will-change-transform hover:bg-neutral-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-neutral-300 active:scale-95"
         onClick={async () => {
           setResponse('')
-          setResponse(await invoke('set_map', { map: 'heroes' }))
+          // const entries = await readDir('../Battle.net', {
+          //   dir: BaseDirectory.AppData,
+          //   recursive: true
+          // })
+          // console.log(entries)
+          // await exists('avatar.png', { dir: BaseDirectory.AppData }).then(
+          //   (res) => {
+          //     console.log(res)
+          //   }
+          // )
+          try {
+            const val = await invoke('set_map', { map: 'heroes' })
+            console.log(val)
+            setResponse(val as string)
+          } catch (error) {
+            console.error(error)
+          }
         }}
       >
         Greet

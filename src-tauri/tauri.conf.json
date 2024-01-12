@@ -15,6 +15,15 @@
       "shell": {
         "all": false,
         "open": true
+      },
+      "fs": {
+        "all": false,
+        "scope": [
+          "**"
+        ],
+        "readDir": true,
+        "readFile": true,
+        "exists": true
       }
     },
     "bundle": {

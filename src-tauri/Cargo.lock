@@ -494,10 +494,12 @@ dependencies = [
 name = "customwatch"
 version = "0.0.0"
 dependencies = [
+ "dunce",
  "serde",
  "serde_json",
  "tauri",
  "tauri-build",
+ "thiserror",
 ]
 
 [[package]]
