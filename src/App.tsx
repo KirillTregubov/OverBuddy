@@ -31,7 +31,7 @@ function App() {
             console.log(val)
             setResponse(val as string)
           } catch (error) {
-            console.error(error)
+            setResponse(error as string)
           }
         }}
       >

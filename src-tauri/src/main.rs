@@ -30,6 +30,16 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
+fn display_path_string(path: &std::path::PathBuf) -> Result<String, Error> {
+    dunce::canonicalize(&path)
+        .map(|canonicalized| canonicalized.display().to_string())
+        .map_err(|err| {
+            let result = format!("Failed to canonicalize path: {:?}", err);
+            eprintln!("{}", result);
+            Error::Custom(result)
+        })
+}
+
 fn get_config(handle: tauri::AppHandle) -> Result<(bool, String), Error> {
     // Get the app data directory
     let app_data_dir = handle
@@ -39,7 +49,6 @@ fn get_config(handle: tauri::AppHandle) -> Result<(bool, String), Error> {
 
     // Construct the full path to the resource using join
     let resource_path = app_data_dir.join("../Battle.net");
-
     // Canonicalize the path to resolve any ".." components
     // let canonicalized_path = match resource_path.canonicalize() {
     //     Ok(canonicalized) => canonicalized.display().to_string(),
@@ -70,37 +79,18 @@ fn get_config(handle: tauri::AppHandle) -> Result<(bool, String), Error> {
             .find(|entry| entry.file_name().to_string_lossy() == target_file_name)
         {
             println!("Found target file: {:?}", target_entry.path());
-
-            let canonical_path = dunce::canonicalize(&target_entry.path())
-                .map(|canonicalized| canonicalized.display().to_string());
-            if canonical_path.is_err() {
-                let result = format!("Failed to canonicalize path: {:?}", canonical_path);
-                eprintln!("{}", result);
-                return Err(Error::Custom(result));
-            }
-            let display_path = canonical_path.unwrap();
-
-            // let display_path = match dunce::canonicalize(&resource_path) {
-            //     Ok(canonicalized) => canonicalized.display().to_string(),
-            //     Err(err) => {
-            //         let result = format!("Failed to canonicalize path: {:?}", err);
-            //         eprintln!("{}", result);
-            //         return Err(Error::Custom(result));
-            //     }
-            // };
-            let result = format!("Found config: {}", display_path);
+            let display_path = display_path_string(&target_entry.path())?;
+            let result = format!("Found configuration: {}", display_path);
             // println!("{}", result);
             return Ok((true, result));
         } else {
-            let result = format!(
-                "Target file not found in the directory: {:?}",
-                resource_path
-            );
+            let display_path = display_path_string(&resource_path)?;
+            let result = format!("File {} not found in {}", target_file_name, display_path);
             // println!("{}", result);
             return Ok((false, result));
         }
     } else {
-        let result = format!("Failed to read directory: {:?}", resource_path);
+        let result = format!("Failed to read Battle.net AppData directory.");
         // eprintln!("{}", result);
         return Err(Error::Custom(result));
     }
