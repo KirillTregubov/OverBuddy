@@ -25,51 +25,24 @@ impl serde::Serialize for Error {
 }
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
+// #[tauri::command]
+// fn greet(name: &str) -> String {
+//     format!("Hello, {}! You've been greeted from Rust!", name)
+// }
 
 fn display_path_string(path: &std::path::PathBuf) -> Result<String, Error> {
     dunce::canonicalize(&path)
         .map(|canonicalized| canonicalized.display().to_string())
         .map_err(|err| {
-            let result = format!("Failed to canonicalize path: {:?}", err);
-            eprintln!("{}", result);
+            let result = format!("Error processing path: {:?}", err);
+            // eprintln!("{}", result);
             Error::Custom(result)
         })
 }
 
-fn get_config(handle: tauri::AppHandle) -> Result<(bool, String), Error> {
-    // Get the app data directory
-    let app_data_dir = handle
-        .path_resolver()
-        .app_data_dir()
-        .expect("failed to get app data directory");
-
-    // Construct the full path to the resource using join
+fn fetch_config(handle: tauri::AppHandle) -> Result<(bool, String), Error> {
+    let app_data_dir = handle.path_resolver().app_data_dir().unwrap();
     let resource_path = app_data_dir.join("../Battle.net");
-    // Canonicalize the path to resolve any ".." components
-    // let canonicalized_path = match resource_path.canonicalize() {
-    //     Ok(canonicalized) => canonicalized.display().to_string(),
-    //     Err(err) => {
-    //         let result = format!("Failed to canonicalize path: {:?}", err);
-    //         eprintln!("{}", result);
-    //         return Err(Error::Custom(result));
-    //     }
-    // };
-
-    // let display_path = match dunce::canonicalize(&resource_path) {
-    //     Ok(canonicalized) => canonicalized.display().to_string(),
-    //     Err(err) => {
-    //         let result = format!("Failed to canonicalize path: {:?}", err);
-    //         eprintln!("{}", result);
-    //         return Err(Error::Custom(result));
-    //     }
-    // };
-    // println!("Canonicalized path: {}", display_path);
-
-    // Specify the file name you're looking for
     let target_file_name = "Battle.net.config";
 
     // Check if the target file exists in the directory
@@ -78,7 +51,6 @@ fn get_config(handle: tauri::AppHandle) -> Result<(bool, String), Error> {
             .filter_map(|entry| entry.ok()) // Filter out errors
             .find(|entry| entry.file_name().to_string_lossy() == target_file_name)
         {
-            println!("Found target file: {:?}", target_entry.path());
             let display_path = display_path_string(&target_entry.path())?;
             let result = format!("Found configuration: {}", display_path);
             // println!("{}", result);
@@ -96,24 +68,35 @@ fn get_config(handle: tauri::AppHandle) -> Result<(bool, String), Error> {
     }
 }
 
+// use serde_json::json;
+
 #[tauri::command]
-fn set_map(handle: tauri::AppHandle, map: &str) -> Result<String, Error> {
-    // let file = std::fs::File::open(&resource_path)?;
-    // let lang_de: serde_json::Value = serde_json::from_reader(file)?;
-    // lang_de.get("hello").unwrap();
+fn set_map(map: &str) -> Result<String, Error> {
+    return Ok(format!("Loading {}!", map));
+}
 
-    let (success, result) = get_config(handle)?;
+#[derive(serde::Serialize)]
+struct JsonResponse {
+    success: bool,
+    result: String,
+}
 
-    println!("Success: {}", success);
-    println!("Result: {}", result);
+#[tauri::command]
+fn get_config(handle: tauri::AppHandle) -> Result<String, Error> {
+    let (success, result) = fetch_config(handle)?;
 
-    return Ok(result);
-    // return Ok(format!("Loading {}!", map));
+    let response = JsonResponse {
+        success: success,
+        result,
+    };
+    let json_response = serde_json::to_string(&response)?;
+
+    return Ok(json_response);
 }
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet, set_map])
+        .invoke_handler(tauri::generate_handler![set_map, get_config])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
