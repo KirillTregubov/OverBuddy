@@ -5,7 +5,9 @@ use serde::Serialize;
 use serde_json::json;
 use serde_json::Serializer;
 use std::fs;
-use std::io::prelude::*;
+use std::io::Read;
+use std::process::Command;
+use sysinfo::System;
 
 // create the error type that represents all errors possible in our program
 #[derive(Debug, thiserror::Error)]
@@ -76,6 +78,27 @@ fn fetch_config(handle: tauri::AppHandle) -> Result<String, Error> {
     }
 }
 
+fn close_battle_net() -> Result<bool, Error> {
+    let mut flag = false;
+    let system = System::new_all();
+    for process in system.processes_by_name("Battle.net.exe") {
+        if process.kill() {
+            flag = true;
+        }
+    }
+
+    Ok(flag)
+}
+
+fn is_battle_net_running() -> Result<bool, Error> {
+    let system = System::new_all();
+    for _ in system.processes_by_name("Battle.net.exe") {
+        return Ok(true);
+    }
+
+    Ok(false)
+}
+
 // #[derive(serde::Serialize)]
 // struct JsonResponse {
 //     success: bool,
@@ -91,17 +114,15 @@ fn get_config(handle: tauri::AppHandle) -> Result<String, Error> {
 #[tauri::command]
 fn set_background(handle: tauri::AppHandle, name: &str) -> Result<String, Error> {
     let config = fetch_config(handle)?;
+    let battle_net_was_closed = close_battle_net()?;
 
-    println!("Loaded {}", config);
+    println!("Was closed? {}", battle_net_was_closed);
 
     let mut file = fs::OpenOptions::new().read(true).open(config.clone())?;
-
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
-
     let mut json: serde_json::Value = serde_json::from_str(&contents)?;
-
-    println!("before: {}", json);
+    // println!("before: {}", json);
 
     if json
         .get("Games")
@@ -118,7 +139,7 @@ fn set_background(handle: tauri::AppHandle, name: &str) -> Result<String, Error>
         .as_str()
         .map(|s| s.to_string());
 
-    let new_arg = format!("--lobbyMap={}", "0x0800000000000864");
+    let new_arg = format!("--lobbyMap={}", "0x0800000000001173");
     let launch_args: String = match launch_args {
         Some(arguments) => {
             let filtered_args = arguments
@@ -147,8 +168,16 @@ fn set_background(handle: tauri::AppHandle, name: &str) -> Result<String, Error>
     let mut serializer = Serializer::with_formatter(&mut file, pretty_formatter);
     json.serialize(&mut serializer)?;
 
-    println!("\"{}\"", launch_args);
-    println!("\nafter: {}", json);
+    // if battle_net_was_closed {
+    if let Err(err) =
+        Command::new("C:\\Program Files (x86)\\Battle.net\\Battle.net Launcher.exe").spawn()
+    {
+        eprintln!("Failed to start the external program: {}", err);
+    }
+    // }
+
+    // println!("\"{}\"", launch_args);
+    // println!("\nafter: {}", json);
     return Ok(format!("Setting {}!", name));
 }
 
