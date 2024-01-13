@@ -94,10 +94,7 @@ fn set_background(handle: tauri::AppHandle, name: &str) -> Result<String, Error>
 
     println!("Loaded {}", config);
 
-    let mut file = fs::OpenOptions::new()
-        .read(true)
-        .write(true)
-        .open(config.clone())?;
+    let mut file = fs::OpenOptions::new().read(true).open(config.clone())?;
 
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
@@ -140,26 +137,18 @@ fn set_background(handle: tauri::AppHandle, name: &str) -> Result<String, Error>
     };
 
     json["Games"]["prometheus"]["AdditionalLaunchArguments"] = json!(launch_args);
-    // format!(
-    //     "--lobbyMap={}{}",
-    //     "0x0800000000000864", launch_args
-    // ));
+
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .open(config)?;
 
     let pretty_formatter = serde_json::ser::PrettyFormatter::with_indent(b"    ");
     let mut serializer = Serializer::with_formatter(&mut file, pretty_formatter);
     json.serialize(&mut serializer)?;
 
     println!("\"{}\"", launch_args);
-
-    // let launch_args = json["Games"]["prometheus"]["AdditionalLaunchArguments"]
-    //     .as_str()
-    //     .unwrap()
-    //     .to_string();
-
-    // println!("Background: {}", launch_args);
-
     println!("\nafter: {}", json);
-
     return Ok(format!("Setting {}!", name));
 }
 
