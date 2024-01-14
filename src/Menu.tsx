@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, SettingsIcon } from 'lucide-react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api'
 
@@ -103,6 +103,17 @@ export default function Menu() {
 
   return (
     <div className="relative flex h-screen max-h-screen flex-col gap-4 p-6">
+      {/* <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">
+          Main Menu <span className="font-medium">Customizer</span>
+        </h1>
+        <button className="rounded-full bg-transparent p-2 transition-colors hover:bg-zinc-700/70 active:bg-zinc-600">
+          <SettingsIcon
+            size={24}
+            className="hover:animate-spin-cog rotate-[30deg] transition-transform will-change-transform"
+          />
+        </button>
+      </div> */}
       <div className="relative -mt-2">
         <div className="scrollbar-hide flex h-40 flex-shrink-0 items-center gap-3 overflow-x-auto scroll-smooth px-12">
           {backgrounds.map((background, index) => (
@@ -124,22 +135,22 @@ export default function Menu() {
           ))}
         </div>
         <div
-          className="absolute left-1 top-1/2 -translate-y-1/2 transform cursor-pointer rounded-full bg-neutral-800/90 p-1 mix-blend-luminosity"
+          className="absolute left-1 top-1/2 -translate-y-1/2 transform cursor-pointer rounded-full bg-zinc-800/90 p-1 mix-blend-luminosity"
           onClick={() => handleNavigate('prev')}
         >
           <ChevronLeft size={24} className="text-white" />
         </div>
         <div
-          className="absolute right-1 top-1/2 -translate-y-1/2 transform cursor-pointer  rounded-full bg-neutral-800/90 p-1 mix-blend-luminosity"
+          className="absolute right-1 top-1/2 -translate-y-1/2 transform cursor-pointer  rounded-full bg-zinc-800/90 p-1 mix-blend-luminosity"
           onClick={() => handleNavigate('next')}
         >
-          <ChevronRight size={24} className="text-neutral-100" />
+          <ChevronRight size={24} className="text-zinc-100" />
         </div>
       </div>
       <div className="relative flex h-full min-h-0 w-full flex-1 justify-center">
         <img
           alt="Selected Wallpaper"
-          className="h-full w-[61rem] select-none rounded-lg object-cover"
+          className="h-full w-[61rem] select-none rounded-lg object-cover" //w-[55rem]
           src={`/backgrounds/${activeBackground.image}`}
           onError={onImageError}
         />
