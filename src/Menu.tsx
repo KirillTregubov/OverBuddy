@@ -113,13 +113,13 @@ export default function Menu() {
           ))}
         </div>
         <div
-          className="absolute left-1 top-1/2 -translate-y-1/2 transform cursor-pointer rounded-full bg-neutral-800/85 p-1 mix-blend-luminosity"
+          className="absolute left-1 top-1/2 -translate-y-1/2 transform cursor-pointer rounded-full bg-neutral-800/90 p-1 mix-blend-luminosity"
           onClick={() => handleNavigate('prev')}
         >
           <ChevronLeft size={24} className="text-white" />
         </div>
         <div
-          className="absolute right-1 top-1/2 -translate-y-1/2 transform cursor-pointer  rounded-full bg-neutral-800/85 p-1 mix-blend-luminosity"
+          className="absolute right-1 top-1/2 -translate-y-1/2 transform cursor-pointer  rounded-full bg-neutral-800/90 p-1 mix-blend-luminosity"
           onClick={() => handleNavigate('next')}
         >
           <ChevronRight size={24} className="text-neutral-100" />
