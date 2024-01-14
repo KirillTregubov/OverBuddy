@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query'
+import { queryOptions, useMutation } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api'
 import { z } from 'zod'
 
@@ -12,7 +12,7 @@ export type Background = z.infer<typeof Background>
 export const BackgroundArray = z.array(Background)
 export type BackgroundArray = z.infer<typeof BackgroundArray>
 
-export const backgroundsQueryOptions = {
+export const backgroundsQueryOptions = queryOptions({
   queryKey: ['backgrounds'],
   queryFn: async () => {
     const data = await invoke('get_backgrounds')
@@ -22,7 +22,7 @@ export const backgroundsQueryOptions = {
     }
     return backgrounds.data
   }
-}
+})
 
 export const useBackgroundsMutation = () =>
   useMutation({
