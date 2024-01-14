@@ -9,9 +9,13 @@ import {
 
 interface MomentumScrollProps {
   children: React.ReactNode
+  className?: string
 }
 
-const MomentumScroll = ({ children }: MomentumScrollProps): JSX.Element => {
+const MomentumScroll = ({
+  children,
+  className = ''
+}: MomentumScrollProps): JSX.Element => {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const [scrollableHeight, setScrollableHeight] = useState<number>(0)
@@ -33,10 +37,10 @@ const MomentumScroll = ({ children }: MomentumScrollProps): JSX.Element => {
     return () => resizeObserver.disconnect()
   }, [])
 
-  const { scrollY } = useScroll()
+  const { scrollX } = useScroll()
 
-  const negativeScrollY = useTransform(
-    scrollY,
+  const negativeScrollX = useTransform(
+    scrollX,
     [0, scrollableHeight],
     [0, -scrollableHeight]
   )
@@ -50,17 +54,20 @@ const MomentumScroll = ({ children }: MomentumScrollProps): JSX.Element => {
     velocity: 100
   }
 
-  const springNegativeScrollY = useSpring(negativeScrollY, springPhysics)
+  const sprintNegativeScrollX = useSpring(negativeScrollX, springPhysics)
 
-  console.log(springNegativeScrollY)
+  console.log(sprintNegativeScrollX)
 
   return (
     <>
-      <motion.div ref={scrollRef} style={{ y: springNegativeScrollY }}>
+      <motion.div
+        ref={scrollRef}
+        className={className}
+        style={{ x: sprintNegativeScrollX }}
+      >
         {children}
       </motion.div>
-
-      <div style={{ height: scrollableHeight }} />
+      {/* <div style={{ height: scrollableHeight }} /> */}
     </>
   )
 }

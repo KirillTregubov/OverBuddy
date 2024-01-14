@@ -6,7 +6,7 @@
   box-sizing: border-box;
 }
 
-.masked-scroll::after {
+/* .masked-scroll::after {
   @apply pointer-events-none absolute left-0 top-0 w-full;
   content: '';
   height: calc(100% - 32px);
@@ -15,4 +15,4 @@
     rgba(255, 255, 255, 0) 91%,
     rgba(6, 10, 14, 100%) 94%
   );
-}
+} */
