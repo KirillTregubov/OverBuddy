@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.17.10",
+    "@tanstack/react-router": "^1.4.3",
+    "@tanstack/router-vite-plugin": "^1.4.3",
     "@tauri-apps/api": "^1.5.2",
     "clsx": "^2.1.0",
     "framer-motion": "^10.18.0",

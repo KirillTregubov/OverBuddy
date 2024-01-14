@@ -96,14 +96,14 @@ fn close_battle_net() -> Result<bool, Error> {
     Ok(flag)
 }
 
-fn is_battle_net_running() -> Result<bool, Error> {
-    let system = System::new_all();
-    for _ in system.processes_by_name("Battle.net.exe") {
-        return Ok(true);
-    }
+// fn is_battle_net_running() -> Result<bool, Error> {
+//     let system = System::new_all();
+//     for _ in system.processes_by_name("Battle.net.exe") {
+//         return Ok(true);
+//     }
 
-    Ok(false)
-}
+//     Ok(false)
+// }
 
 #[derive(serde::Serialize)]
 struct SetupResponse {
