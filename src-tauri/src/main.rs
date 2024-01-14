@@ -139,7 +139,7 @@ fn get_setup(handle: tauri::AppHandle) -> Result<String, Error> {
 }
 
 #[tauri::command]
-fn set_background(handle: tauri::AppHandle, name: &str) -> Result<String, Error> {
+fn set_background(handle: tauri::AppHandle, id: &str) -> Result<(), Error> {
     let config = fetch_config(&handle)?;
     let battle_net_was_closed = close_battle_net()?;
 
@@ -166,7 +166,7 @@ fn set_background(handle: tauri::AppHandle, name: &str) -> Result<String, Error>
         .as_str()
         .map(|s| s.to_string());
 
-    let new_arg = format!("--lobbyMap={}", "0x0800000000001173");
+    let new_arg = format!("--lobbyMap={}", id);
     let launch_args: String = match launch_args {
         Some(arguments) => {
             let filtered_args = arguments
@@ -201,11 +201,8 @@ fn set_background(handle: tauri::AppHandle, name: &str) -> Result<String, Error>
     {
         eprintln!("Failed to start the external program: {}", err);
     }
-    // }
 
-    // println!("\"{}\"", launch_args);
-    // println!("\nafter: {}", json);
-    return Ok(format!("Setting {}!", name));
+    return Ok(());
 }
 
 mod backgrounds;

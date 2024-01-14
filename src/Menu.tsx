@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api'
 
 import placeholder from './assets/placeholder.svg'
@@ -44,6 +44,16 @@ export default function Menu() {
       return backgrounds.data
     }
   })
+
+  const mutation = useMutation({
+    mutationFn: (background: { id: string }) => {
+      return invoke('set_background', background)
+    },
+    onError: (error) => {
+      console.error(error)
+    }
+  })
+
   //   const backgroundRefs =
   //     backgrounds && backgrounds.map(() => useRef<HTMLImageElement>(null))
 
@@ -66,6 +76,7 @@ export default function Menu() {
     if (!ref || ref.id === activeBackground?.id) return
 
     setActiveBackground(backgrounds[index])
+    mutation.reset()
     if (ref) {
       ref.scrollIntoView({
         behavior: 'smooth',
@@ -135,9 +146,16 @@ export default function Menu() {
         <div className="absolute bottom-4 right-4">
           <button
             className="select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 py-3 text-lg font-medium uppercase tracking-wider text-white shadow-md transition-[border-color,transform,border-radius] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-white focus-visible:outline-none focus-visible:ring focus-visible:ring-white    active:scale-95"
+            onClick={() => mutation.mutate({ id: activeBackground.id })}
             // onClick={get_setup}
           >
-            Apply
+            {mutation.isPending ? (
+              <>Applying...</>
+            ) : mutation.isSuccess ? (
+              'Applied'
+            ) : (
+              'Apply'
+            )}
           </button>
           {/* {setup === null ? (
           <p>Click the button to get the setup</p>
