@@ -8,6 +8,7 @@ use std::fs;
 use std::io::Read;
 use std::process::Command;
 use sysinfo::System;
+use tauri::AppHandle;
 
 // create the error type that represents all errors possible in our program
 #[derive(Debug, thiserror::Error)]
@@ -48,7 +49,7 @@ fn display_path_string(path: &std::path::PathBuf) -> Result<String, Error> {
         })
 }
 
-fn fetch_config(handle: &tauri::AppHandle) -> Result<String, Error> {
+fn fetch_config(handle: &AppHandle) -> Result<String, Error> {
     let app_data_dir = handle.path_resolver().app_data_dir().unwrap();
     let resource_path = app_data_dir.join("../Battle.net");
     let target_file_name = "Battle.net.config";
@@ -105,13 +106,118 @@ fn close_battle_net() -> Result<bool, Error> {
 //     Ok(false)
 // }
 
-#[derive(serde::Serialize)]
-struct SetupResponse {
-    config: String,
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
+struct Config {
+    is_setup: bool,
+    config: Option<String>,
+}
+static CONFIG_FILE: &'static str = "data.json";
+fn get_default_config() -> Config {
+    Config {
+        is_setup: false,
+        config: None,
+    }
+}
+
+fn read_config(handle: &AppHandle) -> Result<Config, Error> {
+    let app_local_data_dir = handle.path_resolver().app_local_data_dir().unwrap();
+
+    // Ensure directory exists
+    if !app_local_data_dir.exists() {
+        match fs::create_dir_all(&app_local_data_dir) {
+            Ok(_) => {}
+            Err(_) => {
+                let result = format!("Failed to create directory: {:?}", app_local_data_dir);
+                eprintln!("{}", result);
+                return Err(Error::Custom(result));
+            }
+        }
+    }
+
+    // Ensure file exists
+    let config_file_path = app_local_data_dir.join(CONFIG_FILE);
+    if !config_file_path.exists() {
+        match fs::File::create(&config_file_path) {
+            Ok(_) => {}
+            Err(_) => {
+                let result = format!("Failed to create file: {:?}", config_file_path);
+                eprintln!("{}", result);
+                return Err(Error::Custom(result));
+            }
+        }
+    }
+
+    // Get config
+    let config = match fs::read_to_string(&config_file_path) {
+        Ok(contents) => contents,
+        Err(_) => String::new(),
+    };
+    let config: Config = match serde_json::from_str(&config) {
+        Ok(json) => {
+            let result: Result<Config, _> = serde_json::from_value(json);
+            match result {
+                Ok(config) => config,
+                Err(_) => get_default_config(),
+            }
+        }
+        Err(_) => get_default_config(),
+    };
+
+    return Ok(config);
+}
+
+fn write_config(handle: &AppHandle, config: &Config) -> Result<(), Error> {
+    let app_local_data_dir = handle.path_resolver().app_local_data_dir().unwrap();
+
+    // Ensure directory exists
+    if !app_local_data_dir.exists() {
+        match fs::create_dir_all(&app_local_data_dir) {
+            Ok(_) => {}
+            Err(_) => {
+                let result = format!("Failed to create directory: {:?}", app_local_data_dir);
+                eprintln!("{}", result);
+                return Err(Error::Custom(result));
+            }
+        }
+    }
+
+    // Ensure file exists
+    let config_file_path = app_local_data_dir.join(CONFIG_FILE);
+    if !config_file_path.exists() {
+        match fs::File::create(&config_file_path) {
+            Ok(_) => {}
+            Err(_) => {
+                let result = format!("Failed to create file: {:?}", config_file_path);
+                eprintln!("{}", result);
+                return Err(Error::Custom(result));
+            }
+        }
+    }
+
+    // Write config
+    let serialized_config = serde_json::to_string(&config)?;
+    match fs::write(&config_file_path, &serialized_config) {
+        Ok(_) => {}
+        Err(_) => {
+            let result = format!("Failed to write to file: {:?}", config_file_path);
+            eprintln!("{}", result);
+            return Err(Error::Custom(result));
+        }
+    }
+
+    return Ok(());
 }
 
 #[tauri::command]
-fn get_setup(handle: tauri::AppHandle) -> Result<String, Error> {
+fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
+    let config = read_config(&handle)?;
+    write_config(&handle, &config)?;
+
+    return Ok(serde_json::to_string(&config)?);
+}
+
+#[tauri::command]
+fn get_setup(handle: AppHandle) -> Result<String, Error> {
     let config = fetch_config(&handle)?;
 
     let app_local_data_dir = handle.path_resolver().app_local_data_dir().unwrap();
@@ -134,12 +240,15 @@ fn get_setup(handle: tauri::AppHandle) -> Result<String, Error> {
     //     ));
     // }
 
-    let response = SetupResponse { config };
+    let response = Config {
+        is_setup: true,
+        config: Some(config),
+    };
     return Ok(serde_json::to_string(&response)?);
 }
 
 #[tauri::command]
-fn set_background(handle: tauri::AppHandle, id: &str) -> Result<(), Error> {
+fn set_background(handle: AppHandle, id: &str) -> Result<(), Error> {
     let config = fetch_config(&handle)?;
     let battle_net_was_closed = close_battle_net()?;
 
@@ -224,6 +333,7 @@ fn get_backgrounds() -> String {
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
+            get_launch_config,
             get_setup,
             set_background,
             get_backgrounds

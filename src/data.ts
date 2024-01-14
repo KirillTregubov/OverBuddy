@@ -2,6 +2,24 @@ import { queryOptions, useMutation } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api'
 import { z } from 'zod'
 
+export const LaunchConfig = z.object({
+  is_setup: z.boolean(),
+  config: z.string().nullable()
+})
+export type LaunchConfig = z.infer<typeof LaunchConfig>
+
+export const launchQueryOptions = queryOptions({
+  queryKey: ['launch'],
+  queryFn: async () => {
+    const data = await invoke('get_launch_config')
+    const config = LaunchConfig.safeParse(JSON.parse(data as string))
+    if (!config.success) {
+      throw new Error(config.error.message)
+    }
+    return config.data
+  }
+})
+
 export const Background = z.object({
   id: z.string(),
   image: z.string(),
