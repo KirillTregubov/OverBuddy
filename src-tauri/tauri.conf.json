@@ -6,7 +6,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "CustomWatch",
+    "productName": "OverBuddy",
     "version": "0.1.0"
   },
   "tauri": {
@@ -22,7 +22,7 @@
       "targets": [
         "msi"
       ],
-      "identifier": "CustomWatch",
+      "identifier": "com.overbuddy.app",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
@@ -30,8 +30,8 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "shortDescription": "CustomWatch",
-      "longDescription": "CustomWatch",
+      "shortDescription": "OverBuddy description",
+      "longDescription": "OverBuddy description",
       "windows": {
         "certificateThumbprint": null,
         "webviewInstallMode": {
@@ -52,7 +52,7 @@
     },
     "windows": [
       {
-        "title": "CustomWatch",
+        "title": "OverBuddy",
         "hiddenTitle": true,
         "fullscreen": false,
         "alwaysOnTop": false,

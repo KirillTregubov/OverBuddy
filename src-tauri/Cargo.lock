@@ -491,19 +491,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "customwatch"
-version = "0.0.0"
-dependencies = [
- "dunce",
- "serde",
- "serde_json",
- "sysinfo",
- "tauri",
- "tauri-build",
- "thiserror",
-]
-
-[[package]]
 name = "darling"
 version = "0.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1712,6 +1699,19 @@ checksum = "2078c0039e6a54a0c42c28faa984e115fb4c2d5bf2208f77d1961002df8576f8"
 dependencies = [
  "pathdiff",
  "windows-sys 0.42.0",
+]
+
+[[package]]
+name = "overbuddy"
+version = "0.0.0"
+dependencies = [
+ "dunce",
+ "serde",
+ "serde_json",
+ "sysinfo",
+ "tauri",
+ "tauri-build",
+ "thiserror",
 ]
 
 [[package]]

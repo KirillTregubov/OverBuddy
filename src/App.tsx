@@ -18,16 +18,6 @@ function App() {
     }
   }
 
-  async function set_background() {
-    setResponse('')
-    setError('')
-    try {
-      setResponse(await invoke('set_background', { name: 'test' }))
-    } catch (error) {
-      setError(error as string)
-    }
-  }
-
   return (
     <Menu />
     // <div className="flex flex-col gap-4 p-4">

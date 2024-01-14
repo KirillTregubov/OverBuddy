@@ -1,5 +1,5 @@
 {
-  "name": "customwatch",
+  "name": "overbuddy",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -18,7 +18,6 @@
     "lucide-react": "^0.309.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-indiana-drag-scroll": "^2.2.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
