@@ -71,12 +71,12 @@ pub fn get_backgrounds() -> Vec<Background> {
         },
         Background {
             id: "0x0800000000000B6B",
-            image: "hanzo_cupid.jpg",
-            name: "Hanzo Cupid",
+            image: "cupid_hanzo.jpg",
+            name: "Cupid Hanzo",
         },
         Background {
             id: "0x0800000000000EED",
-            image: "doomfist_one_punch_man.jpg",
+            image: "one_punch_man_doomfist.jpg",
             name: "One Punch Man Doomfist",
         },
         Background {
@@ -121,13 +121,13 @@ pub fn get_backgrounds() -> Vec<Background> {
         },
         Background {
             id: "0x0800000000001150",
-            image: "hanzo_onryo.jpg",
-            name: "Hanzo Onryo",
+            image: "onryo_hanzo.jpg",
+            name: "Onryo Hanzo",
         },
         Background {
             id: "0x08000000000010AC",
-            image: "hanzo_onryo_art.jpg",
-            name: "Hanzo Onryo Art",
+            image: "onryo_hanzo_art.jpg",
+            name: "Onryo Hanzo Art",
         },
         Background {
             id: "0x080000000000115C",
@@ -152,7 +152,7 @@ pub fn get_backgrounds() -> Vec<Background> {
         Background {
             id: "0x0800000000001173",
             image: "le_sserafim_collab.jpg",
-            name: "Le Sserafim Collab",
+            name: "LE SSERAFIM Collab",
         },
         Background {
             id: "0x080000000000118a",
@@ -161,8 +161,8 @@ pub fn get_backgrounds() -> Vec<Background> {
         },
         Background {
             id: "0x0800000000001197",
-            image: "orisa_grand_beast.jpg",
-            name: "Orisa Grand Beast",
+            image: "grand_beast_orisa.jpg",
+            name: "Grand Beast Orisa",
         },
         Background {
             id: "0x08000000000011b4",
