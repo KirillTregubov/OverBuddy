@@ -44,7 +44,9 @@ function Setup() {
           <p className="font-bold text-red-500">Error: {error}</p>
         )}
       </div>
-      <Link to="/menu">Menu</Link>
+      <Link to="/menu" replace>
+        Menu
+      </Link>
     </div>
   )
 }
