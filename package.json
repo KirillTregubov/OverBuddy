@@ -13,6 +13,7 @@
   "dependencies": {
     "@tanstack/react-query": "^5.17.10",
     "@tauri-apps/api": "^1.5.2",
+    "framer-motion": "^10.18.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-indiana-drag-scroll": "^2.2.0"

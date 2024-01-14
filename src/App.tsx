@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { invoke } from '@tauri-apps/api/tauri'
 import placeholder from './assets/placeholder.svg'
-import ScrollContainer from 'react-indiana-drag-scroll'
 
 function App() {
   const [setup, setSetup] = useState<null | Object>(null)
@@ -76,21 +75,45 @@ function App() {
           width={1920}
         />
       </div> */}
-      <div className="masked-scroll mt-4 flex h-48 flex-shrink-0 overflow-x-auto">
-        <ScrollContainer
-          className="flex gap-4 scroll-smooth"
-          hideScrollbars={false}
-          vertical={false}
-        >
-          {[...Array(5)].map((_, i) => (
-            <img
-              key={'wallpaper-' + i}
-              alt={`Wallpaper ${i}`}
-              className="aspect-video select-none snap-start rounded-lg object-cover"
-              src={placeholder}
-            />
-          ))}
-        </ScrollContainer>
+      <div className="mt-4 flex h-48 flex-shrink-0 snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth">
+        <div className="w-52 shrink-0 snap-center" />
+        {[...Array(5)].map((_, i) => (
+          <img
+            key={'wallpaper-' + i}
+            alt={`Wallpaper ${i}`}
+            className="aspect-video select-none snap-center rounded-lg object-cover"
+            src={placeholder}
+          />
+        ))}
+        <div className="w-52 shrink-0 snap-center" />
+        {/* <img
+          alt="Wallpaper 2"
+          className="aspect-video rounded-lg object-cover"
+          height={200}
+          src={placeholder}
+          width={300}
+        />
+        <img
+          alt="Wallpaper 3"
+          className="aspect-video rounded-lg object-cover"
+          height={200}
+          src={placeholder}
+          width={300}
+        />
+        <img
+          alt="Wallpaper 4"
+          className="aspect-video rounded-lg object-cover"
+          height={200}
+          src={placeholder}
+          width={300}
+        />
+        <img
+          alt="Wallpaper 5"
+          className="aspect-video rounded-lg object-cover"
+          height={200}
+          src={placeholder}
+          width={300}
+        /> */}
       </div>
     </div>
   )
