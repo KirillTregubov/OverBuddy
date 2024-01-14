@@ -19,24 +19,44 @@
     },
     "bundle": {
       "active": true,
-      "targets": "all",
-      "identifier": "com.tauri.dev",
+      "targets": [
+        "msi"
+      ],
+      "identifier": "CustomWatch",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
         "icons/128x128@2x.png",
         "icons/icon.icns",
         "icons/icon.ico"
-      ]
+      ],
+      "shortDescription": "CustomWatch",
+      "longDescription": "CustomWatch",
+      "windows": {
+        "certificateThumbprint": null,
+        "webviewInstallMode": {
+          "type": "embedBootstrapper",
+          "silent": true
+        },
+        "digestAlgorithm": "sha256",
+        "timestampUrl": "",
+        "wix": {
+          "enableElevatedUpdateTask": true,
+          "dialogImagePath": "icons/WindowsDialogImage.bmp",
+          "bannerPath": "icons/WindowsBanner.bmp"
+        }
+      }
     },
     "security": {
       "csp": null
     },
     "windows": [
       {
-        "fullscreen": false,
-        "resizable": true,
         "title": "CustomWatch",
+        "hiddenTitle": true,
+        "fullscreen": false,
+        "alwaysOnTop": false,
+        "resizable": true,
         "width": 800,
         "height": 600
       }

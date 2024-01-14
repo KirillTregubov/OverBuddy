@@ -48,10 +48,16 @@ fn display_path_string(path: &std::path::PathBuf) -> Result<String, Error> {
         })
 }
 
-fn fetch_config(handle: tauri::AppHandle) -> Result<String, Error> {
+fn fetch_config(handle: &tauri::AppHandle) -> Result<String, Error> {
     let app_data_dir = handle.path_resolver().app_data_dir().unwrap();
     let resource_path = app_data_dir.join("../Battle.net");
     let target_file_name = "Battle.net.config";
+
+    // if let Some(program_data_dir) = std::env::var_os("ProgramData") {
+    //     println!("ProgramData directory: {:?}", program_data_dir);
+    // } else {
+    //     eprintln!("Error getting ProgramData directory");
+    // }
 
     // Check if the target file exists in the directory
     if let Ok(entries) = fs::read_dir(&resource_path) {
@@ -99,21 +105,42 @@ fn is_battle_net_running() -> Result<bool, Error> {
     Ok(false)
 }
 
-// #[derive(serde::Serialize)]
-// struct JsonResponse {
-//     success: bool,
-//     result: String,
-// }
+#[derive(serde::Serialize)]
+struct SetupResponse {
+    config: String,
+}
 
 #[tauri::command]
-fn get_config(handle: tauri::AppHandle) -> Result<String, Error> {
-    let config = fetch_config(handle)?;
-    return Ok(config);
+fn get_setup(handle: tauri::AppHandle) -> Result<String, Error> {
+    let config = fetch_config(&handle)?;
+
+    let app_local_data_dir = handle.path_resolver().app_local_data_dir().unwrap();
+    println!("AppLocalData directory: {:?}", app_local_data_dir);
+
+    // if let Some(mut app_data_path) = dirs::data_local_dir() {
+    //     app_data_path.push("your_app_name"); // Replace "your_app_name" with your actual app name
+    //     fs::create_dir_all(&app_data_path)?;
+
+    //     // Create a file path for storing the SetupResponse object
+    //     let file_path = app_data_path.join("setup_response.json");
+
+    //     // Write the serialized JSON to the file
+    //     fs::write(&file_path, &serialized_response)?;
+
+    //     return Ok(serialized_response);
+    // } else {
+    //     return Err(Error::Custom(
+    //         "Failed to get the path to the application data directory.".to_string(),
+    //     ));
+    // }
+
+    let response = SetupResponse { config };
+    return Ok(serde_json::to_string(&response)?);
 }
 
 #[tauri::command]
 fn set_background(handle: tauri::AppHandle, name: &str) -> Result<String, Error> {
-    let config = fetch_config(handle)?;
+    let config = fetch_config(&handle)?;
     let battle_net_was_closed = close_battle_net()?;
 
     println!("Was closed? {}", battle_net_was_closed);
@@ -183,7 +210,7 @@ fn set_background(handle: tauri::AppHandle, name: &str) -> Result<String, Error>
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![get_config, set_background])
+        .invoke_handler(tauri::generate_handler![get_setup, set_background])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

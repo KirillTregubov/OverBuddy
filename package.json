@@ -14,7 +14,8 @@
     "@tanstack/react-query": "^5.17.10",
     "@tauri-apps/api": "^1.5.2",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-indiana-drag-scroll": "^2.2.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.5.8",
