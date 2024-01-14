@@ -56,9 +56,9 @@
         "hiddenTitle": true,
         "fullscreen": false,
         "alwaysOnTop": false,
-        "resizable": true,
-        "width": 800,
-        "height": 600
+        "resizable": false,
+        "width": 1024,
+        "height": 768
       }
     ]
   }

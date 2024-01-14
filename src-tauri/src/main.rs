@@ -208,9 +208,29 @@ fn set_background(handle: tauri::AppHandle, name: &str) -> Result<String, Error>
     return Ok(format!("Setting {}!", name));
 }
 
+mod backgrounds;
+
+// #[derive(serde::Serialize)]
+// struct Background {
+//     id: String,
+//     image: String,
+//     name: String,
+// }
+
+#[tauri::command]
+fn get_backgrounds() -> String {
+    let backgrounds = backgrounds::get_backgrounds();
+    let json_result = serde_json::to_string(&backgrounds).unwrap();
+    return json_result;
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![get_setup, set_background])
+        .invoke_handler(tauri::generate_handler![
+            get_setup,
+            set_background,
+            get_backgrounds
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
