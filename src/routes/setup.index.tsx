@@ -2,7 +2,7 @@ import { FileRoute, useNavigate } from '@tanstack/react-router'
 import { ConfigError, useSetupMutation } from '../data'
 import { toast } from 'sonner'
 
-export const Route = new FileRoute('/setup').createRoute({
+export const Route = new FileRoute('/setup/').createRoute({
   component: SetupSplash
 })
 
@@ -68,17 +68,6 @@ export function SetupSplash() {
       >
         Proceed
       </button>
-      <div className="absolute bottom-2 max-w-2xl text-center text-zinc-400">
-        <p>
-          Made with ❤️ by <span className="font-bold">Kirill Tregubov</span>.
-          Version {import.meta.env.PACKAGE_VERSION} (Beta).
-        </p>
-        {/* <p>
-            Blizzard Entertainment, Battle.net and Overwatch are trademarks or
-            registered trademarks of Blizzard Entertainment, Inc. in the U.S.
-            and/or other countries.
-          </p> */}
-      </div>
     </div>
   )
 }

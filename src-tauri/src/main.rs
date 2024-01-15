@@ -212,7 +212,7 @@ fn fetch_battle_net_config(handle: &AppHandle) -> Result<String, Error> {
         } else {
             let display_path = display_path_string(&resource_path)?;
             let result = format!(
-                "Unable to find \"{}\" in the Battle.net AppData ({}).",
+                "Unable to find \"{}\" in {}.",
                 target_file_name, display_path
             );
 

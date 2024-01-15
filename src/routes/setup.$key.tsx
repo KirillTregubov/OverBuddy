@@ -8,10 +8,7 @@ export const Route = new FileRoute('/setup/$key').createRoute({
 function ConfigureComponent() {
   const { key } = Route.useParams()
 
-  return (
-    <div>
-      Configure
-      {key}
-    </div>
-  )
+  console.log(key)
+
+  return <div>Work in Progress</div>
 }

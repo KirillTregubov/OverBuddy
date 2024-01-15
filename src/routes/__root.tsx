@@ -2,19 +2,26 @@ import {
   ErrorComponent,
   ErrorRouteProps,
   Outlet,
+  redirect,
   rootRouteWithContext
 } from '@tanstack/react-router'
-import { QueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { QueryClient } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
 
 import { launchQueryOptions } from '../data'
-import { Setup } from './setup'
 
 export const Route = rootRouteWithContext<{
   queryClient: QueryClient
 }>()({
-  loader: ({ context: { queryClient } }) =>
-    queryClient.ensureQueryData(launchQueryOptions),
+  beforeLoad: async ({ context: { queryClient }, location }) => {
+    if (location.pathname !== '/') {
+      return
+    }
+    const { is_setup } = await queryClient.ensureQueryData(launchQueryOptions)
+    if (!is_setup) {
+      throw redirect({ to: '/setup' })
+    }
+  },
   errorComponent: RootErrorComponent as any,
   component: RootComponent
 })
@@ -29,11 +36,9 @@ function RootErrorComponent({ error }: ErrorRouteProps) {
 }
 
 function RootComponent() {
-  const { data } = useSuspenseQuery(launchQueryOptions)
-
   return (
     <div className="h-screen max-h-screen">
-      {!data.is_setup ? <Setup /> : <Outlet />}
+      <Outlet />
       <Toaster richColors />
     </div>
   )
