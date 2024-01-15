@@ -1,11 +1,13 @@
 import { FileRoute, redirect } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import clsx from 'clsx'
 import {
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Loader2Icon,
+  LoaderIcon
   // HeartIcon,
   // SettingsIcon
 } from 'lucide-react'
@@ -161,16 +163,51 @@ function Menu() {
             />
           </button> */}
           <button
-            className="ml-auto select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 py-3 text-lg font-medium uppercase tracking-wider text-white shadow-md transition-[border-color,transform,border-radius] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-white focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95"
-            onClick={() => mutate({ id: activeBackground.id })}
-          >
-            {mutationStatus === 'pending' ? (
-              <>Applying...</>
-            ) : mutationStatus === 'success' ? (
-              'Applied'
-            ) : (
-              'Apply'
+            className={clsx(
+              'ml-auto w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 py-3 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md transition-[border-color,transform,border-radius] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-white focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95 disabled:!scale-100'
             )}
+            onClick={() => mutate({ id: activeBackground.id })}
+            disabled={mutationStatus === 'success'}
+          >
+            <AnimatePresence mode="wait">
+              {mutationStatus === 'pending' && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  key="loader"
+                >
+                  <Loader2Icon
+                    className="mx-auto animate-spin text-orange-200"
+                    size={28}
+                  />
+                </motion.span>
+              )}
+              {mutationStatus === 'success' && (
+                <motion.span
+                  className="text-orange-100"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  key="success"
+                >
+                  Applied
+                </motion.span>
+              )}
+              {mutationStatus === 'idle' && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  key="idle"
+                >
+                  Apply
+                </motion.span>
+              )}
+            </AnimatePresence>
           </button>
         </div>
       </motion.div>

@@ -1,4 +1,5 @@
 import { FileRoute, Outlet } from '@tanstack/react-router'
+import { motion } from 'framer-motion'
 
 export const Route = new FileRoute('/setup').createRoute({
   component: Setup
@@ -6,9 +7,19 @@ export const Route = new FileRoute('/setup').createRoute({
 
 export function Setup() {
   return (
-    <>
+    <motion.div
+      className="h-full w-full"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1 }}
+    >
       <Outlet />
-      <div className="absolute bottom-2.5 w-full select-none text-center text-zinc-400">
+      <motion.div
+        className="absolute bottom-2.5 w-full select-none text-center text-zinc-400"
+        initial={{ transform: 'scale(.9)' }}
+        animate={{ transform: 'scale(1)' }}
+        transition={{ duration: 0.3 }}
+      >
         <div className="m-auto max-w-2xl">
           <p>
             Made with ❤️ by <span className="font-bold">Kirill Tregubov</span>.
@@ -20,7 +31,7 @@ export function Setup() {
             and/or other countries.
           </p> */}
         </div>
-      </div>
-    </>
+      </motion.div>
+    </motion.div>
   )
 }

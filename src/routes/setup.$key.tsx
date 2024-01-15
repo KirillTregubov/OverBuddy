@@ -4,10 +4,29 @@ import { ConfigError, ConfigErrorSchema, useSetupErrorMutation } from '../data'
 import { appDataDir } from '@tauri-apps/api/path'
 import { toast } from 'sonner'
 import { invoke } from '@tauri-apps/api'
+import { motion } from 'framer-motion'
 
 export const Route = new FileRoute('/setup/$key').createRoute({
   component: ConfigureComponent
 })
+
+const container = {
+  show: {
+    transition: {
+      staggerChildren: 0.02
+    }
+  }
+}
+
+const item = {
+  hidden: { transform: 'translateY(20px)' },
+  show: {
+    transform: 'translateY(0)',
+    transition: {
+      duration: 0.3
+    }
+  }
+}
 
 function ConfigureComponent() {
   const navigate = useNavigate()
@@ -42,11 +61,19 @@ function ConfigureComponent() {
   })
 
   return (
-    <div className="mx-auto flex h-full max-w-lg flex-col items-center justify-center text-center">
-      <h1 className="mb-1 select-none text-lg font-bold">
+    <motion.div
+      className="mx-auto flex h-full max-w-lg flex-col items-center justify-center text-center"
+      variants={container}
+      initial="hidden"
+      animate="show"
+    >
+      <motion.h1 className="mb-1 select-none text-lg font-bold" variants={item}>
         Something went wrong
-      </h1>
-      <h2 className="select-none leading-7 text-zinc-400">
+      </motion.h1>
+      <motion.h2
+        className="select-none leading-7 text-zinc-400"
+        variants={item}
+      >
         There was an error finding your Battle.net{' '}
         {key === 'BattleNetConfig' && (
           <>
@@ -74,9 +101,9 @@ function ConfigureComponent() {
             .
           </>
         )}
-      </h2>
+      </motion.h2>
       {key === 'BattleNetConfig' && (
-        <button
+        <motion.button
           className="mt-4 rounded-lg bg-zinc-800 px-4 py-2 text-zinc-400 hover:bg-zinc-700/70 active:bg-zinc-600"
           onClick={async () => {
             const dir = await appDataDir()
@@ -102,12 +129,13 @@ function ConfigureComponent() {
               path: selected as string
             })
           }}
+          variants={item}
         >
           Select Battle.net.config
-        </button>
+        </motion.button>
       )}
       {key === 'BattleNetInstall' && (
-        <button
+        <motion.button
           className="mt-4 rounded-lg bg-zinc-800 px-4 py-2 text-zinc-400 hover:bg-zinc-700/70 active:bg-zinc-600"
           onClick={async () => {
             const dir = (await invoke('get_program_data')) as string
@@ -132,10 +160,11 @@ function ConfigureComponent() {
               path: selected as string
             })
           }}
+          variants={item}
         >
           Select Battle.net Launcher.exe
-        </button>
+        </motion.button>
       )}
-    </div>
+    </motion.div>
   )
 }
