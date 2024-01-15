@@ -134,12 +134,10 @@ function Menu() {
         />
         <div className="absolute bottom-0 flex w-full items-center gap-4 bg-gradient-to-b from-transparent to-zinc-950/50 to-25% p-4 pt-8">
           <button className="group ml-auto rounded-full border-2 border-orange-900 bg-orange-950 p-3.5 text-orange-100 shadow-md transition-[border-color,transform,fill] will-change-transform hover:scale-105 hover:border-white focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95">
-            {/* text-orange-100    */}
             <HeartIcon
               size={24}
               className="fill-transparent transition-colors group-hover:fill-current group-focus-visible:fill-current group-active:fill-orange-200 group-active:stroke-orange-200"
             />
-            {/* fill="currentColor" */}
           </button>
           <button
             className="select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 py-3 text-lg font-medium uppercase tracking-wider text-white shadow-md transition-[border-color,transform,border-radius] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-white focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95"
