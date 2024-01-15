@@ -8,7 +8,7 @@ import { QueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
 
 import { launchQueryOptions } from '../data'
-import { Setup } from './setupaaa'
+import { Setup } from './setup'
 
 export const Route = rootRouteWithContext<{
   queryClient: QueryClient

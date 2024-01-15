@@ -2,7 +2,7 @@ import { FileRoute, useNavigate } from '@tanstack/react-router'
 import { ConfigError, useSetupMutation } from '../data'
 import { toast } from 'sonner'
 
-export const Route = new FileRoute('/setup').createRoute({
+export const Route = new FileRoute('/setup/').createRoute({
   component: SetupSplash
 })
 

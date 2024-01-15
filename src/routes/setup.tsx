@@ -7,5 +7,10 @@ export const Route = new FileRoute('/setup').createRoute({
 export function Setup() {
   console.log('hello')
 
-  return <Outlet />
+  return (
+    <div>
+      root
+      <Outlet />
+    </div>
+  )
 }
