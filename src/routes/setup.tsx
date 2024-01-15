@@ -8,7 +8,7 @@ export function Setup() {
   return (
     <>
       <Outlet />
-      <div className="absolute bottom-2.5 w-full text-center text-zinc-400">
+      <div className="absolute bottom-2.5 w-full select-none text-center text-zinc-400">
         <div className="m-auto max-w-2xl">
           <p>
             Made with ❤️ by <span className="font-bold">Kirill Tregubov</span>.

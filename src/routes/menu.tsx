@@ -1,14 +1,25 @@
-import { FileRoute } from '@tanstack/react-router'
+import { FileRoute, redirect } from '@tanstack/react-router'
 import { useRef, useState } from 'react'
 import clsx from 'clsx'
 import { ChevronLeft, ChevronRight, SettingsIcon } from 'lucide-react'
-import { useBackgroundsMutation, backgroundsQueryOptions } from '../data'
+import {
+  useBackgroundsMutation,
+  backgroundsQueryOptions,
+  launchQueryOptions
+} from '../data'
 import placeholder from '../assets/placeholder.svg'
 import { useSuspenseQuery } from '@tanstack/react-query'
 
 export const Route = new FileRoute('/menu').createRoute({
   loader: ({ context: { queryClient } }) =>
     queryClient.ensureQueryData(backgroundsQueryOptions),
+  beforeLoad: async ({ context: { queryClient } }) => {
+    console.log('loaded menu')
+    const { is_setup } = await queryClient.fetchQuery(launchQueryOptions)
+    if (!is_setup) {
+      throw redirect({ to: '/setup' })
+    }
+  },
   component: Menu
 })
 const onImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {

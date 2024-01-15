@@ -23,9 +23,9 @@ export const launchQueryOptions = queryOptions({
 
 const ConfigErrorSchema = z.object({
   message: z.string(),
-  error_key: z.enum(['BattleNetConfig', 'BattleNetInstall'])
+  error_key: z.enum(['NoOverwatch', 'BattleNetConfig', 'BattleNetInstall'])
 })
-type ConfigErrorSchema = z.infer<typeof ConfigErrorSchema>
+export type ConfigErrorSchema = z.infer<typeof ConfigErrorSchema>
 
 export class ConfigError extends Error {
   error_key: ConfigErrorSchema['error_key']
@@ -37,18 +37,25 @@ export class ConfigError extends Error {
 }
 
 export const useSetupMutation = ({
-  onError
+  onError,
+  onSuccess
 }: {
-  onError?: (error: any) => void
-}) =>
+  onError?: (error: Error | ConfigError) => void
+  onSuccess?: (data: LaunchConfig) => void
+} = {}) =>
   useMutation({
     mutationFn: async () => {
       const data = await invoke('setup').catch((error) => {
         if (typeof error !== 'string') throw error
 
-        const configError = ConfigErrorSchema.safeParse(
-          JSON.parse(error as string)
-        )
+        let parsed
+        try {
+          parsed = JSON.parse(error as string)
+        } catch (_) {
+          throw new Error(error)
+        }
+
+        const configError = ConfigErrorSchema.safeParse(parsed)
         if (configError.success) {
           throw new ConfigError(configError.data)
         }
@@ -58,12 +65,56 @@ export const useSetupMutation = ({
       if (!config.success) {
         throw new Error(config.error.message)
       }
+      if (!config.data.is_setup) {
+        throw new Error('Setup failed')
+      }
       return config.data
     },
-    onSuccess: (data) => {
-      console.log('success', data)
+    onError,
+    onSuccess
+  })
+
+export const useSetupErrorMutation = ({
+  onError,
+  onSuccess
+}: {
+  onError?: (error: Error | ConfigError) => void
+  onSuccess?: (data: LaunchConfig) => void
+} = {}) =>
+  useMutation({
+    mutationFn: async ({
+      key,
+      path
+    }: {
+      key: ConfigErrorSchema['error_key']
+      path: string
+    }) => {
+      const data = await invoke('resolve_setup_error', { key, path }).catch(
+        (error) => {
+          if (typeof error !== 'string') throw error
+
+          let parsed
+          try {
+            parsed = JSON.parse(error as string)
+          } catch (_) {
+            throw new Error(error)
+          }
+
+          const configError = ConfigErrorSchema.safeParse(parsed)
+          if (configError.success) {
+            throw new ConfigError(configError.data)
+          }
+        }
+      )
+
+      const config = LaunchConfig.safeParse(JSON.parse(data as string))
+      if (!config.success) {
+        throw new Error(config.error.message)
+      }
+      return config.data
     },
-    onError: onError
+    onError,
+    onSuccess
   })
 
 export const Background = z.object({

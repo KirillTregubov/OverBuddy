@@ -17,9 +17,12 @@ export const Route = rootRouteWithContext<{
     if (location.pathname !== '/') {
       return
     }
-    const { is_setup } = await queryClient.ensureQueryData(launchQueryOptions)
+    console.log('root fetch')
+    const { is_setup } = await queryClient.fetchQuery(launchQueryOptions)
     if (!is_setup) {
       throw redirect({ to: '/setup' })
+    } else {
+      throw redirect({ to: '/menu' })
     }
   },
   errorComponent: RootErrorComponent as any,
