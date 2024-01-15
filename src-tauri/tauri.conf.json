@@ -74,7 +74,7 @@
       },
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDY3NzEwM0E0QjM1Q0E0NjYKUldSbXBGeXpwQU54WncxY3BCMWZxQ0pmaDV1SzFvUmQ5M3ZFV2pyVW9zTjhTc0p2Ri8yMFVlWlYK",
       "endpoints": [
-        "https://github.com/KirillTregubov/OverBuddy/tree/main/releases/latest.json"
+        "https://raw.githubusercontent.com/KirillTregubov/OverBuddy/main/releases/latest.json"
       ]
     }
   }
