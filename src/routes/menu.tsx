@@ -1,6 +1,6 @@
 import { FileRoute, redirect } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import clsx from 'clsx'
 import {
@@ -18,7 +18,6 @@ import {
   launchQueryOptions
 } from '../data'
 import placeholder from '../assets/placeholder.svg'
-import { emit } from '@tauri-apps/api/event'
 
 export const Route = new FileRoute('/menu').createRoute({
   loader: ({ context: { queryClient } }) =>
@@ -51,10 +50,6 @@ function Menu() {
 
   const [activeBackground, setActiveBackground] = useState(data[0])
   const backgroundRefs = useRef<HTMLImageElement[]>([])
-
-  useEffect(() => {
-    emit('tauri://update')
-  }, [])
 
   if (dataStatus === 'error') {
     return <div>Error: {dataError?.message}</div>
