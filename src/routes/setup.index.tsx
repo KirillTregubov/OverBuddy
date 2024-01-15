@@ -10,7 +10,6 @@ export function SetupSplash() {
   const navigate = useNavigate()
   const mutation = useSetupMutation({
     onError: (error) => {
-      console.log(error)
       if (error instanceof ConfigError) {
         toast.error(error.message)
         if (
@@ -25,10 +24,11 @@ export function SetupSplash() {
             replace: true
           })
         }
+        return
       }
+      toast.error(error.message)
     },
     onSuccess: () => {
-      console.log('success')
       navigate({
         to: '/menu',
         replace: true

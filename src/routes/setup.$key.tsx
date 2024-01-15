@@ -14,16 +14,13 @@ function ConfigureComponent() {
   const { key } = Route.useParams() as { key: ConfigErrorSchema['error_key'] }
 
   const mutation = useSetupErrorMutation({
-    onSuccess: async (data) => {
-      console.log('res', data)
-
+    onSuccess: async () => {
       navigate({
         to: '/menu',
         replace: true
       })
     },
     onError: (error) => {
-      console.log('new error', error)
       if (error instanceof ConfigError) {
         toast.error(error.message)
         if (
@@ -38,7 +35,9 @@ function ConfigureComponent() {
             replace: true
           })
         }
+        return
       }
+      toast.error(error.message)
     }
   })
 

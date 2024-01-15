@@ -96,7 +96,6 @@ fn read_config(handle: &AppHandle) -> Result<Config, Error> {
             Ok(_) => {}
             Err(_) => {
                 let result = format!("Failed to create directory: {:?}", app_local_data_dir);
-                eprintln!("{}", result);
                 return Err(Error::Custom(result));
             }
         }
