@@ -1,6 +1,6 @@
 import { FileRoute, Outlet } from '@tanstack/react-router'
 
-export const Route = new FileRoute('/setup').createRoute({
+export const Route = new FileRoute('/setup/_layout').createRoute({
   component: Setup
 })
 
