@@ -23,3 +23,7 @@ src/experimental
 *.njsproj
 *.sln
 *.sw?
+
+# Environment
+.env
+.env.*

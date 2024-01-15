@@ -6,8 +6,8 @@ import clsx from 'clsx'
 import {
   ChevronLeft,
   ChevronRight,
-  Loader2Icon,
-  LoaderIcon
+  Loader2Icon
+  // LoaderIcon
   // HeartIcon,
   // SettingsIcon
 } from 'lucide-react'

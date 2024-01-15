@@ -25,7 +25,10 @@
     },
     "bundle": {
       "active": true,
-      "targets": ["msi"],
+      "targets": [
+        "msi",
+        "updater"
+      ],
       "identifier": "com.overbuddy.app",
       "icon": [
         "icons/32x32.png",
@@ -45,9 +48,7 @@
         "digestAlgorithm": "sha256",
         "timestampUrl": "",
         "wix": {
-          "enableElevatedUpdateTask": true,
-          "dialogImagePath": "icons/WindowsDialogImage.bmp",
-          "bannerPath": "icons/WindowsBanner.bmp"
+          "enableElevatedUpdateTask": true
         }
       }
     },
@@ -64,6 +65,17 @@
         "width": 1024,
         "height": 768
       }
-    ]
+    ],
+    "updater": {
+      "active": true,
+      "dialog": true,
+      "windows": {
+        "installMode": "passive"
+      },
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDY3NzEwM0E0QjM1Q0E0NjYKUldSbXBGeXpwQU54WncxY3BCMWZxQ0pmaDV1SzFvUmQ5M3ZFV2pyVW9zTjhTc0p2Ri8yMFVlWlYK",
+      "endpoints": [
+        "https://github.com/KirillTregubov/OverBuddy/tree/main/releases/latest.json"
+      ]
+    }
   }
 }
