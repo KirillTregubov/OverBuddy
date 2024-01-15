@@ -4,8 +4,10 @@
 use serde::Serialize;
 use serde_json::json;
 use serde_json::Serializer;
+use std::env;
 use std::fs;
 use std::io::Read;
+use std::path::Path;
 use std::process::Command;
 use sysinfo::System;
 use tauri::AppHandle;
@@ -49,42 +51,6 @@ fn display_path_string(path: &std::path::PathBuf) -> Result<String, Error> {
         })
 }
 
-fn fetch_config(handle: &AppHandle) -> Result<String, Error> {
-    let app_data_dir = handle.path_resolver().app_data_dir().unwrap();
-    let resource_path = app_data_dir.join("../Battle.net");
-    let target_file_name = "Battle.net.config";
-
-    // if let Some(program_data_dir) = std::env::var_os("ProgramData") {
-    //     println!("ProgramData directory: {:?}", program_data_dir);
-    // } else {
-    //     eprintln!("Error getting ProgramData directory");
-    // }
-
-    // Check if the target file exists in the directory
-    if let Ok(entries) = fs::read_dir(&resource_path) {
-        if let Some(target_entry) = entries
-            .filter_map(|entry| entry.ok()) // Filter out errors
-            .find(|entry| entry.file_name().to_string_lossy() == target_file_name)
-        {
-            let display_path = display_path_string(&target_entry.path())?;
-            // println!("{}", display_path);
-            return Ok(display_path);
-        } else {
-            let display_path = display_path_string(&resource_path)?;
-            let result = format!(
-                "Battle.net AppData ({}) doesn't contain file \"{}\"",
-                display_path, target_file_name
-            );
-            // println!("{}", result);
-            return Err(Error::Custom(result));
-        }
-    } else {
-        let result = format!("Failed to read Battle.net AppData directory.");
-        // eprintln!("{}", result);
-        return Err(Error::Custom(result));
-    }
-}
-
 fn close_battle_net() -> Result<bool, Error> {
     let mut flag = false;
     let system = System::new_all();
@@ -109,13 +75,15 @@ fn close_battle_net() -> Result<bool, Error> {
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 struct Config {
     is_setup: bool,
-    config: Option<String>,
+    battle_net_config: Option<String>,
+    battle_net_install: Option<String>,
 }
 static CONFIG_FILE: &'static str = "data.json";
 fn get_default_config() -> Config {
     Config {
         is_setup: false,
-        config: None,
+        battle_net_config: None,
+        battle_net_install: None,
     }
 }
 
@@ -216,40 +184,92 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
     return Ok(serde_json::to_string(&config)?);
 }
 
+#[derive(serde::Serialize)]
+enum ErrorKey {
+    BattleNetConfig,
+    BattleNetInstall,
+}
+
+#[derive(serde::Serialize)]
+struct SetupError {
+    message: String,
+    error_key: ErrorKey,
+}
+
+fn fetch_battle_net_config(handle: &AppHandle) -> Result<String, Error> {
+    let app_data_dir = handle.path_resolver().app_data_dir().unwrap();
+    let resource_path = app_data_dir.join("../Battle.net");
+    let target_file_name = "Baattle.net.config";
+
+    // Check if the target file exists in the directory
+    if let Ok(entries) = fs::read_dir(&resource_path) {
+        if let Some(target_entry) = entries
+            .filter_map(|entry| entry.ok()) // Filter out errors
+            .find(|entry| entry.file_name().to_string_lossy() == target_file_name)
+        {
+            let display_path = display_path_string(&target_entry.path())?;
+            return Ok(display_path);
+        } else {
+            let display_path = display_path_string(&resource_path)?;
+            let result = format!(
+                "Unable to find \"{}\" in the Battle.net AppData ({}).",
+                target_file_name, display_path
+            );
+
+            return Err(Error::Custom(serde_json::to_string(&SetupError {
+                message: result,
+                error_key: ErrorKey::BattleNetConfig,
+            })?));
+        }
+    } else {
+        let result = format!("Failed to find Battle.net AppData directory.");
+        return Err(Error::Custom(serde_json::to_string(&SetupError {
+            message: result,
+            error_key: ErrorKey::BattleNetConfig,
+        })?));
+    }
+}
+
 #[tauri::command]
-fn get_setup(handle: AppHandle) -> Result<String, Error> {
-    let config = fetch_config(&handle)?;
+fn setup(handle: AppHandle) -> Result<String, Error> {
+    let mut config = read_config(&handle)?;
 
-    let app_local_data_dir = handle.path_resolver().app_local_data_dir().unwrap();
-    println!("AppLocalData directory: {:?}", app_local_data_dir);
+    let battle_net_config = fetch_battle_net_config(&handle)?;
+    config.battle_net_config = Some(battle_net_config);
+    println!("BNet Config: {:?}", config);
 
-    // if let Some(mut app_data_path) = dirs::data_local_dir() {
-    //     app_data_path.push("your_app_name"); // Replace "your_app_name" with your actual app name
-    //     fs::create_dir_all(&app_data_path)?;
+    // "C:\\Program Files (x86)\\Battle.net\\Battle.net Launcher.exe"
+    let relative_path = "Baattle.net\\Battle.net Launcher.exe";
 
-    //     // Create a file path for storing the SetupResponse object
-    //     let file_path = app_data_path.join("setup_response.json");
+    if let Some(program_files_dir) = env::var_os("programfiles(x86)") {
+        let battle_net_install = Path::new(program_files_dir.to_str().unwrap()).join(relative_path);
+        if battle_net_install.exists() {
+            config.battle_net_install = Some(battle_net_install.to_string_lossy().to_string());
+        }
+    }
+    if config.battle_net_install.is_none() {
+        if let Some(program_files_dir) = env::var_os("programfiles") {
+            let battle_net_install =
+                Path::new(program_files_dir.to_str().unwrap()).join(relative_path);
+            if battle_net_install.exists() {
+                config.battle_net_install = Some(battle_net_install.to_string_lossy().to_string());
+            }
+        }
+    }
+    if config.battle_net_install.is_none() {
+        let result = format!("Failed to find Battle.net install directory.");
+        eprintln!("{}", result);
+        return Err(Error::Custom(result));
+    }
 
-    //     // Write the serialized JSON to the file
-    //     fs::write(&file_path, &serialized_response)?;
+    write_config(&handle, &config)?;
 
-    //     return Ok(serialized_response);
-    // } else {
-    //     return Err(Error::Custom(
-    //         "Failed to get the path to the application data directory.".to_string(),
-    //     ));
-    // }
-
-    let response = Config {
-        is_setup: true,
-        config: Some(config),
-    };
-    return Ok(serde_json::to_string(&response)?);
+    return Ok(serde_json::to_string(&config)?);
 }
 
 #[tauri::command]
 fn set_background(handle: AppHandle, id: &str) -> Result<(), Error> {
-    let config = fetch_config(&handle)?;
+    let config = fetch_battle_net_config(&handle)?;
     let battle_net_was_closed = close_battle_net()?;
 
     println!("Was closed? {}", battle_net_was_closed);
@@ -334,7 +354,7 @@ fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             get_launch_config,
-            get_setup,
+            setup,
             set_background,
             get_backgrounds
         ])

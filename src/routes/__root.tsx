@@ -5,9 +5,10 @@ import {
   rootRouteWithContext
 } from '@tanstack/react-router'
 import { QueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { Toaster } from 'sonner'
 
-import { Setup } from './setup'
 import { launchQueryOptions } from '../data'
+import { Setup } from './setupaaa'
 
 export const Route = rootRouteWithContext<{
   queryClient: QueryClient
@@ -33,6 +34,7 @@ function RootComponent() {
   return (
     <div className="h-screen max-h-screen">
       {!data.is_setup ? <Setup /> : <Outlet />}
+      <Toaster richColors />
     </div>
   )
 }

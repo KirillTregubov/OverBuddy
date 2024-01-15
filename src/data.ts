@@ -2,11 +2,12 @@ import { queryOptions, useMutation } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api'
 import { z } from 'zod'
 
-export const LaunchConfig = z.object({
+const LaunchConfig = z.object({
   is_setup: z.boolean(),
-  config: z.string().nullable()
+  battle_net_config: z.string().nullable(),
+  battle_net_install: z.string().nullable()
 })
-export type LaunchConfig = z.infer<typeof LaunchConfig>
+type LaunchConfig = z.infer<typeof LaunchConfig>
 
 export const launchQueryOptions = queryOptions({
   queryKey: ['launch'],
@@ -19,6 +20,51 @@ export const launchQueryOptions = queryOptions({
     return config.data
   }
 })
+
+const ConfigErrorSchema = z.object({
+  message: z.string(),
+  error_key: z.enum(['BattleNetConfig', 'BattleNetInstall'])
+})
+type ConfigErrorSchema = z.infer<typeof ConfigErrorSchema>
+
+export class ConfigError extends Error {
+  error_key: ConfigErrorSchema['error_key']
+
+  constructor(public error: ConfigErrorSchema) {
+    super(error.message)
+    this.error_key = error.error_key
+  }
+}
+
+export const useSetupMutation = ({
+  onError
+}: {
+  onError?: (error: any) => void
+}) =>
+  useMutation({
+    mutationFn: async () => {
+      const data = await invoke('setup').catch((error) => {
+        if (typeof error !== 'string') throw error
+
+        const configError = ConfigErrorSchema.safeParse(
+          JSON.parse(error as string)
+        )
+        if (configError.success) {
+          throw new ConfigError(configError.data)
+        }
+      })
+
+      const config = LaunchConfig.safeParse(JSON.parse(data as string))
+      if (!config.success) {
+        throw new Error(config.error.message)
+      }
+      return config.data
+    },
+    onSuccess: (data) => {
+      console.log('success', data)
+    },
+    onError: onError
+  })
 
 export const Background = z.object({
   id: z.string(),

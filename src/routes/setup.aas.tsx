@@ -1,28 +1,33 @@
-import { FileRoute, Link } from '@tanstack/react-router'
-import { invoke } from '@tauri-apps/api'
-import { useState } from 'react'
+import { FileRoute, useNavigate } from '@tanstack/react-router'
+import { ConfigError, useSetupMutation } from '../data'
+import { toast } from 'sonner'
 
 export const Route = new FileRoute('/setup').createRoute({
-  component: Setup
+  component: SetupSplash
 })
 
-export function Setup() {
-  const [setup, setSetup] = useState<null | Object>(null)
-  const [error, setError] = useState('')
-
-  async function get_setup() {
-    setSetup({})
-    setError('')
-    try {
-      setSetup(JSON.parse(await invoke('get_setup')))
-    } catch (error) {
-      setError(error as string)
+export function SetupSplash() {
+  const navigate = useNavigate()
+  const mutation = useSetupMutation({
+    onError: (error) => {
+      if (error instanceof ConfigError) {
+        toast.error(error.message)
+        if (error.error_key === 'BattleNetConfig') {
+          navigate({
+            to: '/setup/$key',
+            params: {
+              key: error.error_key
+            },
+            replace: true
+          })
+        }
+      }
     }
-  }
+  })
 
   return (
     <div className="mx-auto flex h-full max-w-lg select-none flex-col items-center justify-center">
-      <h1 className="mb-8 text-2xl font-medium">
+      <h1 className="mb-6 text-2xl font-medium">
         Welcome to <span className="font-bold">OverBuddy</span>
       </h1>
       <div className="mb-8 flex flex-col gap-5 text-zinc-400">
@@ -50,18 +55,18 @@ export function Setup() {
             Privacy Notice
           </h2>
           <p>
-            In order to change your background, it reads and writes your
-            Battle.net® configuration files, but does not modify any game
-            files. In order to apply the changes, it needs to restart the
-            Battle.net® client.
+            To change your background, this app needs to read and write your
+            Battle.net® configuration files. It does{' '}
+            <span className="font-medium">NOT</span> modify any game files. To
+            apply the changes, your Battle.net® client needs to be restarted.
           </p>
         </div>
       </div>
       <button
-        className="w-full select-none rounded-lg bg-white px-5 py-3 font-medium text-black transition-[color,background-color,border-color,text-decoration-color,fill,stroke,transform] will-change-transform hover:bg-zinc-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-orange-500/60 active:scale-95"
-        onClick={get_setup}
+        className="w-full select-none rounded-lg bg-white px-5 py-3 font-medium uppercase text-black transition-[color,background-color,border-color,text-decoration-color,fill,stroke,transform] will-change-transform hover:bg-zinc-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-orange-500/60 active:scale-95"
+        onClick={() => mutation.mutate()}
       >
-        Get Setup
+        Proceed
       </button>
       <div className="absolute bottom-2 max-w-2xl text-center text-zinc-400">
         <p>
@@ -69,10 +74,10 @@ export function Setup() {
           Version {import.meta.env.PACKAGE_VERSION} (Beta).
         </p>
         {/* <p>
-          Blizzard Entertainment, Battle.net and Overwatch are trademarks or
-          registered trademarks of Blizzard Entertainment, Inc. in the U.S.
-          and/or other countries.
-        </p> */}
+            Blizzard Entertainment, Battle.net and Overwatch are trademarks or
+            registered trademarks of Blizzard Entertainment, Inc. in the U.S.
+            and/or other countries.
+          </p> */}
       </div>
     </div>
   )
