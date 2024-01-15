@@ -291,15 +291,6 @@ fn setup(handle: AppHandle) -> Result<String, Error> {
         }
     }
     if config.battle_net_install.is_none() {
-        if let Some(program_files_dir) = env::var_os("programfiles") {
-            let battle_net_install =
-                Path::new(program_files_dir.to_str().unwrap()).join(relative_path);
-            if battle_net_install.exists() {
-                config.battle_net_install = Some(battle_net_install.to_string_lossy().to_string());
-            }
-        }
-    }
-    if config.battle_net_install.is_none() {
         return Err(Error::Custom(serde_json::to_string(&SetupError {
             message: "Failed to find Battle.net Launcher.".to_string(),
             error_key: ErrorKey::BattleNetInstall,
