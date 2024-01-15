@@ -41,11 +41,6 @@ function Menu() {
 
   const [activeBackground, setActiveBackground] = useState(data[0])
   const backgroundRefs = useRef<HTMLImageElement[]>([])
-  // useEffect(() => {
-  //   if (dataStatus === 'success') {
-  //     setActiveBackground(data[0])
-  //   }
-  // }, [dataStatus])
 
   if (dataStatus === 'error') {
     return <div>Error: {dataError?.message}</div>
@@ -136,7 +131,6 @@ function Menu() {
           <button
             className="select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 py-3 text-lg font-medium uppercase tracking-wider text-white shadow-md transition-[border-color,transform,border-radius] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-white focus-visible:outline-none focus-visible:ring focus-visible:ring-white    active:scale-95"
             onClick={() => mutate({ id: activeBackground.id })}
-            // onClick={get_setup}
           >
             {mutationStatus === 'pending' ? (
               <>Applying...</>
@@ -146,13 +140,6 @@ function Menu() {
               'Apply'
             )}
           </button>
-          {/* {setup === null ? (
-          <p>Click the button to get the setup</p>
-        ) : (
-          <code>
-            <pre>{JSON.stringify(setup, null, 2)}</pre>
-          </code>
-        )} */}
         </div>
       </div>
     </div>

@@ -33,15 +33,11 @@ export const Route = rootRouteWithContext<{
       throw redirect({ to: '/menu' })
     }
   },
-  // onError: (error) => {
-  //   console.log('aa', error)
-  // },
   errorComponent: RootErrorComponent as any,
   component: RootComponent
 })
 
 function RootErrorComponent({ error }: ErrorRouteProps) {
-  console.log(error)
   if (typeof error === 'string') {
     error = Error(error)
   }
