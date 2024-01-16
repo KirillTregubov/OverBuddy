@@ -1,0 +1,1 @@
+This is the initial release of OverBuddy. It is a beta release, so there may be bugs. Please report any bugs you find on the GitHub repository's issue tracker.
