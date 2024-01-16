@@ -72,7 +72,7 @@
       "windows": {
         "installMode": "passive"
       },
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDY3NzEwM0E0QjM1Q0E0NjYKUldSbXBGeXpwQU54WncxY3BCMWZxQ0pmaDV1SzFvUmQ5M3ZFV2pyVW9zTjhTc0p2Ri8yMFVlWlYK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDlDRjAwNzMyRUM0QzM5QUQKUldTdE9VenNNZ2Z3bkxFaFk1L3RIQjBuckExOWY3RDR0cjliTTlGOTNBbzZaVStEdUVFYXMrSFgK",
       "endpoints": [
         "https://raw.githubusercontent.com/KirillTregubov/OverBuddy/main/releases/latest.json"
       ]
