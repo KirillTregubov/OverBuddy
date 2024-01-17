@@ -104,44 +104,62 @@ function Menu() {
       <div className="relative -mt-6">
         <div className="scrollbar-hide flex h-48 flex-shrink-0 items-center gap-3 overflow-x-auto scroll-smooth px-12">
           {data.map((background, index) => (
-            <motion.img
-              id={background.id}
+            <motion.button
               key={background.id}
-              alt={background.name}
               className={clsx(
-                'aspect-video cursor-pointer select-none snap-center object-cover shadow-lg transition-[width,height,border-radius,box-shadow,transform] will-change-transform',
+                'aspect-video shadow-lg transition-[width,height,box-shadow,transform] hover:!scale-105',
                 activeBackground.id === background.id
-                  ? 'h-36 w-64 rounded-xl shadow-orange-600/20'
-                  : 'h-28 w-52 rounded-lg shadow-orange-600/10 hover:!scale-105'
+                  ? 'h-36 w-64 shadow-orange-600/20 hover:!scale-[1.04]'
+                  : 'h-28 w-52 shadow-orange-600/10 hover:shadow-orange-600/20'
               )}
-              src={`/backgrounds/${background.image}`}
-              ref={(el) => (backgroundRefs.current[index] = el!)}
-              onClick={() => handleSelect(index)}
-              onError={onImageError}
               initial={{ transform: 'scale(.9)' }}
               whileInView={{ transform: 'scale(1)' }}
               viewport={{ once: true }}
               transition={{ duration: 0.3 }}
-            />
+              tabIndex={-1}
+            >
+              <img
+                id={background.id}
+                alt={background.name}
+                className={clsx(
+                  'h-full w-full select-none object-cover transition-[border-radius]',
+                  activeBackground.id === background.id
+                    ? 'rounded-xl'
+                    : 'rounded-lg'
+                )}
+                src={`/backgrounds/${background.image}`}
+                ref={(el) => (backgroundRefs.current[index] = el!)}
+                onClick={() => handleSelect(index)}
+                onError={onImageError}
+              />
+            </motion.button>
           ))}
         </div>
         <motion.div
-          className="absolute left-1 top-1/2 -translate-y-1/2 transform cursor-pointer rounded-full bg-zinc-800/90 p-1 mix-blend-luminosity"
-          onClick={() => handleNavigate('prev')}
+          className="absolute left-1 top-1/2 -mt-3.5 -translate-y-1/2 overflow-visible"
           initial={{ transform: 'translateX(15px)' }}
           whileInView={{ transform: 'translateX(0)' }}
           transition={{ duration: 0.3 }}
         >
-          <ChevronLeft size={24} className="text-white" />
+          <button
+            className="transform-gpu cursor-pointer select-auto overflow-visible rounded-full bg-zinc-800/90 p-0.5 mix-blend-luminosity ring-1 ring-zinc-800/90 transition-[transform,box-shadow] will-change-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95"
+            onClick={() => handleNavigate('prev')}
+          >
+            <ChevronLeft size={24} className="text-white" />
+          </button>
         </motion.div>
         <motion.div
-          className="absolute right-1 top-1/2 -translate-y-1/2 transform cursor-pointer  rounded-full bg-zinc-800/90 p-1 mix-blend-luminosity"
-          onClick={() => handleNavigate('next')}
-          initial={{ transform: 'translateX(-15px)' }}
+          className="absolute right-1 top-1/2 -mt-4 -translate-y-1/2"
+          initial={{ transform: 'translateX(15px)' }}
           whileInView={{ transform: 'translateX(0)' }}
           transition={{ duration: 0.3 }}
         >
-          <ChevronRight size={24} className="text-zinc-100" />
+          <button
+            className="transform-gpu cursor-pointer select-auto overflow-visible rounded-full bg-zinc-800/90 p-0.5 mix-blend-luminosity ring-1 ring-zinc-800/90 transition-[transform,box-shadow] will-change-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95"
+            onClick={() => handleNavigate('next')}
+          >
+            <ChevronRight size={24} className="text-white" />
+          </button>
         </motion.div>
       </div>
       <motion.div
@@ -165,7 +183,7 @@ function Menu() {
           </button> */}
           <button
             className={clsx(
-              'ml-auto w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 py-3 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md transition-[border-color,transform,border-radius] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-white focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95 disabled:!scale-100'
+              'ml-auto w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 py-3 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-orange-50 transition-[border-color,transform,border-radius] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-orange-50 focus-visible:scale-105 focus-visible:border-orange-50 focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:pointer-events-none'
             )}
             onClick={() => mutate({ id: activeBackground.id })}
             disabled={mutationStatus === 'success'}
