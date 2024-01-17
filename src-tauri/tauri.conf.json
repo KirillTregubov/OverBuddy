@@ -54,12 +54,15 @@
     "windows": [
       {
         "title": "OverBuddy",
-        "hiddenTitle": true,
+        "label": "main",
+        "center": true,
+        "focus": true,
         "fullscreen": false,
         "alwaysOnTop": false,
         "resizable": false,
         "width": 1024,
-        "height": 768
+        "height": 768,
+        "visible": false
       }
     ],
     "updater": {

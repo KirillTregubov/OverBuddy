@@ -6,6 +6,8 @@ import {
   rootRouteWithContext
 } from '@tanstack/react-router'
 import { QueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { invoke } from '@tauri-apps/api'
 import { Toaster } from 'sonner'
 
 import { launchQueryOptions } from '../data'
@@ -46,6 +48,10 @@ function RootErrorComponent({ error }: ErrorRouteProps) {
 }
 
 function RootComponent() {
+  useEffect(() => {
+    invoke('mounted')
+  }, [])
+
   return (
     <div className="h-screen max-h-screen">
       <Outlet />

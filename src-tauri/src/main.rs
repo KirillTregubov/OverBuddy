@@ -11,6 +11,8 @@ use std::path::Path;
 use std::process::Command;
 use sysinfo::System;
 use tauri::AppHandle;
+use tauri::Manager;
+use tauri::Window;
 
 // create the error type that represents all errors possible in our program
 #[derive(Debug, thiserror::Error)]
@@ -72,6 +74,14 @@ fn close_battle_net() -> Result<bool, Error> {
 //     Ok(false)
 // }
 
+#[tauri::command]
+fn mounted(window: Window) {
+    std::thread::sleep(std::time::Duration::from_millis(500));
+    let window = window.get_window("main").unwrap();
+    window.show().unwrap();
+    window.set_focus().unwrap();
+}
+
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 struct Config {
     is_setup: bool,
@@ -108,7 +118,7 @@ fn read_config(handle: &AppHandle) -> Result<Config, Error> {
             Ok(_) => {}
             Err(_) => {
                 let result = format!("Failed to create file: {:?}", config_file_path);
-                eprintln!("{}", result);
+                // eprintln!("{}", result);
                 return Err(Error::Custom(result));
             }
         }
@@ -142,7 +152,7 @@ fn write_config(handle: &AppHandle, config: &Config) -> Result<(), Error> {
             Ok(_) => {}
             Err(_) => {
                 let result = format!("Failed to create directory: {:?}", app_local_data_dir);
-                eprintln!("{}", result);
+                // eprintln!("{}", result);
                 return Err(Error::Custom(result));
             }
         }
@@ -155,7 +165,7 @@ fn write_config(handle: &AppHandle, config: &Config) -> Result<(), Error> {
             Ok(_) => {}
             Err(_) => {
                 let result = format!("Failed to create file: {:?}", config_file_path);
-                eprintln!("{}", result);
+                // eprintln!("{}", result);
                 return Err(Error::Custom(result));
             }
         }
@@ -167,7 +177,7 @@ fn write_config(handle: &AppHandle, config: &Config) -> Result<(), Error> {
         Ok(_) => {}
         Err(_) => {
             let result = format!("Failed to write to file: {:?}", config_file_path);
-            eprintln!("{}", result);
+            // eprintln!("{}", result);
             return Err(Error::Custom(result));
         }
     }
@@ -409,7 +419,23 @@ fn get_backgrounds() -> String {
 
 fn main() {
     tauri::Builder::default()
+        // .setup(|app| {
+        //     let splashscreen_window = app.get_window("splashscreen").unwrap();
+        //     let main_window = app.get_window("main").unwrap();
+        //     // we perform the initialization code on a new task so the app doesn't freeze
+        //     tauri::async_runtime::spawn(async move {
+        //         // initialize your app here instead of sleeping :)
+        //         println!("Initializing...");
+        //         std::thread::sleep(std::time::Duration::from_secs(2));
+        //         println!("Done initializing.");
+        //         // After it's done, close the splashscreen and display the main window
+        //         splashscreen_window.close().unwrap();
+        //         main_window.show().unwrap();
+        //     });
+        //     Ok(())
+        // })
         .invoke_handler(tauri::generate_handler![
+            mounted,
             get_launch_config,
             setup,
             resolve_setup_error,

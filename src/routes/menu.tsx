@@ -85,9 +85,9 @@ function Menu() {
 
   return (
     <motion.div
-      className="relative flex h-full w-full flex-col gap-4 p-6"
+      className="relative flex h-full w-full flex-col p-6"
       initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      whileInView={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
       {/* <div className="flex items-center justify-between">
@@ -101,25 +101,26 @@ function Menu() {
           />
         </button>
       </div> */}
-      <div className="relative -mt-2">
-        <div className="scrollbar-hide flex h-40 flex-shrink-0 items-center gap-3 overflow-x-auto scroll-smooth px-12">
+      <div className="relative -mt-6">
+        <div className="scrollbar-hide flex h-48 flex-shrink-0 items-center gap-3 overflow-x-auto scroll-smooth px-12">
           {data.map((background, index) => (
             <motion.img
               id={background.id}
               key={background.id}
               alt={background.name}
               className={clsx(
-                'aspect-video cursor-pointer select-none snap-center rounded-lg object-cover shadow-orange-600/15 drop-shadow-md transition-[width,height,border-radius,box-shadow,transform] will-change-transform',
+                'aspect-video cursor-pointer select-none snap-center object-cover shadow-lg transition-[width,height,border-radius,box-shadow,transform] will-change-transform',
                 activeBackground.id === background.id
-                  ? 'h-36 w-64 rounded-xl shadow-md'
-                  : 'h-28 w-52 shadow-sm hover:!scale-105'
+                  ? 'h-36 w-64 rounded-xl shadow-orange-600/20'
+                  : 'h-28 w-52 rounded-lg shadow-orange-600/10 hover:!scale-105'
               )}
               src={`/backgrounds/${background.image}`}
               ref={(el) => (backgroundRefs.current[index] = el!)}
               onClick={() => handleSelect(index)}
               onError={onImageError}
               initial={{ transform: 'scale(.9)' }}
-              animate={{ transform: 'scale(1)' }}
+              whileInView={{ transform: 'scale(1)' }}
+              viewport={{ once: true }}
               transition={{ duration: 0.3 }}
             />
           ))}
@@ -128,7 +129,7 @@ function Menu() {
           className="absolute left-1 top-1/2 -translate-y-1/2 transform cursor-pointer rounded-full bg-zinc-800/90 p-1 mix-blend-luminosity"
           onClick={() => handleNavigate('prev')}
           initial={{ transform: 'translateX(15px)' }}
-          animate={{ transform: 'translateX(0)' }}
+          whileInView={{ transform: 'translateX(0)' }}
           transition={{ duration: 0.3 }}
         >
           <ChevronLeft size={24} className="text-white" />
@@ -137,7 +138,7 @@ function Menu() {
           className="absolute right-1 top-1/2 -translate-y-1/2 transform cursor-pointer  rounded-full bg-zinc-800/90 p-1 mix-blend-luminosity"
           onClick={() => handleNavigate('next')}
           initial={{ transform: 'translateX(-15px)' }}
-          animate={{ transform: 'translateX(0)' }}
+          whileInView={{ transform: 'translateX(0)' }}
           transition={{ duration: 0.3 }}
         >
           <ChevronRight size={24} className="text-zinc-100" />
@@ -146,7 +147,7 @@ function Menu() {
       <motion.div
         className="relative flex h-full min-h-0 w-full flex-1 justify-center"
         initial={{ transform: 'scale(.95)' }}
-        animate={{ transform: 'scale(1)' }}
+        whileInView={{ transform: 'scale(1)' }}
         transition={{ duration: 0.3 }}
       >
         <img
@@ -173,7 +174,7 @@ function Menu() {
               {mutationStatus === 'pending' && (
                 <motion.span
                   initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  whileInView={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
                   key="loader"
@@ -188,7 +189,7 @@ function Menu() {
                 <motion.span
                   className="text-orange-100"
                   initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  whileInView={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
                   key="success"
@@ -199,7 +200,7 @@ function Menu() {
               {mutationStatus === 'idle' && (
                 <motion.span
                   initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  whileInView={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
                   key="idle"
