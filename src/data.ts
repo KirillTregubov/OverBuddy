@@ -120,7 +120,9 @@ export const useSetupErrorMutation = ({
 export const Background = z.object({
   id: z.string(),
   image: z.string(),
-  name: z.string()
+  name: z.string(),
+  description: z.string(),
+  tags: z.array(z.string())
 })
 export type Background = z.infer<typeof Background>
 

@@ -72,3 +72,26 @@
   background-color: royalblue; /* Assuming $royalblue is a variable */
   border: 15px solid magenta;
 }
+
+/* Fade in */
+.underline-fade-in::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0.75rem; /* Adjusted to make it smaller on the left */
+  right: 0.75rem; /* Adjusted to make it smaller on the right */
+  width: calc(100% - 1.5rem); /* Adjusted to maintain full width */
+  height: 0.1rem;
+  background-color: white;
+  border-radius: 9999px;
+  opacity: 0;
+  transition:
+    opacity 300ms,
+    transform 300ms;
+}
+
+.underline-fade-in:hover::after,
+.underline-fade-in:focus-visible::after {
+  opacity: 1;
+  transform: translate3d(0, 0.2em, 0);
+}

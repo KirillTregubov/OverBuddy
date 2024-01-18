@@ -8,7 +8,7 @@ import {
   ChevronRight,
   Loader2Icon
   // LoaderIcon
-  // HeartIcon,
+  // HeartIcon //,
   // SettingsIcon
 } from 'lucide-react'
 
@@ -107,13 +107,20 @@ function Menu() {
             <motion.button
               key={background.id}
               className={clsx(
-                'aspect-video shadow-lg transition-[width,height,box-shadow,transform] hover:!scale-105',
+                'aspect-video shadow-lg transition-[width,height,box-shadow]',
                 activeBackground.id === background.id
-                  ? 'h-36 w-64 shadow-orange-600/20 hover:!scale-[1.04]'
-                  : 'h-28 w-52 shadow-orange-600/10 hover:shadow-orange-600/20'
+                  ? 'h-36 w-64 rounded-xl shadow-orange-600/20'
+                  : 'h-28 w-52 rounded-lg shadow-orange-600/10 hover:shadow-orange-600/20'
               )}
               initial={{ transform: 'scale(.9)' }}
               whileInView={{ transform: 'scale(1)' }}
+              whileHover={{
+                transform:
+                  activeBackground.id === background.id
+                    ? 'scale(1.04)'
+                    : 'scale(1.05)',
+                transition: { duration: 0.2 }
+              }}
               viewport={{ once: true }}
               transition={{ duration: 0.3 }}
               tabIndex={-1}
@@ -132,33 +139,47 @@ function Menu() {
                 onClick={() => handleSelect(index)}
                 onError={onImageError}
               />
+              <h1
+                className={clsx(
+                  'absolute bottom-0 left-0 right-0 transform-gpu select-none truncate text-ellipsis bg-gradient-to-t from-zinc-950/50 to-transparent p-1 text-center font-bold text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] transition-[font-size] will-change-transform',
+                  activeBackground.id === background.id
+                    ? 'rounded-b-xl text-sm'
+                    : 'rounded-b-lg py-1.5 text-xs'
+                )}
+              >
+                {background.name}
+              </h1>
             </motion.button>
           ))}
         </div>
         <motion.div
-          className="absolute left-1 top-1/2 -mt-3.5 -translate-y-1/2 overflow-visible"
+          className="absolute left-1 top-1/2 -mt-4"
           initial={{ transform: 'translateX(15px)' }}
-          whileInView={{ transform: 'translateX(0)' }}
+          animate={{ transform: 'translateX(0px)' }}
           transition={{ duration: 0.3 }}
         >
-          <button
-            className="transform-gpu cursor-pointer select-auto overflow-visible rounded-full bg-zinc-800/90 p-0.5 mix-blend-luminosity ring-1 ring-zinc-800/90 transition-[transform,box-shadow] will-change-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95"
-            onClick={() => handleNavigate('prev')}
-          >
-            <ChevronLeft size={24} className="text-white" />
+          <button className="group rounded-full transition-transform will-change-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none active:scale-95">
+            <div
+              className="rounded-full bg-zinc-800/70 p-1 backdrop-blur transition-[box-shadow] group-focus-visible:ring-2 group-focus-visible:ring-white"
+              onClick={() => handleNavigate('prev')}
+            >
+              <ChevronLeft size={24} className="text-white" />
+            </div>
           </button>
         </motion.div>
         <motion.div
-          className="absolute right-1 top-1/2 -mt-4 -translate-y-1/2"
-          initial={{ transform: 'translateX(15px)' }}
-          whileInView={{ transform: 'translateX(0)' }}
+          className="absolute right-1 top-1/2 -mt-4"
+          initial={{ transform: 'translateX(-15px)' }}
+          animate={{ transform: 'translateX(0px)' }}
           transition={{ duration: 0.3 }}
         >
-          <button
-            className="transform-gpu cursor-pointer select-auto overflow-visible rounded-full bg-zinc-800/90 p-0.5 mix-blend-luminosity ring-1 ring-zinc-800/90 transition-[transform,box-shadow] will-change-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95"
-            onClick={() => handleNavigate('next')}
-          >
-            <ChevronRight size={24} className="text-white" />
+          <button className="group rounded-full transition-transform will-change-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none active:scale-95">
+            <div
+              className="rounded-full bg-zinc-800/70 p-1 backdrop-blur transition-[box-shadow] group-focus-visible:ring-2 group-focus-visible:ring-white"
+              onClick={() => handleNavigate('next')}
+            >
+              <ChevronRight size={24} className="text-white" />
+            </div>
           </button>
         </motion.div>
       </div>
@@ -174,8 +195,15 @@ function Menu() {
           src={`/backgrounds/${activeBackground.image}`}
           onError={onImageError}
         />
-        <div className="absolute bottom-0 flex w-full items-center gap-4 bg-gradient-to-b from-transparent to-zinc-950/50 to-25% p-4 pt-8">
-          {/* <button className="group ml-auto rounded-full border-2 border-orange-900/50 bg-orange-950 p-3.5 text-orange-100 shadow-md ring-white transition-[border-color,transform,fill] will-change-transform hover:scale-105 hover:border-white focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 active:scale-95 active:border-orange-200 active:ring-orange-200">
+        <div className="absolute bottom-0 flex w-full items-center gap-5 bg-gradient-to-b from-transparent to-zinc-950/50 to-25% p-4 pt-8">
+          <div className="flex select-none flex-col">
+            <h1 className="text-2xl font-bold">{activeBackground.name}</h1>
+            <p className="text-lg">{activeBackground.description}</p>
+          </div>
+          <button className="underline-fade-in after relative ml-auto select-none px-3 py-2 text-center text-lg font-medium uppercase tracking-wider transition-transform will-change-transform after:bottom-3 after:bg-zinc-200 hover:scale-105 hover:text-zinc-200 focus-visible:scale-105 focus-visible:text-zinc-200 focus-visible:outline-none active:scale-95">
+            Reset to Default
+          </button>
+          {/* <button className="group rounded-full border-2 border-orange-900/50 bg-orange-950 p-3.5 text-orange-100 shadow-md ring-white transition-[border-color,transform,fill] will-change-transform hover:scale-105 hover:border-white focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 active:scale-95 active:border-orange-200 active:ring-orange-200">
             <HeartIcon
               size={24}
               className="fill-transparent transition-colors group-hover:fill-current group-focus-visible:fill-current group-active:fill-orange-200 group-active:stroke-orange-200"
@@ -183,7 +211,7 @@ function Menu() {
           </button> */}
           <button
             className={clsx(
-              'ml-auto w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 py-3 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-orange-50 transition-[border-color,transform,border-radius] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-orange-50 focus-visible:scale-105 focus-visible:border-orange-50 focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:pointer-events-none'
+              'w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 py-3 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-orange-50 transition-[border-color,transform,border-radius] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-orange-50 focus-visible:scale-105 focus-visible:border-orange-50 focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:pointer-events-none'
             )}
             onClick={() => mutate({ id: activeBackground.id })}
             disabled={mutationStatus === 'success'}
