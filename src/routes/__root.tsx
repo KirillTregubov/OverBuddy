@@ -19,11 +19,9 @@ export const Route = rootRouteWithContext<{
     if (location.pathname !== '/') {
       return
     }
-    console.log('root fetch')
     const { is_setup } = await queryClient
       .fetchQuery(launchQueryOptions)
       .catch((error) => {
-        console.log(error)
         if (typeof error === 'string') {
           error = Error(error)
         }
@@ -55,7 +53,15 @@ function RootComponent() {
   return (
     <div className="h-screen max-h-screen">
       <Outlet />
-      <Toaster richColors />
+      <Toaster
+        position="bottom-left"
+        richColors
+        toastOptions={{
+          classNames: {
+            toast: 'select-none'
+          }
+        }}
+      />
     </div>
   )
 }

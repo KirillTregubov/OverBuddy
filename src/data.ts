@@ -1,6 +1,13 @@
 import { queryOptions, useMutation } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api'
+import { toast } from 'sonner'
 import { z } from 'zod'
+
+const handleError = (error: unknown) => {
+  if (error instanceof Error) error = error.message
+  if (typeof error !== 'string') error = 'An unknown error occurred.'
+  toast.error(error as string)
+}
 
 const LaunchConfig = z.object({
   is_setup: z.boolean(),
@@ -21,9 +28,12 @@ export const launchQueryOptions = queryOptions({
   }
 })
 
+const ConfigErrors = z.enum(['BattleNetConfig', 'BattleNetInstall'])
+export type ConfigErrors = z.infer<typeof ConfigErrors>
+
 const ConfigErrorSchema = z.object({
   message: z.string(),
-  error_key: z.enum(['NoOverwatch', 'BattleNetConfig', 'BattleNetInstall'])
+  error_key: ConfigErrors.or(z.enum(['NoOverwatch']))
 })
 export type ConfigErrorSchema = z.infer<typeof ConfigErrorSchema>
 
@@ -72,6 +82,19 @@ export const useSetupMutation = ({
     },
     onError,
     onSuccess
+  })
+
+export const getSetupDirectory = (key: ConfigErrors) =>
+  queryOptions({
+    queryKey: ['directory', key],
+    queryFn: async () => {
+      try {
+        return (await invoke('get_setup_path', { key })) as string
+      } catch (error) {
+        handleError(error)
+      }
+      throw new Error('Failed to get directory')
+    }
   })
 
 export const useSetupErrorMutation = ({
@@ -141,12 +164,36 @@ export const backgroundsQueryOptions = queryOptions({
   }
 })
 
-export const useBackgroundsMutation = () =>
+export const useBackgroundMutation = ({
+  onError
+}: {
+  onError?: (error: Error) => void
+} = {}) =>
   useMutation({
-    mutationFn: (background: { id: string }) => {
-      return invoke('set_background', background)
+    mutationFn: async (background: { id: string }) => {
+      return (await invoke('set_background', background)) as void
     },
     onError: (error) => {
-      console.error(error)
+      handleError(error)
+      onError?.(error)
     }
+  })
+
+export const useResetBackgroundMutation = ({
+  onSuccess,
+  onSettled
+}: {
+  onSuccess?: () => void
+  onSettled?: () => void
+} = {}) =>
+  useMutation({
+    mutationFn: async () => {
+      return (await invoke('reset_background')) as void
+    },
+    onError: (error) => handleError(error),
+    onSuccess: () => {
+      toast.success('Reset to default background.')
+      onSuccess?.()
+    },
+    onSettled
   })

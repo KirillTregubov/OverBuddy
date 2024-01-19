@@ -13,9 +13,10 @@ import {
 } from 'lucide-react'
 
 import {
-  useBackgroundsMutation,
+  useBackgroundMutation,
   backgroundsQueryOptions,
-  launchQueryOptions
+  launchQueryOptions,
+  useResetBackgroundMutation
 } from '../data'
 import placeholder from '../assets/placeholder.svg'
 
@@ -23,7 +24,6 @@ export const Route = new FileRoute('/menu').createRoute({
   loader: ({ context: { queryClient } }) =>
     queryClient.ensureQueryData(backgroundsQueryOptions),
   beforeLoad: async ({ context: { queryClient } }) => {
-    console.log('loaded menu')
     const { is_setup } = await queryClient.fetchQuery(launchQueryOptions)
     if (!is_setup) {
       throw redirect({ to: '/setup' })
@@ -43,10 +43,26 @@ function Menu() {
     data
   } = useSuspenseQuery(backgroundsQueryOptions)
   const {
-    status: mutationStatus,
-    mutate,
-    reset: resetMutation
-  } = useBackgroundsMutation()
+    status: setStatus,
+    mutate: setBackground,
+    reset: resetSetBackground
+  } = useBackgroundMutation({
+    onError: () => {
+      resetSetBackground()
+    }
+  })
+  const {
+    status: resetStatus,
+    mutate: resetBackground,
+    reset
+  } = useResetBackgroundMutation({
+    onSuccess: () => {
+      resetSetBackground()
+    },
+    onSettled: () => {
+      reset()
+    }
+  })
 
   const [activeBackground, setActiveBackground] = useState(data[0])
   const backgroundRefs = useRef<HTMLImageElement[]>([])
@@ -60,7 +76,7 @@ function Menu() {
     if (!ref || ref.id === activeBackground?.id) return
 
     setActiveBackground(data[index])
-    resetMutation()
+    resetSetBackground()
     if (ref) {
       ref.scrollIntoView({
         behavior: 'smooth',
@@ -121,6 +137,10 @@ function Menu() {
                     : 'scale(1.05)',
                 transition: { duration: 0.2 }
               }}
+              whileTap={{
+                transform: 'scale(1)',
+                transition: { duration: 0.2 }
+              }}
               viewport={{ once: true }}
               transition={{ duration: 0.3 }}
               tabIndex={-1}
@@ -138,6 +158,7 @@ function Menu() {
                 ref={(el) => (backgroundRefs.current[index] = el!)}
                 onClick={() => handleSelect(index)}
                 onError={onImageError}
+                draggable="false"
               />
               <h1
                 className={clsx(
@@ -158,11 +179,11 @@ function Menu() {
           animate={{ transform: 'translateX(0px)' }}
           transition={{ duration: 0.3 }}
         >
-          <button className="group rounded-full transition-transform will-change-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none active:scale-95">
-            <div
-              className="rounded-full bg-zinc-800/70 p-1 backdrop-blur transition-[box-shadow] group-focus-visible:ring-2 group-focus-visible:ring-white"
-              onClick={() => handleNavigate('prev')}
-            >
+          <button
+            className="group rounded-full transition-transform will-change-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none active:scale-95"
+            onClick={() => handleNavigate('prev')}
+          >
+            <div className="rounded-full bg-zinc-800/70 p-1 backdrop-blur transition-[box-shadow] group-focus-visible:ring-2 group-focus-visible:ring-white">
               <ChevronLeft size={24} className="text-white" />
             </div>
           </button>
@@ -173,11 +194,11 @@ function Menu() {
           animate={{ transform: 'translateX(0px)' }}
           transition={{ duration: 0.3 }}
         >
-          <button className="group rounded-full transition-transform will-change-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none active:scale-95">
-            <div
-              className="rounded-full bg-zinc-800/70 p-1 backdrop-blur transition-[box-shadow] group-focus-visible:ring-2 group-focus-visible:ring-white"
-              onClick={() => handleNavigate('next')}
-            >
+          <button
+            className="group rounded-full transition-transform will-change-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none active:scale-95"
+            onClick={() => handleNavigate('next')}
+          >
+            <div className="rounded-full bg-zinc-800/70 p-1 backdrop-blur transition-[box-shadow] group-focus-visible:ring-2 group-focus-visible:ring-white">
               <ChevronRight size={24} className="text-white" />
             </div>
           </button>
@@ -194,14 +215,49 @@ function Menu() {
           className="h-full w-[61rem] select-none rounded-lg object-cover" //w-[55rem]
           src={`/backgrounds/${activeBackground.image}`}
           onError={onImageError}
+          draggable="false"
         />
         <div className="absolute bottom-0 flex w-full items-center gap-5 bg-gradient-to-b from-transparent to-zinc-950/50 to-25% p-4 pt-8">
           <div className="flex select-none flex-col">
             <h1 className="text-2xl font-bold">{activeBackground.name}</h1>
             <p className="text-lg">{activeBackground.description}</p>
           </div>
-          <button className="underline-fade-in after relative ml-auto select-none px-3 py-2 text-center text-lg font-medium uppercase tracking-wider transition-transform will-change-transform after:bottom-3 after:bg-zinc-200 hover:scale-105 hover:text-zinc-200 focus-visible:scale-105 focus-visible:text-zinc-200 focus-visible:outline-none active:scale-95">
-            Reset to Default
+          <button
+            className={clsx(
+              'relative ml-auto h-14 w-48 select-none text-center text-lg font-medium uppercase tracking-wider transition-[color,transform] will-change-transform hover:text-zinc-300 focus-visible:text-zinc-300 focus-visible:outline-none active:scale-95 disabled:pointer-events-none',
+              resetStatus === 'idle' &&
+                'underline-fade-in after:bottom-4 after:left-3 after:right-3 after:w-[calc(100%-1.5rem)] after:bg-zinc-300'
+            )}
+            onClick={() => {
+              if (resetStatus === 'pending') return
+              resetBackground()
+            }}
+            disabled={resetStatus !== 'idle'}
+          >
+            <AnimatePresence mode="wait">
+              {resetStatus === 'pending' || resetStatus === 'success' ? (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  key="loader"
+                  className=""
+                >
+                  <Loader2Icon className="mx-auto animate-spin" size={28} />
+                </motion.span>
+              ) : (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  key="idle"
+                >
+                  Reset to Default
+                </motion.span>
+              )}
+            </AnimatePresence>
           </button>
           {/* <button className="group rounded-full border-2 border-orange-900/50 bg-orange-950 p-3.5 text-orange-100 shadow-md ring-white transition-[border-color,transform,fill] will-change-transform hover:scale-105 hover:border-white focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 active:scale-95 active:border-orange-200 active:ring-orange-200">
             <HeartIcon
@@ -210,14 +266,12 @@ function Menu() {
             />
           </button> */}
           <button
-            className={clsx(
-              'w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 py-3 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-orange-50 transition-[border-color,transform,border-radius] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-orange-50 focus-visible:scale-105 focus-visible:border-orange-50 focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:pointer-events-none'
-            )}
-            onClick={() => mutate({ id: activeBackground.id })}
-            disabled={mutationStatus === 'success'}
+            className="h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 py-3 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-orange-50 transition-[border-color,transform,border-radius] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-orange-50 focus-visible:scale-105 focus-visible:border-orange-50 focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:pointer-events-none"
+            onClick={() => setBackground({ id: activeBackground.id })}
+            disabled={setStatus !== 'idle'}
           >
             <AnimatePresence mode="wait">
-              {mutationStatus === 'pending' && (
+              {setStatus === 'pending' || setStatus === 'error' ? (
                 <motion.span
                   initial={{ opacity: 0 }}
                   whileInView={{ opacity: 1 }}
@@ -230,8 +284,7 @@ function Menu() {
                     size={28}
                   />
                 </motion.span>
-              )}
-              {mutationStatus === 'success' && (
+              ) : setStatus === 'success' ? (
                 <motion.span
                   className="text-orange-100"
                   initial={{ opacity: 0 }}
@@ -242,8 +295,7 @@ function Menu() {
                 >
                   Applied
                 </motion.span>
-              )}
-              {mutationStatus === 'idle' && (
+              ) : (
                 <motion.span
                   initial={{ opacity: 0 }}
                   whileInView={{ opacity: 1 }}

@@ -1,6 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod backgrounds;
+
 use serde::Serialize;
 use serde_json::json;
 use serde_json::Serializer;
@@ -9,6 +11,8 @@ use std::fs;
 use std::io::Read;
 use std::path::Path;
 use std::process::Command;
+use std::thread;
+use std::time::Duration;
 use sysinfo::System;
 use tauri::AppHandle;
 use tauri::Manager;
@@ -27,7 +31,6 @@ enum Error {
     Custom(String),
 }
 
-// we must manually implement serde::Serialize
 impl serde::Serialize for Error {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -37,23 +40,13 @@ impl serde::Serialize for Error {
     }
 }
 
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-// #[tauri::command]
-// fn greet(name: &str) -> String {
-//     format!("Hello, {}! You've been greeted from Rust!", name)
-// }
-
 fn display_path_string(path: &std::path::PathBuf) -> Result<String, Error> {
     dunce::canonicalize(&path)
         .map(|canonicalized| canonicalized.display().to_string())
-        .map_err(|err| {
-            let result = format!("Error processing path: {:?}", err);
-            // eprintln!("{}", result);
-            Error::Custom(result)
-        })
+        .map_err(|err| Error::Custom(format!("Error processing path: {:?}", err)))
 }
 
-fn close_battle_net() -> Result<bool, Error> {
+fn close_battle_net() -> bool {
     let mut flag = false;
     let system = System::new_all();
     for process in system.processes_by_name("Battle.net.exe") {
@@ -62,7 +55,7 @@ fn close_battle_net() -> Result<bool, Error> {
         }
     }
 
-    Ok(flag)
+    return flag;
 }
 
 // fn is_battle_net_running() -> Result<bool, Error> {
@@ -76,7 +69,7 @@ fn close_battle_net() -> Result<bool, Error> {
 
 #[tauri::command]
 fn mounted(window: Window) {
-    std::thread::sleep(std::time::Duration::from_millis(500));
+    thread::sleep(Duration::from_millis(500));
     let window = window.get_window("main").unwrap();
     window.show().unwrap();
     window.set_focus().unwrap();
@@ -105,8 +98,10 @@ fn read_config(handle: &AppHandle) -> Result<Config, Error> {
         match fs::create_dir_all(&app_local_data_dir) {
             Ok(_) => {}
             Err(_) => {
-                let result = format!("Failed to create directory: {:?}", app_local_data_dir);
-                return Err(Error::Custom(result));
+                return Err(Error::Custom(format!(
+                    "Failed to create directory: {:?}",
+                    app_local_data_dir
+                )));
             }
         }
     }
@@ -117,9 +112,10 @@ fn read_config(handle: &AppHandle) -> Result<Config, Error> {
         match fs::File::create(&config_file_path) {
             Ok(_) => {}
             Err(_) => {
-                let result = format!("Failed to create file: {:?}", config_file_path);
-                // eprintln!("{}", result);
-                return Err(Error::Custom(result));
+                return Err(Error::Custom(format!(
+                    "Failed to create file: {:?}",
+                    config_file_path
+                )));
             }
         }
     }
@@ -151,9 +147,10 @@ fn write_config(handle: &AppHandle, config: &Config) -> Result<(), Error> {
         match fs::create_dir_all(&app_local_data_dir) {
             Ok(_) => {}
             Err(_) => {
-                let result = format!("Failed to create directory: {:?}", app_local_data_dir);
-                // eprintln!("{}", result);
-                return Err(Error::Custom(result));
+                return Err(Error::Custom(format!(
+                    "Failed to create directory: {:?}",
+                    app_local_data_dir
+                )));
             }
         }
     }
@@ -164,21 +161,28 @@ fn write_config(handle: &AppHandle, config: &Config) -> Result<(), Error> {
         match fs::File::create(&config_file_path) {
             Ok(_) => {}
             Err(_) => {
-                let result = format!("Failed to create file: {:?}", config_file_path);
-                // eprintln!("{}", result);
-                return Err(Error::Custom(result));
+                return Err(Error::Custom(format!(
+                    "Failed to create file: {:?}",
+                    config_file_path
+                )));
             }
         }
     }
 
     // Write config
-    let serialized_config = serde_json::to_string(&config)?;
+    let serialized_config = match serde_json::to_string(&config) {
+        Ok(json) => json,
+        Err(_) => {
+            return Err(Error::Custom(format!("Failed to serialize config.")));
+        }
+    };
     match fs::write(&config_file_path, &serialized_config) {
         Ok(_) => {}
         Err(_) => {
-            let result = format!("Failed to write to file: {:?}", config_file_path);
-            // eprintln!("{}", result);
-            return Err(Error::Custom(result));
+            return Err(Error::Custom(format!(
+                "Failed to write to file: {:?}",
+                config_file_path
+            )));
         }
     }
 
@@ -209,32 +213,26 @@ struct SetupError {
 fn fetch_battle_net_config(handle: &AppHandle) -> Result<String, Error> {
     let app_data_dir = handle.path_resolver().app_data_dir().unwrap();
     let resource_path = app_data_dir.join("../Battle.net");
-    let target_file_name = "Battle.net.config";
+    static CONFIG_FILE: &str = "Battle.net.config";
 
     // Check if the target file exists in the directory
     if let Ok(entries) = fs::read_dir(&resource_path) {
         if let Some(target_entry) = entries
             .filter_map(|entry| entry.ok()) // Filter out errors
-            .find(|entry| entry.file_name().to_string_lossy() == target_file_name)
+            .find(|entry| entry.file_name().to_string_lossy() == CONFIG_FILE)
         {
             let display_path = display_path_string(&target_entry.path())?;
             return Ok(display_path);
         } else {
             let display_path = display_path_string(&resource_path)?;
-            let result = format!(
-                "Unable to find \"{}\" in {}.",
-                target_file_name, display_path
-            );
-
             return Err(Error::Custom(serde_json::to_string(&SetupError {
-                message: result,
+                message: format!("Unable to find \"{}\" in {}.", CONFIG_FILE, display_path),
                 error_key: ErrorKey::BattleNetConfig,
             })?));
         }
     } else {
-        let result = format!("Failed to find Battle.net AppData directory.");
         return Err(Error::Custom(serde_json::to_string(&SetupError {
-            message: result,
+            message: format!("Failed to find Battle.net AppData directory."),
             error_key: ErrorKey::BattleNetConfig,
         })?));
     }
@@ -244,6 +242,22 @@ fn fetch_battle_net_config(handle: &AppHandle) -> Result<String, Error> {
 fn setup(handle: AppHandle) -> Result<String, Error> {
     let mut config = read_config(&handle)?;
 
+    // Check if Battle.net is installed
+    static LAUNCHER_PATH: &str = "Battle.net\\Battle.net Launcher.exe";
+    if let Some(program_files_dir) = env::var_os("programfiles(x86)") {
+        let battle_net_install = Path::new(program_files_dir.to_str().unwrap()).join(LAUNCHER_PATH);
+        if battle_net_install.exists() {
+            config.battle_net_install = Some(battle_net_install.to_string_lossy().to_string());
+        }
+    }
+    if config.battle_net_install.is_none() {
+        return Err(Error::Custom(serde_json::to_string(&SetupError {
+            message: "Failed to find Battle.net Launcher.".to_string(),
+            error_key: ErrorKey::BattleNetInstall,
+        })?));
+    }
+
+    // Check if Battle.net config exists
     let battle_net_config = match &config.battle_net_config {
         Some(battle_net_config) => battle_net_config.clone(),
         None => {
@@ -252,8 +266,7 @@ fn setup(handle: AppHandle) -> Result<String, Error> {
             battle_net_config
         }
     };
-    // let battle_net_config = fetch_battle_net_config(&handle)?;
-    // config.battle_net_config = Some(battle_net_config.clone());
+
     let mut file = fs::OpenOptions::new()
         .read(true)
         .open(battle_net_config.clone())?;
@@ -293,20 +306,6 @@ fn setup(handle: AppHandle) -> Result<String, Error> {
         json.serialize(&mut serializer)?;
     }
 
-    let relative_path = "Battle.net\\Battle.net Launcher.exe";
-    if let Some(program_files_dir) = env::var_os("programfiles(x86)") {
-        let battle_net_install = Path::new(program_files_dir.to_str().unwrap()).join(relative_path);
-        if battle_net_install.exists() {
-            config.battle_net_install = Some(battle_net_install.to_string_lossy().to_string());
-        }
-    }
-    if config.battle_net_install.is_none() {
-        return Err(Error::Custom(serde_json::to_string(&SetupError {
-            message: "Failed to find Battle.net Launcher.".to_string(),
-            error_key: ErrorKey::BattleNetInstall,
-        })?));
-    }
-
     config.is_setup = true;
     write_config(&handle, &config)?;
 
@@ -335,29 +334,86 @@ fn resolve_setup_error(handle: AppHandle, key: &str, path: &str) -> Result<Strin
 }
 
 #[tauri::command]
-fn get_program_data() -> Result<String, Error> {
-    if let Some(program_files_dir) = env::var_os("programfiles(x86)") {
-        return Ok(program_files_dir.to_str().unwrap().to_string());
+fn get_setup_path(key: &str, handle: AppHandle) -> Result<String, Error> {
+    if key == "BattleNetConfig" {
+        let app_data_dir = handle.path_resolver().app_data_dir().unwrap();
+        let resource_path = app_data_dir.join("../Battle.net");
+
+        return Ok(display_path_string(&resource_path)?);
     }
 
-    return Err(Error::Custom(format!(
-        "Failed to find program files directory."
-    )));
+    if key == "BattleNetInstall" {
+        if let Some(path) = env::var_os("programfiles(x86)") {
+            let path = Path::new(path.to_str().unwrap()).join("Battle.net");
+            return Ok(path.to_string_lossy().to_string());
+        }
+
+        return Err(Error::Custom(format!(
+            "Failed to find the \"Program Files (x86)\" directory."
+        )));
+    }
+
+    return Err(Error::Custom(format!("Incorrect directory key.")));
 }
+
+#[tauri::command]
+fn get_backgrounds() -> String {
+    let backgrounds = backgrounds::get_backgrounds();
+    let json_result = serde_json::to_string(&backgrounds).unwrap();
+    return json_result;
+}
+
+// fn update_background
 
 #[tauri::command]
 fn set_background(handle: AppHandle, id: &str) -> Result<(), Error> {
     let config = read_config(&handle)?;
-    let battle_net_was_closed = close_battle_net()?;
-
+    let battle_net_was_closed = close_battle_net();
     let battle_net_config = config.battle_net_config.unwrap();
 
-    let mut file = fs::OpenOptions::new()
+    let cleanup = || {
+        if battle_net_was_closed {
+            Command::new(config.battle_net_install.unwrap())
+                .spawn()
+                .ok();
+        }
+    };
+
+    let mut file = match fs::OpenOptions::new()
         .read(true)
-        .open(battle_net_config.clone())?;
+        .open(battle_net_config.clone())
+    {
+        Ok(file) => file,
+        Err(_) => {
+            cleanup();
+            return Err(Error::Custom(format!(
+                "Failed to open Battle.net.config file at {}",
+                battle_net_config
+            )));
+        }
+    };
     let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-    let mut json: serde_json::Value = serde_json::from_str(&contents)?;
+    match file.read_to_string(&mut contents) {
+        Ok(_) => {}
+        Err(_) => {
+            cleanup();
+            return Err(Error::Custom(format!(
+                "Failed to read Battle.net.config file at {}",
+                battle_net_config
+            )));
+        }
+    }
+
+    let mut json: serde_json::Value = match serde_json::from_str(&contents) {
+        Ok(json) => json,
+        Err(_) => {
+            cleanup();
+            return Err(Error::Custom(format!(
+                "Failed to parse Battle.net.config file at {}",
+                battle_net_config
+            )));
+        }
+    };
 
     let launch_args = json["Games"]["prometheus"]["AdditionalLaunchArguments"]
         .as_str()
@@ -383,38 +439,139 @@ fn set_background(handle: AppHandle, id: &str) -> Result<(), Error> {
 
     json["Games"]["prometheus"]["AdditionalLaunchArguments"] = json!(launch_args);
 
-    let mut file = fs::OpenOptions::new()
+    let mut file = match fs::OpenOptions::new()
         .write(true)
         .truncate(true)
-        .open(battle_net_config.clone())?;
+        .open(battle_net_config.clone())
+    {
+        Ok(file) => file,
+        Err(_) => {
+            cleanup();
+            return Err(Error::Custom(format!(
+                "Failed to open Battle.net.config file at {}",
+                battle_net_config
+            )));
+        }
+    };
 
     let pretty_formatter = serde_json::ser::PrettyFormatter::with_indent(b"    ");
     let mut serializer = Serializer::with_formatter(&mut file, pretty_formatter);
-    json.serialize(&mut serializer)?;
+    match json.serialize(&mut serializer) {
+        Ok(_) => {}
+        Err(_) => {
+            cleanup();
+            return Err(Error::Custom(format!(
+                "Failed to write to Battle.net.config file at {}",
+                battle_net_config
+            )));
+        }
+    };
 
-    if battle_net_was_closed {
-        Command::new(config.battle_net_install.unwrap())
-            .spawn()
-            .ok();
-    }
-
+    cleanup();
     return Ok(());
 }
 
-mod backgrounds;
-
-// #[derive(serde::Serialize)]
-// struct Background {
-//     id: String,
-//     image: String,
-//     name: String,
-// }
-
 #[tauri::command]
-fn get_backgrounds() -> String {
-    let backgrounds = backgrounds::get_backgrounds();
-    let json_result = serde_json::to_string(&backgrounds).unwrap();
-    return json_result;
+fn reset_background(handle: AppHandle) -> Result<(), Error> {
+    let config = read_config(&handle)?;
+    let battle_net_was_closed = close_battle_net();
+    let battle_net_config = config.battle_net_config.unwrap();
+
+    let cleanup = || {
+        if battle_net_was_closed {
+            Command::new(config.battle_net_install.unwrap())
+                .spawn()
+                .ok();
+        }
+    };
+
+    let mut file = match fs::OpenOptions::new()
+        .read(true)
+        .open(battle_net_config.clone())
+    {
+        Ok(file) => file,
+        Err(_) => {
+            cleanup();
+            return Err(Error::Custom(format!(
+                "Failed to open Battle.net.config file at {}",
+                battle_net_config
+            )));
+        }
+    };
+    let mut contents = String::new();
+    match file.read_to_string(&mut contents) {
+        Ok(_) => {}
+        Err(_) => {
+            cleanup();
+            return Err(Error::Custom(format!(
+                "Failed to read Battle.net.config file at {}",
+                battle_net_config
+            )));
+        }
+    }
+
+    let mut json: serde_json::Value = match serde_json::from_str(&contents) {
+        Ok(json) => json,
+        Err(_) => {
+            cleanup();
+            return Err(Error::Custom(format!(
+                "Failed to parse Battle.net.config file at {}",
+                battle_net_config
+            )));
+        }
+    };
+
+    let launch_args = json["Games"]["prometheus"]["AdditionalLaunchArguments"]
+        .as_str()
+        .map(|s| s.to_string());
+    let launch_args: String = match launch_args {
+        Some(arguments) => {
+            let filtered_args = arguments
+                .split_whitespace()
+                .filter(|&part| !part.starts_with("--lobbyMap"))
+                .collect::<Vec<&str>>()
+                .join(" ");
+
+            filtered_args
+        }
+        None => {
+            cleanup();
+            return Ok(());
+        }
+    };
+
+    json["Games"]["prometheus"]["AdditionalLaunchArguments"] = json!(launch_args);
+
+    let mut file = match fs::OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .open(battle_net_config.clone())
+    {
+        Ok(file) => file,
+        Err(_) => {
+            cleanup();
+            return Err(Error::Custom(format!(
+                "Failed to open Battle.net.config file at {}",
+                battle_net_config
+            )));
+        }
+    };
+
+    let pretty_formatter = serde_json::ser::PrettyFormatter::with_indent(b"    ");
+    let mut serializer = Serializer::with_formatter(&mut file, pretty_formatter);
+    match json.serialize(&mut serializer) {
+        Ok(_) => {}
+        Err(_) => {
+            cleanup();
+            return Err(Error::Custom(format!(
+                "Failed to write to Battle.net.config file at {}",
+                battle_net_config
+            )));
+        }
+    };
+
+    cleanup();
+    return Ok(());
 }
 
 fn main() {
@@ -438,10 +595,11 @@ fn main() {
             mounted,
             get_launch_config,
             setup,
+            get_setup_path,
             resolve_setup_error,
-            get_program_data,
+            get_backgrounds,
             set_background,
-            get_backgrounds
+            reset_background
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

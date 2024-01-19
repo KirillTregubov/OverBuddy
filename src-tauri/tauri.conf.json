@@ -15,9 +15,6 @@
         "all": false,
         "open": true
       },
-      "path": {
-        "all": true
-      },
       "dialog": {
         "open": true
       }

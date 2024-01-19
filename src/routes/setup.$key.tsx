@@ -1,12 +1,25 @@
 import { FileRoute, useNavigate } from '@tanstack/react-router'
 import { open } from '@tauri-apps/api/dialog'
-import { ConfigError, ConfigErrorSchema, useSetupErrorMutation } from '../data'
-import { appDataDir } from '@tauri-apps/api/path'
+import {
+  ConfigError,
+  ConfigErrors,
+  getSetupDirectory,
+  useSetupErrorMutation
+} from '../data'
 import { toast } from 'sonner'
-import { invoke } from '@tauri-apps/api'
 import { motion } from 'framer-motion'
+import { useSuspenseQuery } from '@tanstack/react-query'
 
 export const Route = new FileRoute('/setup/$key').createRoute({
+  loader: ({ params: { key }, context: { queryClient } }) => {
+    if (key !== 'BattleNetConfig' && key !== 'BattleNetInstall') {
+      throw Error('Invalid key')
+    }
+    queryClient.ensureQueryData(getSetupDirectory(key))
+  },
+  staleTime: Infinity,
+  // TODO: Design loading component
+  pendingComponent: () => <div>Loading...</div>,
   component: ConfigureComponent
 })
 
@@ -30,7 +43,9 @@ const item = {
 
 function ConfigureComponent() {
   const navigate = useNavigate()
-  const { key } = Route.useParams() as { key: ConfigErrorSchema['error_key'] }
+  const { key } = Route.useParams() as { key: ConfigErrors }
+  const { data: defaultPath } = useSuspenseQuery(getSetupDirectory(key))
+  console.log(defaultPath)
 
   const mutation = useSetupErrorMutation({
     onSuccess: async () => {
@@ -67,7 +82,7 @@ function ConfigureComponent() {
       initial="hidden"
       animate="show"
     >
-      <motion.h1 className="mb-1 select-none text-lg font-bold" variants={item}>
+      <motion.h1 className="mb-1 select-none text-xl font-bold" variants={item}>
         Something went wrong
       </motion.h1>
       <motion.h2
@@ -83,88 +98,65 @@ function ConfigureComponent() {
             </span>{' '}
             file, which is likely located in{' '}
             <span className="select-all rounded-[0.2rem] bg-zinc-800 px-1.5 py-0.5">
-              %APPDATA%\Battle.net
+              {defaultPath}
             </span>
             .
           </>
         )}
         {key === 'BattleNetInstall' && (
           <>
-            Launcher. Please select the{' '}
-            <span className="select-all rounded-[0.2rem] bg-zinc-800 px-1.5 py-0.5">
-              Battle.net Launcher.exe
-            </span>{' '}
-            file, which is likely located in{' '}
-            <span className="select-all rounded-[0.2rem] bg-zinc-800 px-1.5 py-0.5">
-              %PROGRAMFILES(X86)%\Battle.net
+            Launcher. If you have Overwatch installed through Steam, please wait
+            for a future update.
+            <span className="mt-2 block">
+              If you do have Battle.net installed, please select the{' '}
+              <span className="select-all whitespace-nowrap rounded-[0.2rem] bg-zinc-800 px-1.5 py-0.5">
+                Battle.net Launcher.exe
+              </span>{' '}
+              file, which is likely located in{' '}
+              <span className="select-all whitespace-nowrap rounded-[0.2rem] bg-zinc-800 px-1.5 py-0.5">
+                {defaultPath}
+              </span>
+              .
             </span>
-            .
           </>
         )}
       </motion.h2>
-      {key === 'BattleNetConfig' && (
-        <motion.button
-          className="mt-4 rounded-lg bg-zinc-800 px-4 py-2 text-zinc-400 hover:bg-zinc-700/70 active:bg-zinc-600"
-          onClick={async () => {
-            const dir = await appDataDir()
-            const defaultPath =
-              dir.slice(0, dir.slice(0, -1).lastIndexOf('\\') + 1) +
-              'Battle.net'
-            const selected = await open({
-              filters: [
-                {
-                  name: 'Configuration File',
-                  extensions: ['config']
-                }
-              ],
-              defaultPath: defaultPath
-            })
-            if (!selected) return
-            if (selected.indexOf('Battle.net.config') === -1) {
-              toast.error('Please select the "Battle.net.config" file.')
-              return
-            }
-            mutation.mutate({
-              key,
-              path: selected as string
-            })
-          }}
-          variants={item}
-        >
-          Select Battle.net.config
-        </motion.button>
-      )}
-      {key === 'BattleNetInstall' && (
-        <motion.button
-          className="mt-4 rounded-lg bg-zinc-800 px-4 py-2 text-zinc-400 hover:bg-zinc-700/70 active:bg-zinc-600"
-          onClick={async () => {
-            const dir = (await invoke('get_program_data')) as string
-            console.log(dir)
-            const defaultPath = dir + '\\Battle.net'
-            const selected = await open({
-              filters: [
-                {
-                  name: 'Battle.net Launcher',
-                  extensions: ['exe']
-                }
-              ],
-              defaultPath: defaultPath
-            })
-            if (!selected) return
-            if (selected.indexOf('Battle.net Launcher.exe') === -1) {
-              toast.error('Please select the "Battle.net Launcher.exe" file.')
-              return
-            }
-            mutation.mutate({
-              key,
-              path: selected as string
-            })
-          }}
-          variants={item}
-        >
-          Select Battle.net Launcher.exe
-        </motion.button>
-      )}
+      <motion.button
+        className="mt-4 select-none rounded-lg bg-zinc-800 px-4 py-2 text-zinc-400 transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-600/70 focus-visible:bg-zinc-600/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:!scale-95"
+        onClick={async () => {
+          const selected = await open({
+            filters: [
+              {
+                name:
+                  key === 'BattleNetConfig'
+                    ? 'Configuration File'
+                    : 'Battle.net Launcher',
+                extensions: [key === 'BattleNetConfig' ? 'config' : 'exe']
+              }
+            ],
+            defaultPath
+          })
+          if (!selected) return
+          const file =
+            key === 'BattleNetConfig'
+              ? 'Battle.net.config'
+              : 'Battle.net Launcher.exe'
+          if (selected.indexOf(file) === -1) {
+            toast.error(`Please select the "${file}" file.`)
+            return
+          }
+          mutation.mutate({
+            key,
+            path: selected as string
+          })
+        }}
+        variants={item}
+      >
+        Select{' '}
+        {key === 'BattleNetConfig'
+          ? 'Battle.net.config'
+          : 'Battle.net Launcher.exe'}
+      </motion.button>
     </motion.div>
   )
 }
