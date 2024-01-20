@@ -1,7 +1,7 @@
 [package]
 name = "overbuddy"
-version = "0.1.0"
-description = "A Tauri App"
+version = "1.0.0"
+description = "Elevate your Overwatch™ 2 experience by customizing your in-game menu background with ease."
 authors = ["you"]
 license = ""
 repository = ""

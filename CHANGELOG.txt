@@ -1,1 +1,1 @@
-This is the initial release of OverBuddy. It is a beta release, so there may be bugs. Please report any bugs you find on the GitHub repository's issue tracker.
+This is the initial release of OverBuddy. It currently only supports Battle.net installations of Overwatch. If you run into any issues, please report them on the GitHub repository's issue tracker.
