@@ -2,6 +2,8 @@ import { FileRoute, useNavigate } from '@tanstack/react-router'
 import { ConfigError, useSetupMutation } from '../data'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
+import { BookLockIcon, GlobeIcon, SparklesIcon } from 'lucide-react'
+import logo from '../assets/logo.svg'
 
 export const Route = new FileRoute('/setup/').createRoute({
   component: SetupSplash
@@ -57,53 +59,85 @@ export function SetupSplash() {
 
   return (
     <motion.div
-      className="mx-auto flex h-full max-w-lg select-none flex-col items-center justify-center"
+      className="mx-auto flex h-full max-w-xl select-none flex-col items-center justify-center pb-8"
       variants={container}
       initial="hidden"
       animate="show"
     >
-      <motion.h1 className="mb-10 text-2xl font-medium" variants={item}>
+      <motion.img
+        className="mb-2"
+        src={logo}
+        alt="OverBuddy Logo"
+        variants={item}
+      />
+      <motion.h1 className="mb-8 text-2xl font-medium" variants={item}>
         Welcome to <span className="font-bold">OverBuddy</span>!
       </motion.h1>
-      <div className="mb-8 flex flex-col gap-5 text-zinc-400">
-        <div>
-          <motion.h2
-            className="mb-1 text-lg font-medium text-white"
+      <div className="mb-10 flex flex-col gap-5 text-zinc-400">
+        <div className="flex items-start gap-4">
+          <motion.div
+            className="mt-1.5 rounded-lg bg-zinc-800 p-3 text-white"
             variants={item}
           >
-            Personalized Overwatch™ Experience
-          </motion.h2>
-          <motion.p variants={item}>
-            Explore all available backgrounds and select your favourite to
-            customize your in-game menu.
-          </motion.p>
+            <SparklesIcon size={20} />
+          </motion.div>
+          <div>
+            <motion.h2
+              className="mb-1 flex gap-2 text-lg font-medium text-white"
+              variants={item}
+            >
+              Personalized Overwatch™ Experience
+            </motion.h2>
+            <motion.p variants={item}>
+              Explore all available backgrounds and select your favourite to
+              customize your in-game menu.
+            </motion.p>
+          </div>
         </div>
-        <div>
-          <motion.h2
-            className="mb-1 text-lg font-medium text-white"
+        <div className="flex items-start gap-4">
+          <motion.div
+            className="mt-1.5 rounded-lg bg-zinc-800 p-3 text-white"
             variants={item}
           >
-            Free and Open Source
-          </motion.h2>
-          <motion.p variants={item}>
-            OverBuddy is free to use and open source. It operates independently
-            and is not affiliated with Blizzard Entertainment®. You can revert
-            the changes made by this app at any time in the settings.
-          </motion.p>
+            <GlobeIcon size={20} />
+          </motion.div>
+          <div>
+            <motion.h2
+              className="mb-1 flex items-center gap-2 text-lg font-medium text-white"
+              variants={item}
+            >
+              Free and Open Source
+            </motion.h2>
+            <motion.p variants={item}>
+              OverBuddy is free to use and open source. It operates
+              independently and is not affiliated with Blizzard Entertainment®.
+              You can undo the changes made by this app at any time by reverting
+              to the default background.
+            </motion.p>
+          </div>
         </div>
-        <div>
-          <motion.h2
-            className="mb-1 text-lg font-medium text-white"
+        <div className="flex items-start gap-4">
+          <motion.div
+            className="mt-1.5 rounded-lg bg-zinc-800 p-3 text-white"
             variants={item}
           >
-            Privacy Notice
-          </motion.h2>
-          <motion.p variants={item}>
-            To change your background, this app needs to read and write your
-            Battle.net® configuration files. It does{' '}
-            <span className="font-medium">NOT</span> modify any game files. To
-            apply the changes, your Battle.net® client needs to be restarted.
-          </motion.p>
+            <BookLockIcon size={20} />
+          </motion.div>
+          <div>
+            <motion.h2
+              className="mb-1 flex items-center gap-2 text-lg font-medium text-white"
+              variants={item}
+            >
+              Privacy Notice
+            </motion.h2>
+            <motion.p variants={item}>
+              To change your background, this app needs to read and write your
+              Battle.net® configuration files. It does{' '}
+              <span className="font-medium">NOT</span> modify any game files. To
+              apply the changes, your Battle.net® client will be automatically
+              restarted.
+            </motion.p>
+          </div>
         </div>
       </div>
       <motion.button

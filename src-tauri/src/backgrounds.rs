@@ -107,7 +107,7 @@ pub fn get_backgrounds() -> Vec<Background> {
             image: "kiriko_amaterasu_art.jpg",
             name: "Amaterasu Kiriko Variations",
             description: "Season 3 Mythic Skin",
-            tags: vec!["Art"],
+            tags: vec!["Mostly Static", "Art"],
         },
         Background {
             id: "0x0800000000000B6B",
@@ -142,7 +142,7 @@ pub fn get_backgrounds() -> Vec<Background> {
             image: "starwatch_art.jpg",
             name: "Starwatch",
             description: "Starwatch Event (Season 4)",
-            tags: vec!["Art"],
+            tags: vec!["Mostly Static", "Art"],
         },
         Background {
             id: "0x0800000000001026",
@@ -244,7 +244,7 @@ pub fn get_backgrounds() -> Vec<Background> {
             image: "winter_wonderland_2023.jpg",
             name: "Festive Mercy, B.O.B. and Genji",
             description: "Winter Wonderland 2023 (Season 8)",
-            tags: vec!["Static"],
+            tags: vec!["Static", "Art"],
         },
     ]
 }

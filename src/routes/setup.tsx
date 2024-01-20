@@ -15,7 +15,7 @@ export function Setup() {
     >
       <Outlet />
       <motion.div
-        className="absolute bottom-2.5 w-full select-none text-center text-zinc-400"
+        className="absolute bottom-0 w-full select-none pb-2.5 text-center text-zinc-400"
         initial={{ transform: 'scale(.9)' }}
         animate={{ transform: 'scale(1)' }}
         transition={{ duration: 0.3 }}
@@ -23,7 +23,7 @@ export function Setup() {
         <div className="m-auto max-w-2xl">
           <p>
             Made with ❤️ by <span className="font-bold">Kirill Tregubov</span>.
-            Version {import.meta.env.PACKAGE_VERSION} (Beta).
+            Version {import.meta.env.PACKAGE_VERSION} (release).
           </p>
           {/* <p>
             Blizzard Entertainment, Battle.net and Overwatch are trademarks or
