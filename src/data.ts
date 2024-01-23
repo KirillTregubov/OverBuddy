@@ -28,6 +28,8 @@ export const launchQueryOptions = queryOptions({
   }
 })
 
+export type Platform = 'BattleNet' | 'Steam'
+
 const ConfigErrors = z.enum(['BattleNetConfig', 'BattleNetInstall'])
 export type ConfigErrors = z.infer<typeof ConfigErrors>
 
