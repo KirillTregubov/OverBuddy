@@ -1,14 +1,14 @@
+import { useState } from 'react'
 import { FileRoute, useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
+import clsx from 'clsx'
+import { CheckCircleIcon, CircleIcon } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 
 import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
 import { ConfigError, Platform, useSetupMutation } from '@/data'
 import { childVariants, containerVariants } from './-constants'
-import { useState } from 'react'
-import clsx from 'clsx'
-import { CheckCircleIcon, CircleIcon } from 'lucide-react'
 
 export const Route = new FileRoute('/setup/select').createRoute({
   component: SetupSelect
@@ -17,7 +17,7 @@ export const Route = new FileRoute('/setup/select').createRoute({
 export function SetupSelect() {
   const [platforms, setPlatforms] = useState<Platform[]>([])
   const navigate = useNavigate()
-  const mutation = useSetupMutation({
+  const { status, mutate, reset } = useSetupMutation({
     onError: (error) => {
       if (error instanceof ConfigError) {
         toast.error(error.message)
@@ -36,6 +36,7 @@ export function SetupSelect() {
         return
       }
       toast.error(error.message)
+      reset()
     },
     onSuccess: () => {
       navigate({
@@ -139,7 +140,7 @@ export function SetupSelect() {
             <img
               src={Steam}
               alt="Steam Logo"
-              title="Battle.net"
+              title="Steam"
               width="64px"
               height="64px"
               className={clsx(
@@ -183,8 +184,16 @@ export function SetupSelect() {
         </button>
       </motion.div>
       <motion.button
-        className="w-full select-none rounded-lg bg-zinc-50 px-5 py-3 font-medium capitalize text-black transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-200/70 focus-visible:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:!scale-95"
-        onClick={() => mutation.mutate()}
+        className="w-full select-none rounded-lg bg-zinc-50 px-5 py-3 font-medium capitalize text-black transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-200/70 focus-visible:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:!scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+        disabled={status !== 'idle'}
+        onClick={() => {
+          console.log('aaa')
+          if (platforms.length === 0) {
+            toast.warning('You must select at least one platform.')
+            return
+          }
+          mutate(platforms)
+        }}
         variants={childVariants}
       >
         Continue

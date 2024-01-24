@@ -38,6 +38,10 @@ export const Route = rootRouteWithContext<{
 })
 
 function RootErrorComponent({ error }: ErrorRouteProps) {
+  useEffect(() => {
+    invoke('mounted')
+  }, [])
+
   if (typeof error === 'string') {
     error = Error(error)
   }

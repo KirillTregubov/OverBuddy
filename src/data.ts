@@ -56,8 +56,8 @@ export const useSetupMutation = ({
   onSuccess?: (data: LaunchConfig) => void
 } = {}) =>
   useMutation({
-    mutationFn: async () => {
-      const data = await invoke('setup').catch((error) => {
+    mutationFn: async (platforms: Platform[]) => {
+      const data = await invoke('setup', { platforms }).catch((error) => {
         if (typeof error !== 'string') throw error
 
         let parsed

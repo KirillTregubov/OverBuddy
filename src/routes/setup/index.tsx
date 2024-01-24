@@ -100,6 +100,7 @@ export function SetupSplash() {
         <Link
           className="w-full select-none rounded-lg bg-zinc-50 px-5 py-3 text-center font-medium capitalize text-black transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-200/70 focus-visible:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:scale-95"
           to="/setup/select"
+          replace
           draggable={false}
         >
           Continue
