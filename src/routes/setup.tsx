@@ -1,7 +1,7 @@
-import { FileRoute, Outlet } from '@tanstack/react-router'
+import { Outlet, createFileRoute } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 
-export const Route = new FileRoute('/setup').createRoute({
+export const Route = createFileRoute('/setup')({
   component: Setup
 })
 

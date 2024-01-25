@@ -11,8 +11,18 @@ const handleError = (error: unknown) => {
 
 const LaunchConfig = z.object({
   is_setup: z.boolean(),
-  battle_net_config: z.string().nullable(),
-  battle_net_install: z.string().nullable()
+  battle_net: z.object({
+    enabled: z.boolean(),
+    config: z.string().nullable(),
+    install: z.string().nullable()
+  }),
+  steam: z.object({
+    enabled: z.boolean()
+    // config: z.string().nullable(),
+    // install: z.string().nullable()
+  })
+  // battle_net_config: z.string().nullable(),
+  // battle_net_install: z.string().nullable()
 })
 type LaunchConfig = z.infer<typeof LaunchConfig>
 

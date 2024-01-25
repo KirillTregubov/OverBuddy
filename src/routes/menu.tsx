@@ -1,26 +1,26 @@
-import { FileRoute, redirect } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import clsx from 'clsx'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   ChevronLeft,
   ChevronRight,
-  Loader2Icon
-  // LoaderIcon
-  // HeartIcon //,
+  Loader2Icon //,
+  // LoaderIcon,
+  // HeartIcon,
   // SettingsIcon
 } from 'lucide-react'
+import { useRef, useState } from 'react'
 
+import placeholder from '../assets/placeholder.svg'
 import {
-  useBackgroundMutation,
   backgroundsQueryOptions,
   launchQueryOptions,
+  useBackgroundMutation,
   useResetBackgroundMutation
 } from '../data'
-import placeholder from '../assets/placeholder.svg'
 
-export const Route = new FileRoute('/menu').createRoute({
+export const Route = createFileRoute('/menu')({
   loader: ({ context: { queryClient } }) =>
     queryClient.ensureQueryData(backgroundsQueryOptions),
   beforeLoad: async ({ context: { queryClient } }) => {

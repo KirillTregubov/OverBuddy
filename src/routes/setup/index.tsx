@@ -1,11 +1,11 @@
-import { FileRoute, Link } from '@tanstack/react-router'
+import { Link, createFileRoute } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import { BookLockIcon, GlobeIcon, SparklesIcon } from 'lucide-react'
 
-import { childVariants, containerVariants } from './-constants'
 import logo from '@/assets/logo.svg'
+import { childVariants, containerVariants } from './-constants'
 
-export const Route = new FileRoute('/setup/').createRoute({
+export const Route = createFileRoute('/setup/')({
   component: SetupSplash
 })
 

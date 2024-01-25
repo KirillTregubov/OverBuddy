@@ -1,16 +1,16 @@
-import { useState } from 'react'
-import { FileRoute, useNavigate } from '@tanstack/react-router'
-import { toast } from 'sonner'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import clsx from 'clsx'
-import { CheckCircleIcon, CircleIcon } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { CheckCircleIcon, CircleIcon } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
 import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
 import { ConfigError, Platform, useSetupMutation } from '@/data'
 import { childVariants, containerVariants } from './-constants'
 
-export const Route = new FileRoute('/setup/select').createRoute({
+export const Route = createFileRoute('/setup/select')({
   component: SetupSelect
 })
 
