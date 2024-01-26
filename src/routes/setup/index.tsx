@@ -32,7 +32,7 @@ export function SetupSplash() {
       <div className="mb-10 flex flex-col gap-5 text-zinc-400">
         <div className="flex items-start gap-4">
           <motion.div
-            className="mt-1.5 rounded-lg bg-zinc-800 p-3 text-white"
+            className="mt-1 rounded-lg bg-zinc-800 p-3 text-white"
             variants={childVariants}
           >
             <SparklesIcon size={20} />
@@ -52,7 +52,7 @@ export function SetupSplash() {
         </div>
         <div className="flex items-start gap-4">
           <motion.div
-            className="mt-1.5 rounded-lg bg-zinc-800 p-3 text-white"
+            className="mt-1 rounded-lg bg-zinc-800 p-3 text-white"
             variants={childVariants}
           >
             <GlobeIcon size={20} />
@@ -74,7 +74,7 @@ export function SetupSplash() {
         </div>
         <div className="flex items-start gap-4">
           <motion.div
-            className="mt-1.5 rounded-lg bg-zinc-800 p-3 text-white"
+            className="mt-1 rounded-lg bg-zinc-800 p-3 text-white"
             variants={childVariants}
           >
             <BookLockIcon size={20} />

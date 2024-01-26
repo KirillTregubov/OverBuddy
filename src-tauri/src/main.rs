@@ -51,35 +51,8 @@ enum ErrorKey {
 #[derive(Serialize)]
 struct SetupError {
     message: String,
+    error_action: Option<String>,
     error_key: ErrorKey,
-}
-
-fn fetch_battle_net_config(handle: &AppHandle) -> Result<String, Error> {
-    let app_data_dir = handle.path_resolver().app_data_dir().unwrap();
-    let resource_path = app_data_dir.join("../Battle.net");
-    static CONFIG_FILE: &str = "Battle.net.config";
-
-    // Check if the target file exists in the directory
-    if let Ok(entries) = fs::read_dir(&resource_path) {
-        if let Some(target_entry) = entries
-            .filter_map(|entry| entry.ok()) // Filter out errors
-            .find(|entry| entry.file_name().to_string_lossy() == CONFIG_FILE)
-        {
-            let display_path = display_path_string(&target_entry.path())?;
-            return Ok(display_path);
-        } else {
-            let display_path = display_path_string(&resource_path)?;
-            return Err(Error::Custom(serde_json::to_string(&SetupError {
-                message: format!("Unable to find \"{}\" in {}.", CONFIG_FILE, display_path),
-                error_key: ErrorKey::BattleNetConfig,
-            })?));
-        }
-    } else {
-        return Err(Error::Custom(serde_json::to_string(&SetupError {
-            message: format!("Failed to find Battle.net AppData directory."),
-            error_key: ErrorKey::BattleNetConfig,
-        })?));
-    }
 }
 
 #[tauri::command]
@@ -101,25 +74,79 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
         if config.battle_net.install.is_none() {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
                 message: "Failed to find Battle.net Launcher.".to_string(),
+                error_action: Some("finding".to_string()),
                 error_key: ErrorKey::BattleNetInstall,
             })?));
         }
 
         // Check if Battle.net config exists
+        static CONFIG_FILE: &str = "Battle.net.config";
         let battle_net_config = match &config.battle_net.config {
             Some(battle_net_config) => battle_net_config.clone(),
             None => {
-                let battle_net_config = fetch_battle_net_config(&handle)?;
-                config.battle_net.config = Some(battle_net_config.clone());
-                battle_net_config
+                let app_data_dir = handle.path_resolver().app_data_dir().unwrap();
+                let resource_path = app_data_dir.join("../Battle.net");
+
+                // Check if the target file exists in the directory
+                if let Ok(entries) = fs::read_dir(&resource_path) {
+                    if let Some(target_entry) = entries
+                        .filter_map(|entry| entry.ok()) // Filter out errors
+                        .find(|entry| entry.file_name().to_string_lossy() == CONFIG_FILE)
+                    {
+                        let display_path = display_path_string(&target_entry.path())?;
+                        config.battle_net.config = Some(display_path.clone());
+                        display_path
+                    } else {
+                        let display_path = display_path_string(&resource_path)?;
+                        return Err(Error::Custom(serde_json::to_string(&SetupError {
+                            message: format!(
+                                "Failed to find \"{}\" in {}.",
+                                CONFIG_FILE, display_path
+                            ),
+                            error_action: Some("finding".to_string()),
+                            error_key: ErrorKey::BattleNetConfig,
+                        })?));
+                    }
+                } else {
+                    return Err(Error::Custom(serde_json::to_string(&SetupError {
+                        message: "Failed to find Battle.net AppData directory.".to_string(),
+                        error_action: Some("finding".to_string()),
+                        error_key: ErrorKey::BattleNetConfig,
+                    })?));
+                }
             }
         };
 
-        let mut file = fs::OpenOptions::new()
+        let mut file = match fs::OpenOptions::new()
             .read(true)
-            .open(battle_net_config.clone())?;
+            .open(battle_net_config.clone())
+        {
+            Ok(file) => file,
+            Err(_) => {
+                return Err(Error::Custom(serde_json::to_string(&SetupError {
+                    message: format!(
+                        "Failed to open \"{}\" file at {}",
+                        CONFIG_FILE, battle_net_config
+                    ),
+                    error_action: Some("opening".to_string()),
+                    error_key: ErrorKey::BattleNetConfig,
+                })?));
+            }
+        };
         let mut contents = String::new();
-        file.read_to_string(&mut contents)?;
+        match file.read_to_string(&mut contents) {
+            Ok(_) => {}
+            Err(_) => {
+                return Err(Error::Custom(serde_json::to_string(&SetupError {
+                    message: format!(
+                        "Failed to read \"{}\" file at {}",
+                        CONFIG_FILE, battle_net_config
+                    ),
+                    error_action: Some("reading".to_string()),
+                    error_key: ErrorKey::BattleNetConfig,
+                })?));
+            }
+        };
         let mut json: serde_json::Value = serde_json::from_str(&contents)?;
 
         if json
@@ -129,6 +156,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
         {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
                 message: "You do not have Overwatch installed on Battle.net.".to_string(),
+                error_action: None,
                 error_key: ErrorKey::NoOverwatch,
             })?));
         }

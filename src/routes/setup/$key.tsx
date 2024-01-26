@@ -18,6 +18,11 @@ export const Route = createFileRoute('/setup/$key')({
     }
     queryClient.ensureQueryData(getSetupDirectory(key))
   },
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      action: (search.action as string) || 'finding'
+    }
+  },
   staleTime: Infinity,
   // TODO: Design loading component
   pendingComponent: () => <div>Loading...</div>,
@@ -27,6 +32,7 @@ export const Route = createFileRoute('/setup/$key')({
 function ConfigureComponent() {
   const navigate = useNavigate()
   const { key } = Route.useParams() as { key: ConfigErrors }
+  const { action } = Route.useSearch()
   const { data: defaultPath } = useSuspenseQuery(getSetupDirectory(key))
 
   const mutation = useSetupErrorMutation({
@@ -47,6 +53,9 @@ function ConfigureComponent() {
             to: '/setup/$key',
             params: {
               key: error.error_key
+            },
+            search: {
+              action: error.error_action || 'finding'
             },
             replace: true
           })
@@ -74,7 +83,7 @@ function ConfigureComponent() {
         className="select-none leading-7 text-zinc-400"
         variants={childVariants}
       >
-        There was an error finding your Battle.net{' '}
+        There was an error {action} your Battle.net{' '}
         {key === 'BattleNetConfig' && (
           <>
             configuration file. Please select the{' '}

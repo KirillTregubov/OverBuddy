@@ -30,6 +30,9 @@ export function SetupSelect() {
             params: {
               key: error.error_key
             },
+            search: {
+              action: error.error_action || 'finding'
+            },
             replace: true
           })
         }

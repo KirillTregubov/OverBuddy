@@ -45,16 +45,19 @@ export type ConfigErrors = z.infer<typeof ConfigErrors>
 
 const ConfigErrorSchema = z.object({
   message: z.string(),
+  error_action: z.string().nullable(),
   error_key: ConfigErrors.or(z.enum(['NoOverwatch']))
 })
 export type ConfigErrorSchema = z.infer<typeof ConfigErrorSchema>
 
 export class ConfigError extends Error {
   error_key: ConfigErrorSchema['error_key']
+  error_action: ConfigErrorSchema['error_action']
 
   constructor(public error: ConfigErrorSchema) {
     super(error.message)
     this.error_key = error.error_key
+    this.error_action = error.error_action
   }
 }
 
