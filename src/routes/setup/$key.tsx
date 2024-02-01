@@ -6,21 +6,24 @@ import { toast } from 'sonner'
 import {
   ConfigError,
   ConfigErrors,
-  getSetupDirectory,
+  Platform,
+  getSetupPath,
   useSetupErrorMutation
 } from '../../data'
 import { childVariants, containerVariants } from './-constants'
 
 export const Route = createFileRoute('/setup/$key')({
   loader: ({ params: { key }, context: { queryClient } }) => {
-    if (key !== 'BattleNetConfig' && key !== 'BattleNetInstall') {
+    const result = ConfigErrors.safeParse(key)
+    if (!result.success) {
       throw Error('Invalid key')
     }
-    queryClient.ensureQueryData(getSetupDirectory(key))
+    queryClient.ensureQueryData(getSetupPath(result.data))
   },
   validateSearch: (search: Record<string, unknown>) => {
     return {
-      action: (search.action as string) || 'finding'
+      action: (search.action as string) || 'finding',
+      platforms: (search.platforms as Platform[]) || []
     }
   },
   staleTime: Infinity,
@@ -32,8 +35,8 @@ export const Route = createFileRoute('/setup/$key')({
 function ConfigureComponent() {
   const navigate = useNavigate()
   const { key } = Route.useParams() as { key: ConfigErrors }
-  const { action } = Route.useSearch()
-  const { data: defaultPath } = useSuspenseQuery(getSetupDirectory(key))
+  const { action, platforms } = Route.useSearch()
+  const { data: defaultPath } = useSuspenseQuery(getSetupPath(key))
 
   const mutation = useSetupErrorMutation({
     onSuccess: async () => {
@@ -55,7 +58,8 @@ function ConfigureComponent() {
               key: error.error_key
             },
             search: {
-              action: error.error_action || 'finding'
+              action: error.error_action || 'finding',
+              platforms: error.platforms
             },
             replace: true
           })
@@ -83,24 +87,11 @@ function ConfigureComponent() {
         className="select-none leading-7 text-zinc-400"
         variants={childVariants}
       >
-        There was an error {action} your Battle.net{' '}
-        {key === 'BattleNetConfig' && (
+        There was an error {action} your{' '}
+        {key === 'BattleNetInstall' ? (
           <>
-            configuration file. Please select the{' '}
-            <span className="select-all rounded-[0.2rem] bg-zinc-800 px-1.5 py-0.5">
-              Battle.net.config
-            </span>{' '}
-            file, which is likely located in{' '}
-            <span className="select-all rounded-[0.2rem] bg-zinc-800 px-1.5 py-0.5">
-              {defaultPath}
-            </span>
-            .
-          </>
-        )}
-        {key === 'BattleNetInstall' && (
-          <>
-            Launcher. If you have Overwatch installed through Steam, please wait
-            for a future update.
+            Battle.net Launcher. If you have Overwatch installed through Steam,
+            please wait for a future update.
             <span className="mt-2 block">
               If you do have Battle.net installed, please select the{' '}
               <span className="select-all whitespace-nowrap rounded-[0.2rem] bg-zinc-800 px-1.5 py-0.5">
@@ -113,6 +104,32 @@ function ConfigureComponent() {
               .
             </span>
           </>
+        ) : key === 'BattleNetConfig' ? (
+          <>
+            Battle.net configuration file. Please select the{' '}
+            <span className="select-all rounded-[0.2rem] bg-zinc-800 px-1.5 py-0.5">
+              Battle.net.config
+            </span>{' '}
+            file, which is likely located in{' '}
+            <span className="select-all rounded-[0.2rem] bg-zinc-800 px-1.5 py-0.5">
+              {defaultPath}
+            </span>
+            .
+          </>
+        ) : (
+          key === 'SteamInstall' && (
+            <>
+              Steam installation. Please select the{' '}
+              <span className="select-all rounded-[0.2rem] bg-zinc-800 px-1.5 py-0.5">
+                steam.exe
+              </span>{' '}
+              file, which is likely located in{' '}
+              <span className="select-all rounded-[0.2rem] bg-zinc-800 px-1.5 py-0.5">
+                {defaultPath}
+              </span>
+              .
+            </>
+          )
         )}
       </motion.h2>
       <motion.button
@@ -122,34 +139,41 @@ function ConfigureComponent() {
             filters: [
               {
                 name:
-                  key === 'BattleNetConfig'
-                    ? 'Configuration File'
-                    : 'Battle.net Launcher',
-                extensions: [key === 'BattleNetConfig' ? 'config' : 'exe']
+                  key === 'BattleNetInstall'
+                    ? 'Battle.net Launcher'
+                    : key === 'BattleNetConfig'
+                      ? 'Configuration File'
+                      : 'steam',
+                extensions: [key.endsWith('Config') ? 'config' : 'exe']
               }
             ],
             defaultPath
           })
           if (!selected) return
           const file =
-            key === 'BattleNetConfig'
-              ? 'Battle.net.config'
-              : 'Battle.net Launcher.exe'
+            key === 'BattleNetInstall'
+              ? 'Battle.net Launcher.exe'
+              : key === 'BattleNetConfig'
+                ? 'Battle.net.config'
+                : 'steam.exe'
           if (selected.indexOf(file) === -1) {
             toast.error(`Please select the "${file}" file.`)
             return
           }
           mutation.mutate({
             key,
-            path: selected as string
+            path: selected as string,
+            platforms
           })
         }}
         variants={childVariants}
       >
         Select{' '}
-        {key === 'BattleNetConfig'
-          ? 'Battle.net.config'
-          : 'Battle.net Launcher.exe'}
+        {key === 'BattleNetInstall'
+          ? 'Battle.net Launcher.exe'
+          : key === 'BattleNetConfig'
+            ? 'Battle.net.config'
+            : 'steam.exe'}
       </motion.button>
     </motion.div>
   )

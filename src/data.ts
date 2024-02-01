@@ -17,9 +17,9 @@ const LaunchConfig = z.object({
     install: z.string().nullable()
   }),
   steam: z.object({
-    enabled: z.boolean()
+    enabled: z.boolean(),
     // config: z.string().nullable(),
-    // install: z.string().nullable()
+    install: z.string().nullable()
   })
   // battle_net_config: z.string().nullable(),
   // battle_net_install: z.string().nullable()
@@ -38,26 +38,34 @@ export const launchQueryOptions = queryOptions({
   }
 })
 
-export type Platform = 'BattleNet' | 'Steam'
+const Platform = z.enum(['BattleNet', 'Steam'])
+export type Platform = z.infer<typeof Platform>
 
-const ConfigErrors = z.enum(['BattleNetConfig', 'BattleNetInstall'])
+export const ConfigErrors = z.enum([
+  'BattleNetConfig',
+  'BattleNetInstall',
+  'SteamInstall'
+])
 export type ConfigErrors = z.infer<typeof ConfigErrors>
 
 const ConfigErrorSchema = z.object({
+  error_key: ConfigErrors.or(z.enum(['NoOverwatch'])),
   message: z.string(),
   error_action: z.string().nullable(),
-  error_key: ConfigErrors.or(z.enum(['NoOverwatch']))
+  platforms: z.array(Platform)
 })
 export type ConfigErrorSchema = z.infer<typeof ConfigErrorSchema>
 
 export class ConfigError extends Error {
   error_key: ConfigErrorSchema['error_key']
   error_action: ConfigErrorSchema['error_action']
+  platforms: ConfigErrorSchema['platforms']
 
   constructor(public error: ConfigErrorSchema) {
     super(error.message)
     this.error_key = error.error_key
     this.error_action = error.error_action
+    this.platforms = error.platforms
   }
 }
 
@@ -99,7 +107,7 @@ export const useSetupMutation = ({
     onSuccess
   })
 
-export const getSetupDirectory = (key: ConfigErrors) =>
+export const getSetupPath = (key: ConfigErrors) =>
   queryOptions({
     queryKey: ['directory', key],
     queryFn: async () => {
@@ -122,28 +130,32 @@ export const useSetupErrorMutation = ({
   useMutation({
     mutationFn: async ({
       key,
-      path
+      path,
+      platforms
     }: {
       key: ConfigErrorSchema['error_key']
       path: string
+      platforms: Platform[]
     }) => {
-      const data = await invoke('resolve_setup_error', { key, path }).catch(
-        (error) => {
-          if (typeof error !== 'string') throw error
+      const data = await invoke('resolve_setup_error', {
+        key,
+        path,
+        platforms
+      }).catch((error) => {
+        if (typeof error !== 'string') throw error
 
-          let parsed
-          try {
-            parsed = JSON.parse(error as string)
-          } catch (_) {
-            throw new Error(error)
-          }
-
-          const configError = ConfigErrorSchema.safeParse(parsed)
-          if (configError.success) {
-            throw new ConfigError(configError.data)
-          }
+        let parsed
+        try {
+          parsed = JSON.parse(error as string)
+        } catch (_) {
+          throw new Error(error)
         }
-      )
+
+        const configError = ConfigErrorSchema.safeParse(parsed)
+        if (configError.success) {
+          throw new ConfigError(configError.data)
+        }
+      })
 
       const config = LaunchConfig.safeParse(JSON.parse(data as string))
       if (!config.success) {

@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 
 import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
-import { ConfigError, Platform, useSetupMutation } from '@/data'
+import { ConfigError, ConfigErrors, Platform, useSetupMutation } from '@/data'
 import { childVariants, containerVariants } from './-constants'
 
 export const Route = createFileRoute('/setup/select')({
@@ -21,17 +21,15 @@ export function SetupSelect() {
     onError: (error) => {
       if (error instanceof ConfigError) {
         toast.error(error.message)
-        if (
-          error.error_key === 'BattleNetConfig' ||
-          error.error_key === 'BattleNetInstall'
-        ) {
+        if (ConfigErrors.safeParse(error.error_key).success) {
           navigate({
             to: '/setup/$key',
             params: {
               key: error.error_key
             },
             search: {
-              action: error.error_action || 'finding'
+              action: error.error_action || 'finding',
+              platforms: error.platforms
             },
             replace: true
           })
@@ -190,7 +188,6 @@ export function SetupSelect() {
         className="w-full select-none rounded-lg bg-zinc-50 px-5 py-3 font-medium capitalize text-black transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-200/70 focus-visible:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:!scale-95 disabled:cursor-not-allowed disabled:opacity-50"
         disabled={status !== 'idle'}
         onClick={() => {
-          console.log('aaa')
           if (platforms.length === 0) {
             toast.warning('You must select at least one platform.')
             return
