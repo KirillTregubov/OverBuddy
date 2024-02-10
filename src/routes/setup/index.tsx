@@ -88,10 +88,10 @@ export function SetupSplash() {
             </motion.h2>
             <motion.p variants={childVariants}>
               To change your background, this app needs to read and write your
-              Battle.net® configuration files. It does{' '}
+              Battle.net® or Steam® configuration files. It does{' '}
               <span className="font-medium">NOT</span> modify any game files. To
-              apply the changes, your Battle.net® client will be automatically
-              restarted.
+              apply the changes, your Battle.net or Steam client will be
+              automatically restarted.
             </motion.p>
           </div>
         </div>

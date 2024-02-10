@@ -6,9 +6,6 @@ mod config;
 mod helpers;
 
 // use helpers::close_battle_net;
-use helpers::display_path_string;
-use helpers::read_config;
-use helpers::write_config;
 use helpers::Error;
 
 use serde::Serialize;
@@ -35,9 +32,9 @@ fn mounted(window: Window) {
 
 #[tauri::command]
 fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
-    let config = read_config(&handle)?;
+    let config = helpers::read_config(&handle)?;
     println!("Launched with {:?}", config);
-    write_config(&handle, &config)?;
+    helpers::write_config(&handle, &config)?;
 
     return Ok(serde_json::to_string(&config)?);
 }
@@ -60,7 +57,7 @@ struct SetupError {
 
 #[tauri::command]
 fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
-    let mut config = read_config(&handle)?;
+    let mut config = helpers::read_config(&handle)?;
 
     if platforms.contains(&"BattleNet") {
         // Check if Battle.net is installed
@@ -98,11 +95,11 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
                         .filter_map(|entry| entry.ok()) // Filter out errors
                         .find(|entry| entry.file_name().to_string_lossy() == CONFIG_FILE)
                     {
-                        let display_path = display_path_string(&target_entry.path())?;
+                        let display_path = helpers::display_path_string(&target_entry.path())?;
                         config.battle_net.config = Some(display_path.clone());
                         display_path
                     } else {
-                        let display_path = display_path_string(&resource_path)?;
+                        let display_path = helpers::display_path_string(&resource_path)?;
                         return Err(Error::Custom(serde_json::to_string(&SetupError {
                             error_key: ErrorKey::BattleNetConfig,
                             message: format!(
@@ -199,16 +196,16 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
 
     if platforms.contains(&"Steam") {
         // Check if Battle.net is installed
-        // if config.steam.install.is_none() {
-        //     static LAUNCHER_PATH: &str = "Steam\\steam.exe";
-        //     if let Some(program_files_dir) = env::var_os("programfiles(x86)") {
-        //         let steam_install =
-        //             Path::new(program_files_dir.to_str().unwrap()).join(LAUNCHER_PATH);
-        //         if steam_install.exists() {
-        //             config.steam.install = Some(steam_install.to_string_lossy().to_string());
-        //         }
-        //     }
-        // }
+        if config.steam.install.is_none() {
+            static LAUNCHER_PATH: &str = "Steam\\steam.exe";
+            if let Some(program_files_dir) = env::var_os("programfiles(x86)") {
+                let steam_install =
+                    Path::new(program_files_dir.to_str().unwrap()).join(LAUNCHER_PATH);
+                if steam_install.exists() {
+                    config.steam.install = Some(steam_install.to_string_lossy().to_string());
+                }
+            }
+        }
         if config.steam.install.is_none() {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
                 error_key: ErrorKey::SteamInstall,
@@ -227,7 +224,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
     }
 
     config.is_setup = true;
-    write_config(&handle, &config)?;
+    helpers::write_config(&handle, &config)?;
 
     return Ok(serde_json::to_string(&config)?);
 }
@@ -239,20 +236,20 @@ fn resolve_setup_error(
     path: &str,
     platforms: Vec<&str>,
 ) -> Result<String, Error> {
-    let mut config = read_config(&handle)?;
+    let mut config = helpers::read_config(&handle)?;
 
     match key {
         "BattleNetInstall" => {
             config.battle_net.install = Some(path.to_string());
-            write_config(&handle, &config)?;
+            helpers::write_config(&handle, &config)?;
         }
         "BattleNetConfig" => {
             config.battle_net.config = Some(path.to_string());
-            write_config(&handle, &config)?;
+            helpers::write_config(&handle, &config)?;
         }
         "SteamInstall" => {
             config.steam.install = Some(path.to_string());
-            write_config(&handle, &config)?;
+            helpers::write_config(&handle, &config)?;
         }
         _ => {
             return Err(Error::Custom(format!(
@@ -279,7 +276,7 @@ fn get_setup_path(key: &str, handle: AppHandle) -> Result<String, Error> {
         "BattleNetConfig" => {
             let app_data_dir = handle.path_resolver().app_data_dir().unwrap();
             let resource_path = app_data_dir.join("../Battle.net");
-            return Ok(display_path_string(&resource_path)?);
+            return Ok(helpers::display_path_string(&resource_path)?);
         }
         "SteamInstall" => {
             if let Some(path) = env::var_os("programfiles(x86)") {
