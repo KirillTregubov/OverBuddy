@@ -1,18 +1,18 @@
+import { QueryClient } from '@tanstack/react-query'
 import {
   ErrorComponent,
-  ErrorRouteProps,
+  ErrorComponentProps,
   Outlet,
-  redirect,
-  rootRouteWithContext
+  createRootRouteWithContext,
+  redirect
 } from '@tanstack/react-router'
-import { QueryClient } from '@tanstack/react-query'
-import { useEffect } from 'react'
 import { invoke } from '@tauri-apps/api'
+import { useEffect } from 'react'
 import { Toaster } from 'sonner'
 
-import { launchQueryOptions } from '../data'
+import { launchQueryOptions } from '@/data'
 
-export const Route = rootRouteWithContext<{
+export const Route = createRootRouteWithContext<{
   queryClient: QueryClient
 }>()({
   beforeLoad: async ({ context: { queryClient }, location }) => {
@@ -37,7 +37,11 @@ export const Route = rootRouteWithContext<{
   component: RootComponent
 })
 
-function RootErrorComponent({ error }: ErrorRouteProps) {
+function RootErrorComponent({ error }: ErrorComponentProps) {
+  useEffect(() => {
+    invoke('mounted')
+  }, [])
+
   if (typeof error === 'string') {
     error = Error(error)
   }

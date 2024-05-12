@@ -1,11 +1,16 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
 import { TanStackRouterVite } from '@tanstack/router-vite-plugin'
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
 import version from 'vite-plugin-package-version'
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
   plugins: [react(), TanStackRouterVite(), version()],
+  resolve: {
+    alias: {
+      '@': '/src'
+    }
+  },
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   // 1. prevent vite from obscuring rust errors
   clearScreen: false,

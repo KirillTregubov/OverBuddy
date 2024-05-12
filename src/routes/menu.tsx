@@ -1,27 +1,29 @@
-import { FileRoute, redirect } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import clsx from 'clsx'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   ChevronLeft,
   ChevronRight,
-  Loader2Icon
-  // LoaderIcon
-  // HeartIcon //,
+  LoaderPinwheel //,
+  // LoaderIcon,
+  // HeartIcon,
   // SettingsIcon
 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
 
+import placeholder from '@/assets/placeholder.svg'
+import Loading from '@/components/Loading'
 import {
-  useBackgroundMutation,
   backgroundsQueryOptions,
   launchQueryOptions,
+  useBackgroundMutation,
   useResetBackgroundMutation
-} from '../data'
-import placeholder from '../assets/placeholder.svg'
+} from '@/data'
 
-export const Route = new FileRoute('/menu').createRoute({
-  loader: ({ context: { queryClient } }) =>
+export const Route = createFileRoute('/menu')({
+  loader: async ({ context: { queryClient } }) =>
     queryClient.ensureQueryData(backgroundsQueryOptions),
   beforeLoad: async ({ context: { queryClient } }) => {
     const { is_setup } = await queryClient.fetchQuery(launchQueryOptions)
@@ -29,7 +31,8 @@ export const Route = new FileRoute('/menu').createRoute({
       throw redirect({ to: '/setup' })
     }
   },
-  component: Menu
+  component: Menu,
+  pendingComponent: Loading
 })
 const onImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
   if (!event?.target) return
@@ -37,11 +40,8 @@ const onImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
 }
 
 function Menu() {
-  const {
-    status: dataStatus,
-    error: dataError,
-    data
-  } = useSuspenseQuery(backgroundsQueryOptions)
+  const { data } = useSuspenseQuery(backgroundsQueryOptions)
+  const { data: config } = useSuspenseQuery(launchQueryOptions)
   const {
     status: setStatus,
     mutate: setBackground,
@@ -51,6 +51,7 @@ function Menu() {
       resetSetBackground()
     }
   })
+
   const {
     status: resetStatus,
     mutate: resetBackground,
@@ -64,12 +65,22 @@ function Menu() {
     }
   })
 
-  const [activeBackground, setActiveBackground] = useState(data[0])
-  const backgroundRefs = useRef<HTMLImageElement[]>([])
+  console.log(config)
 
-  if (dataStatus === 'error') {
-    return <div>Error: {dataError?.message}</div>
-  }
+  const backgroundRefs = useRef<HTMLImageElement[]>([])
+  const [activeBackground, setActiveBackground] = useState(data[0])
+
+  useEffect(() => {
+    if (config.background.current === null) return
+
+    const index = data.findIndex((bg) => bg.id === config.background.current)
+    if (index === -1) {
+      // FIXME: Handle removed background
+      toast.error('Background has been removed.')
+    }
+
+    handleSelect(index)
+  }, [config.background.current])
 
   const handleSelect = (index: number) => {
     const ref = backgroundRefs.current[index]
@@ -162,7 +173,7 @@ function Menu() {
               />
               <div
                 className={clsx(
-                  'absolute bottom-0 left-0 right-0 transform-gpu select-none truncate text-ellipsis bg-gradient-to-t from-zinc-950/50 to-transparent p-1 text-center font-bold text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] transition-[font-size,border-radius] will-change-transform',
+                  'absolute bottom-0 left-0 right-0 transform-gpu select-none pointer-events-none truncate text-ellipsis bg-gradient-to-t from-zinc-950/50 to-transparent p-1 text-center font-bold text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] transition-[font-size,border-radius] will-change-transform',
                   activeBackground.id === background.id
                     ? 'rounded-b-xl text-sm'
                     : 'rounded-b-lg py-1.5 text-xs'
@@ -213,7 +224,7 @@ function Menu() {
         <div className="absolute left-0 top-0 flex h-fit w-fit gap-2 p-3 text-sm text-zinc-200">
           {activeBackground.tags.map((tag) => (
             <motion.p
-              key={tag}
+              key={activeBackground.name + '-' + tag}
               className="rounded-md border border-zinc-800/80 bg-zinc-700/80 px-2.5 py-1 font-medium text-white backdrop-blur will-change-transform"
               initial={{ opacity: 0, transform: 'translateY(-8px)' }}
               animate={{ opacity: 1, transform: 'translateY(0px)' }}
@@ -232,8 +243,8 @@ function Menu() {
         />
         <div className="absolute bottom-0 flex w-full items-center gap-5 bg-gradient-to-b from-transparent to-zinc-950/50 to-25% p-4 pt-8">
           <motion.div
-            key={activeBackground.id}
-            className="flex select-none flex-col"
+            key={`${activeBackground.id}-description`}
+            className="flex select-none flex-col mr-auto"
             initial={{ opacity: 0, transform: 'translateY(8px)' }}
             animate={{ opacity: 1, transform: 'translateY(0px)' }}
             transition={{ duration: 0.2 }}
@@ -241,43 +252,45 @@ function Menu() {
             <h1 className="text-2xl font-bold">{activeBackground.name}</h1>
             <p className="text-lg">{activeBackground.description}</p>
           </motion.div>
-          <button
-            className={clsx(
-              'relative ml-auto h-14 w-48 select-none text-center text-lg font-medium uppercase tracking-wider transition-[color,transform] will-change-transform hover:text-zinc-300 focus-visible:text-zinc-300 focus-visible:outline-none active:scale-95 disabled:pointer-events-none',
-              resetStatus === 'idle' &&
-                'underline-fade-in after:bottom-4 after:left-3 after:right-3 after:w-[calc(100%-1.5rem)] after:bg-zinc-300'
-            )}
-            onClick={() => {
-              if (resetStatus === 'pending') return
-              resetBackground()
-            }}
-            disabled={resetStatus !== 'idle'}
-          >
-            <AnimatePresence mode="wait">
-              {resetStatus === 'pending' || resetStatus === 'success' ? (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  key="loader"
-                  className=""
-                >
-                  <Loader2Icon className="mx-auto animate-spin" size={28} />
-                </motion.span>
-              ) : (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  key="idle"
-                >
-                  Reset to Default
-                </motion.span>
+          {config.background.current !== null && (
+            <button
+              className={clsx(
+                'relative h-14 w-48 select-none text-center text-lg font-medium uppercase tracking-wider transition-[color,transform] will-change-transform hover:text-zinc-300 focus-visible:text-zinc-300 focus-visible:outline-none active:scale-95 disabled:pointer-events-none',
+                resetStatus === 'idle' &&
+                  'underline-fade-in after:bottom-4 after:left-3 after:right-3 after:w-[calc(100%-1.5rem)] after:bg-zinc-300'
               )}
-            </AnimatePresence>
-          </button>
+              onClick={() => {
+                if (resetStatus === 'pending') return
+                resetBackground()
+              }}
+              disabled={resetStatus !== 'idle'}
+              // key={`${activeBackground.id}-reset`}
+            >
+              <AnimatePresence mode="wait">
+                {resetStatus === 'pending' || resetStatus === 'success' ? (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    key="pending"
+                  >
+                    <LoaderPinwheel className="mx-auto animate-spin" />
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    key="idle"
+                  >
+                    Reset to Default
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </button>
+          )}
           {/* <button className="group rounded-full border-2 border-orange-900/50 bg-orange-950 p-3.5 text-orange-100 shadow-md ring-white transition-[border-color,transform,fill] will-change-transform hover:scale-105 hover:border-white focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 active:scale-95 active:border-orange-200 active:ring-orange-200">
             <HeartIcon
               size={24}
@@ -287,23 +300,20 @@ function Menu() {
           <button
             className="h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-orange-50 transition-[border-color,transform,border-radius] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-orange-50 focus-visible:scale-105 focus-visible:border-orange-50 focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:pointer-events-none"
             onClick={() => setBackground({ id: activeBackground.id })}
-            disabled={setStatus !== 'idle'}
+            disabled={
+              config.background.current === activeBackground.id ||
+              setStatus === 'success'
+            }
+            // key={`${activeBackground.id}-set`}
+            key={
+              config.background.current === activeBackground.id
+                ? 'current'
+                : 'not-current'
+            }
           >
             <AnimatePresence mode="wait">
-              {setStatus === 'pending' || setStatus === 'error' ? (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  key="loader"
-                >
-                  <Loader2Icon
-                    className="mx-auto animate-spin text-orange-200"
-                    size={28}
-                  />
-                </motion.span>
-              ) : setStatus === 'success' ? (
+              {config.background.current === activeBackground.id ||
+              setStatus === 'success' ? (
                 <motion.span
                   className="text-orange-100"
                   initial={{ opacity: 0 }}
@@ -313,6 +323,16 @@ function Menu() {
                   key="success"
                 >
                   Applied
+                </motion.span>
+              ) : setStatus === 'pending' ? (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  key="pending"
+                >
+                  <LoaderPinwheel className="mx-auto animate-spin text-orange-200" />
                 </motion.span>
               ) : (
                 <motion.span

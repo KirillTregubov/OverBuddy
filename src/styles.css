@@ -19,60 +19,6 @@
   box-sizing: border-box;
 }
 
-/* .masked-scroll::after {
-  @apply pointer-events-none absolute left-0 top-0 w-full;
-  content: '';
-  height: calc(100% - 32px);
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0) 91%,
-    rgba(6, 10, 14, 100%) 94%
-  );
-} */
-
-/* .scroll-container */
-.scroll-container {
-  position: fixed;
-  left: 0;
-  right: 0;
-  will-change: transform;
-}
-
-/* .scroll-container .ghost */
-.scroll-container .ghost {
-  width: 100vw;
-}
-
-/* .thumbnails-container */
-.thumbnails-container {
-  position: relative;
-  height: 100vh;
-  width: max-content;
-  display: flex;
-  align-items: center;
-  padding: 0px 160px;
-  background-color: #000; /* Assuming #000 is a variable */
-  border: 40px solid yellow; /* Assuming yellow is a variable */
-}
-
-.thumbnails-container .thumbnails {
-  position: relative;
-  display: flex;
-  border: 20px solid orange; /* Assuming $yellow is a variable */
-}
-
-.thumbnails-container .thumbnails > *:not(:last-child) {
-  margin-right: 45px;
-}
-
-/* .thumbnails-container .thumbnails .thumbnail */
-.thumbnails-container .thumbnails .thumbnail {
-  height: 40vh;
-  width: 700px;
-  background-color: royalblue; /* Assuming $royalblue is a variable */
-  border: 15px solid magenta;
-}
-
 /* Fade in */
 .underline-fade-in::after {
   content: '';

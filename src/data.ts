@@ -3,6 +3,8 @@ import { invoke } from '@tauri-apps/api'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+import { queryClient } from './main'
+
 const handleError = (error: unknown) => {
   if (error instanceof Error) error = error.message
   if (typeof error !== 'string') error = 'An unknown error occurred.'
@@ -11,8 +13,19 @@ const handleError = (error: unknown) => {
 
 const LaunchConfig = z.object({
   is_setup: z.boolean(),
-  battle_net_config: z.string().nullable(),
-  battle_net_install: z.string().nullable()
+  battle_net: z.object({
+    enabled: z.boolean(),
+    config: z.string().nullable(),
+    install: z.string().nullable()
+  }),
+  steam: z.object({
+    enabled: z.boolean(),
+    config: z.string().nullable(),
+    install: z.string().nullable()
+  }),
+  background: z.object({
+    current: z.string().nullable()
+  })
 })
 type LaunchConfig = z.infer<typeof LaunchConfig>
 
@@ -28,21 +41,34 @@ export const launchQueryOptions = queryOptions({
   }
 })
 
-const ConfigErrors = z.enum(['BattleNetConfig', 'BattleNetInstall'])
+const Platform = z.enum(['BattleNet', 'Steam'])
+export type Platform = z.infer<typeof Platform>
+
+export const ConfigErrors = z.enum([
+  'BattleNetConfig',
+  'BattleNetInstall',
+  'SteamInstall'
+])
 export type ConfigErrors = z.infer<typeof ConfigErrors>
 
 const ConfigErrorSchema = z.object({
+  error_key: ConfigErrors.or(z.enum(['NoOverwatch'])),
   message: z.string(),
-  error_key: ConfigErrors.or(z.enum(['NoOverwatch']))
+  error_action: z.string().nullable(),
+  platforms: z.array(Platform)
 })
 export type ConfigErrorSchema = z.infer<typeof ConfigErrorSchema>
 
 export class ConfigError extends Error {
   error_key: ConfigErrorSchema['error_key']
+  error_action: ConfigErrorSchema['error_action']
+  platforms: ConfigErrorSchema['platforms']
 
   constructor(public error: ConfigErrorSchema) {
     super(error.message)
     this.error_key = error.error_key
+    this.error_action = error.error_action
+    this.platforms = error.platforms
   }
 }
 
@@ -54,8 +80,8 @@ export const useSetupMutation = ({
   onSuccess?: (data: LaunchConfig) => void
 } = {}) =>
   useMutation({
-    mutationFn: async () => {
-      const data = await invoke('setup').catch((error) => {
+    mutationFn: async (platforms: Platform[]) => {
+      const data = await invoke('setup', { platforms }).catch((error) => {
         if (typeof error !== 'string') throw error
 
         let parsed
@@ -84,7 +110,7 @@ export const useSetupMutation = ({
     onSuccess
   })
 
-export const getSetupDirectory = (key: ConfigErrors) =>
+export const getSetupPath = (key: ConfigErrors) =>
   queryOptions({
     queryKey: ['directory', key],
     queryFn: async () => {
@@ -107,32 +133,36 @@ export const useSetupErrorMutation = ({
   useMutation({
     mutationFn: async ({
       key,
-      path
+      path,
+      platforms
     }: {
       key: ConfigErrorSchema['error_key']
       path: string
+      platforms: Platform[]
     }) => {
-      const data = await invoke('resolve_setup_error', { key, path }).catch(
-        (error) => {
-          if (typeof error !== 'string') throw error
+      const data = await invoke('resolve_setup_error', {
+        key,
+        path,
+        platforms
+      }).catch((error) => {
+        if (typeof error !== 'string') throw error
 
-          let parsed
-          try {
-            parsed = JSON.parse(error as string)
-          } catch (_) {
-            throw new Error(error)
-          }
-
-          const configError = ConfigErrorSchema.safeParse(parsed)
-          if (configError.success) {
-            throw new ConfigError(configError.data)
-          }
+        let parsed
+        try {
+          parsed = JSON.parse(error as string)
+        } catch (_) {
+          throw new Error(error)
         }
-      )
+
+        const configError = ConfigErrorSchema.safeParse(parsed)
+        if (configError.success) {
+          throw new ConfigError(configError.data)
+        }
+      })
 
       const config = LaunchConfig.safeParse(JSON.parse(data as string))
       if (!config.success) {
-        throw new Error(config.error.message)
+        throw new Error(`Failed to setup. ${config.error.message}`)
       }
       return config.data
     },
@@ -158,7 +188,7 @@ export const backgroundsQueryOptions = queryOptions({
     const data = await invoke('get_backgrounds')
     const backgrounds = BackgroundArray.safeParse(JSON.parse(data as string))
     if (!backgrounds.success) {
-      throw new Error(backgrounds.error.message)
+      throw new Error(`Failed to get backgrounds. ${backgrounds.error.message}`)
     }
     return backgrounds.data
   }
@@ -171,7 +201,14 @@ export const useBackgroundMutation = ({
 } = {}) =>
   useMutation({
     mutationFn: async (background: { id: string }) => {
-      return (await invoke('set_background', background)) as void
+      const data = (await invoke('set_background', background)) as string
+      const config = LaunchConfig.safeParse(JSON.parse(data))
+      if (!config.success) {
+        throw new Error(
+          `Failed to save background change. ${config.error.message}`
+        )
+      }
+      queryClient.setQueryData(['launch'], config.data)
     },
     onError: (error) => {
       handleError(error)
@@ -188,7 +225,12 @@ export const useResetBackgroundMutation = ({
 } = {}) =>
   useMutation({
     mutationFn: async () => {
-      return (await invoke('reset_background')) as void
+      const data = (await invoke('reset_background')) as string
+      const config = LaunchConfig.safeParse(JSON.parse(data))
+      if (!config.success) {
+        throw new Error(`Failed to reset background. ${config.error.message}`)
+      }
+      queryClient.setQueryData(['launch'], config.data)
     },
     onError: (error) => handleError(error),
     onSuccess: () => {

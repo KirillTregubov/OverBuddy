@@ -2,7 +2,10 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod backgrounds;
+mod config;
+mod helpers;
 
+use helpers::Error;
 use serde::Serialize;
 use serde_json::json;
 use serde_json::Serializer;
@@ -13,59 +16,9 @@ use std::path::Path;
 use std::process::Command;
 use std::thread;
 use std::time::Duration;
-use sysinfo::System;
 use tauri::AppHandle;
 use tauri::Manager;
 use tauri::Window;
-
-// create the error type that represents all errors possible in our program
-#[derive(Debug, thiserror::Error)]
-enum Error {
-    #[error(transparent)]
-    Io(#[from] std::io::Error),
-
-    #[error(transparent)]
-    Json(#[from] serde_json::Error),
-
-    #[error("{0}")]
-    Custom(String),
-}
-
-impl serde::Serialize for Error {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::ser::Serializer,
-    {
-        serializer.serialize_str(self.to_string().as_ref())
-    }
-}
-
-fn display_path_string(path: &std::path::PathBuf) -> Result<String, Error> {
-    dunce::canonicalize(&path)
-        .map(|canonicalized| canonicalized.display().to_string())
-        .map_err(|err| Error::Custom(format!("Error processing path: {:?}", err)))
-}
-
-fn close_battle_net() -> bool {
-    let mut flag = false;
-    let system = System::new_all();
-    for process in system.processes_by_name("Battle.net.exe") {
-        if process.kill() {
-            flag = true;
-        }
-    }
-
-    return flag;
-}
-
-// fn is_battle_net_running() -> Result<bool, Error> {
-//     let system = System::new_all();
-//     for _ in system.processes_by_name("Battle.net.exe") {
-//         return Ok(true);
-//     }
-
-//     Ok(false)
-// }
 
 #[tauri::command]
 fn mounted(window: Window) {
@@ -75,285 +28,269 @@ fn mounted(window: Window) {
     window.set_focus().unwrap();
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
-struct Config {
-    is_setup: bool,
-    battle_net_config: Option<String>,
-    battle_net_install: Option<String>,
-}
-static CONFIG_FILE: &'static str = "data.json";
-fn get_default_config() -> Config {
-    Config {
-        is_setup: false,
-        battle_net_config: None,
-        battle_net_install: None,
-    }
-}
-
-fn read_config(handle: &AppHandle) -> Result<Config, Error> {
-    let app_local_data_dir = handle.path_resolver().app_local_data_dir().unwrap();
-
-    // Ensure directory exists
-    if !app_local_data_dir.exists() {
-        match fs::create_dir_all(&app_local_data_dir) {
-            Ok(_) => {}
-            Err(_) => {
-                return Err(Error::Custom(format!(
-                    "Failed to create directory: {:?}",
-                    app_local_data_dir
-                )));
-            }
-        }
-    }
-
-    // Ensure file exists
-    let config_file_path = app_local_data_dir.join(CONFIG_FILE);
-    if !config_file_path.exists() {
-        match fs::File::create(&config_file_path) {
-            Ok(_) => {}
-            Err(_) => {
-                return Err(Error::Custom(format!(
-                    "Failed to create file: {:?}",
-                    config_file_path
-                )));
-            }
-        }
-    }
-
-    // Get config
-    let config = match fs::read_to_string(&config_file_path) {
-        Ok(contents) => contents,
-        Err(_) => String::new(),
-    };
-    let config: Config = match serde_json::from_str(&config) {
-        Ok(json) => {
-            let result: Result<Config, _> = serde_json::from_value(json);
-            match result {
-                Ok(config) => config,
-                Err(_) => get_default_config(),
-            }
-        }
-        Err(_) => get_default_config(),
-    };
-
-    return Ok(config);
-}
-
-fn write_config(handle: &AppHandle, config: &Config) -> Result<(), Error> {
-    let app_local_data_dir = handle.path_resolver().app_local_data_dir().unwrap();
-
-    // Ensure directory exists
-    if !app_local_data_dir.exists() {
-        match fs::create_dir_all(&app_local_data_dir) {
-            Ok(_) => {}
-            Err(_) => {
-                return Err(Error::Custom(format!(
-                    "Failed to create directory: {:?}",
-                    app_local_data_dir
-                )));
-            }
-        }
-    }
-
-    // Ensure file exists
-    let config_file_path = app_local_data_dir.join(CONFIG_FILE);
-    if !config_file_path.exists() {
-        match fs::File::create(&config_file_path) {
-            Ok(_) => {}
-            Err(_) => {
-                return Err(Error::Custom(format!(
-                    "Failed to create file: {:?}",
-                    config_file_path
-                )));
-            }
-        }
-    }
-
-    // Write config
-    let serialized_config = match serde_json::to_string(&config) {
-        Ok(json) => json,
-        Err(_) => {
-            return Err(Error::Custom(format!("Failed to serialize config.")));
-        }
-    };
-    match fs::write(&config_file_path, &serialized_config) {
-        Ok(_) => {}
-        Err(_) => {
-            return Err(Error::Custom(format!(
-                "Failed to write to file: {:?}",
-                config_file_path
-            )));
-        }
-    }
-
-    return Ok(());
-}
-
 #[tauri::command]
 fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
-    let config = read_config(&handle)?;
-    write_config(&handle, &config)?;
+    let config = helpers::read_config(&handle)?;
+    println!("Launched with {:?}", config);
+    helpers::write_config(&handle, &config)?;
 
     return Ok(serde_json::to_string(&config)?);
 }
 
-#[derive(serde::Serialize)]
+#[derive(Serialize)]
 enum ErrorKey {
     NoOverwatch,
-    BattleNetConfig,
     BattleNetInstall,
+    BattleNetConfig,
+    SteamInstall,
+    // SteamConfig,
 }
-
-#[derive(serde::Serialize)]
+#[derive(Serialize)]
 struct SetupError {
-    message: String,
     error_key: ErrorKey,
-}
-
-fn fetch_battle_net_config(handle: &AppHandle) -> Result<String, Error> {
-    let app_data_dir = handle.path_resolver().app_data_dir().unwrap();
-    let resource_path = app_data_dir.join("../Battle.net");
-    static CONFIG_FILE: &str = "Battle.net.config";
-
-    // Check if the target file exists in the directory
-    if let Ok(entries) = fs::read_dir(&resource_path) {
-        if let Some(target_entry) = entries
-            .filter_map(|entry| entry.ok()) // Filter out errors
-            .find(|entry| entry.file_name().to_string_lossy() == CONFIG_FILE)
-        {
-            let display_path = display_path_string(&target_entry.path())?;
-            return Ok(display_path);
-        } else {
-            let display_path = display_path_string(&resource_path)?;
-            return Err(Error::Custom(serde_json::to_string(&SetupError {
-                message: format!("Unable to find \"{}\" in {}.", CONFIG_FILE, display_path),
-                error_key: ErrorKey::BattleNetConfig,
-            })?));
-        }
-    } else {
-        return Err(Error::Custom(serde_json::to_string(&SetupError {
-            message: format!("Failed to find Battle.net AppData directory."),
-            error_key: ErrorKey::BattleNetConfig,
-        })?));
-    }
+    message: String,
+    error_action: Option<String>,
+    platforms: Option<Vec<String>>,
 }
 
 #[tauri::command]
-fn setup(handle: AppHandle) -> Result<String, Error> {
-    let mut config = read_config(&handle)?;
+fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
+    let mut config = helpers::read_config(&handle)?;
 
-    // Check if Battle.net is installed
-    static LAUNCHER_PATH: &str = "Battle.net\\Battle.net Launcher.exe";
-    if let Some(program_files_dir) = env::var_os("programfiles(x86)") {
-        let battle_net_install = Path::new(program_files_dir.to_str().unwrap()).join(LAUNCHER_PATH);
-        if battle_net_install.exists() {
-            config.battle_net_install = Some(battle_net_install.to_string_lossy().to_string());
+    if platforms.contains(&"BattleNet") {
+        // Check if Battle.net is installed
+        if config.battle_net.install.is_none() {
+            static LAUNCHER_PATH: &str = "Battle.net\\Battle.net Launcher.exe";
+            if let Some(program_files_dir) = env::var_os("programfiles(x86)") {
+                let battle_net_install =
+                    Path::new(program_files_dir.to_str().unwrap()).join(LAUNCHER_PATH);
+                if battle_net_install.exists() {
+                    config.battle_net.install =
+                        Some(battle_net_install.to_string_lossy().to_string());
+                }
+            }
         }
-    }
-    if config.battle_net_install.is_none() {
-        return Err(Error::Custom(serde_json::to_string(&SetupError {
-            message: "Failed to find Battle.net Launcher.".to_string(),
-            error_key: ErrorKey::BattleNetInstall,
-        })?));
-    }
-
-    // Check if Battle.net config exists
-    let battle_net_config = match &config.battle_net_config {
-        Some(battle_net_config) => battle_net_config.clone(),
-        None => {
-            let battle_net_config = fetch_battle_net_config(&handle)?;
-            config.battle_net_config = Some(battle_net_config.clone());
-            battle_net_config
+        if config.battle_net.install.is_none() {
+            return Err(Error::Custom(serde_json::to_string(&SetupError {
+                error_key: ErrorKey::BattleNetInstall,
+                message: "Failed to find your Battle.net installation.".to_string(),
+                error_action: Some("finding".to_string()),
+                platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
+            })?));
         }
-    };
 
-    let mut file = fs::OpenOptions::new()
-        .read(true)
-        .open(battle_net_config.clone())?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-    let mut json: serde_json::Value = serde_json::from_str(&contents)?;
+        // Check if Battle.net config exists
+        static CONFIG_FILE: &str = "Battle.net.config";
+        let battle_net_config = match &config.battle_net.config {
+            Some(battle_net_config) => battle_net_config.clone(),
+            None => {
+                let app_data_dir = handle.path_resolver().app_data_dir().unwrap();
+                let resource_path = app_data_dir.join("../Battle.net");
 
-    if json
-        .get("Games")
-        .and_then(|games| games.get("prometheus"))
-        .is_none()
-    {
-        return Err(Error::Custom(serde_json::to_string(&SetupError {
-            message: "You do not have Overwatch installed on Battle.net.".to_string(),
-            error_key: ErrorKey::NoOverwatch,
-        })?));
+                // Check if the target file exists in the directory
+                if let Ok(entries) = fs::read_dir(&resource_path) {
+                    if let Some(target_entry) = entries
+                        .filter_map(|entry| entry.ok()) // Filter out errors
+                        .find(|entry| entry.file_name().to_string_lossy() == CONFIG_FILE)
+                    {
+                        let display_path = helpers::display_path_string(&target_entry.path())?;
+                        config.battle_net.config = Some(display_path.clone());
+                        display_path
+                    } else {
+                        let display_path = helpers::display_path_string(&resource_path)?;
+                        return Err(Error::Custom(serde_json::to_string(&SetupError {
+                            error_key: ErrorKey::BattleNetConfig,
+                            message: format!(
+                                "Failed to find \"{}\" in {}.",
+                                CONFIG_FILE, display_path
+                            ),
+                            error_action: Some("finding".to_string()),
+                            platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
+                        })?));
+                    }
+                } else {
+                    return Err(Error::Custom(serde_json::to_string(&SetupError {
+                        error_key: ErrorKey::BattleNetConfig,
+                        message: "Failed to find Battle.net AppData directory.".to_string(),
+                        error_action: Some("finding".to_string()),
+                        platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
+                    })?));
+                }
+            }
+        };
+
+        let mut file = match fs::OpenOptions::new()
+            .read(true)
+            .open(battle_net_config.clone())
+        {
+            Ok(file) => file,
+            Err(_) => {
+                return Err(Error::Custom(serde_json::to_string(&SetupError {
+                    error_key: ErrorKey::BattleNetConfig,
+                    message: format!(
+                        "Failed to open \"{}\" file at {}",
+                        CONFIG_FILE, battle_net_config
+                    ),
+                    error_action: Some("opening".to_string()),
+                    platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
+                })?));
+            }
+        };
+        let mut contents = String::new();
+        match file.read_to_string(&mut contents) {
+            Ok(_) => {}
+            Err(_) => {
+                return Err(Error::Custom(serde_json::to_string(&SetupError {
+                    error_key: ErrorKey::BattleNetConfig,
+                    message: format!(
+                        "Failed to read \"{}\" file at {}",
+                        CONFIG_FILE, battle_net_config
+                    ),
+                    error_action: Some("reading".to_string()),
+                    platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
+                })?));
+            }
+        };
+        let mut json: serde_json::Value = serde_json::from_str(&contents)?;
+
+        // Check Overwatch installation
+        if json
+            .get("Games")
+            .and_then(|games| games.get("prometheus"))
+            .is_none()
+        {
+            return Err(Error::Custom(serde_json::to_string(&SetupError {
+                error_key: ErrorKey::NoOverwatch,
+                message: "You do not have Overwatch installed on Battle.net.".to_string(),
+                error_action: None,
+                platforms: None,
+            })?));
+        }
+
+        // Check and create AdditionalLaunchArguments if it doesn't exist
+        if let Some(game_config) = json
+            .get_mut("Games")
+            .and_then(|games| games.get_mut("prometheus"))
+        {
+            if game_config.get("AdditionalLaunchArguments").is_none() {
+                game_config
+                    .as_object_mut()
+                    .unwrap()
+                    .insert("AdditionalLaunchArguments".to_string(), json!(""));
+            }
+            let mut file = fs::OpenOptions::new()
+                .write(true)
+                .truncate(true)
+                .open(battle_net_config)?;
+
+            let pretty_formatter = serde_json::ser::PrettyFormatter::with_indent(b"    ");
+            let mut serializer = Serializer::with_formatter(&mut file, pretty_formatter);
+            json.serialize(&mut serializer)?;
+        }
+
+        // Enable Battle.net
+        config.battle_net.enabled = true;
     }
 
-    // Check and create AdditionalLaunchArguments if it doesn't exist
-    if let Some(game_config) = json
-        .get_mut("Games")
-        .and_then(|games| games.get_mut("prometheus"))
-    {
-        if game_config.get("AdditionalLaunchArguments").is_none() {
-            game_config
-                .as_object_mut()
-                .unwrap()
-                .insert("AdditionalLaunchArguments".to_string(), json!(""));
+    if platforms.contains(&"Steam") {
+        // Check if Battle.net is installed
+        if config.steam.install.is_none() {
+            static LAUNCHER_PATH: &str = "Steam\\steam.exe";
+            if let Some(program_files_dir) = env::var_os("programfiles(x86)") {
+                let steam_install =
+                    Path::new(program_files_dir.to_str().unwrap()).join(LAUNCHER_PATH);
+                if steam_install.exists() {
+                    config.steam.install = Some(steam_install.to_string_lossy().to_string());
+                }
+            }
         }
-        let mut file = fs::OpenOptions::new()
-            .write(true)
-            .truncate(true)
-            .open(battle_net_config)?;
+        if config.steam.install.is_none() {
+            return Err(Error::Custom(serde_json::to_string(&SetupError {
+                error_key: ErrorKey::SteamInstall,
+                message: "Failed to find your Steam installation.".to_string(),
+                error_action: Some("finding".to_string()),
+                platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
+            })?));
+        }
 
-        let pretty_formatter = serde_json::ser::PrettyFormatter::with_indent(b"    ");
-        let mut serializer = Serializer::with_formatter(&mut file, pretty_formatter);
-        json.serialize(&mut serializer)?;
+        // Check if Steam config exists
+        return Err(Error::Custom("Not implemented yet".to_string()));
+        // TODO: Implement Steam setup
+
+        // Enable Steam
+        // config.steam.enabled = true;
     }
 
     config.is_setup = true;
-    write_config(&handle, &config)?;
+    helpers::write_config(&handle, &config)?;
 
     return Ok(serde_json::to_string(&config)?);
 }
 
 #[tauri::command]
-fn resolve_setup_error(handle: AppHandle, key: &str, path: &str) -> Result<String, Error> {
-    let mut config = read_config(&handle)?;
+fn resolve_setup_error(
+    handle: AppHandle,
+    key: &str,
+    path: &str,
+    platforms: Vec<&str>,
+) -> Result<String, Error> {
+    let mut config = helpers::read_config(&handle)?;
 
     match key {
-        "BattleNetConfig" => {
-            config.battle_net_config = Some(path.to_string());
-            write_config(&handle, &config)?;
-        }
         "BattleNetInstall" => {
-            config.battle_net_install = Some(path.to_string());
-            write_config(&handle, &config)?;
+            config.battle_net.install = Some(path.to_string());
+            helpers::write_config(&handle, &config)?;
+        }
+        "BattleNetConfig" => {
+            config.battle_net.config = Some(path.to_string());
+            helpers::write_config(&handle, &config)?;
+        }
+        "SteamInstall" => {
+            config.steam.install = Some(path.to_string());
+            helpers::write_config(&handle, &config)?;
         }
         _ => {
-            return Err(Error::Custom(format!("Incorrect setup resolution.")));
+            return Err(Error::Custom(format!(
+                "Encountered an incorrect setup resolution key. Please report this issue to the developer."
+            )));
         }
     };
 
-    return Ok(setup(handle)?);
+    return Ok(setup(handle, platforms)?);
 }
 
 #[tauri::command]
 fn get_setup_path(key: &str, handle: AppHandle) -> Result<String, Error> {
-    if key == "BattleNetConfig" {
-        let app_data_dir = handle.path_resolver().app_data_dir().unwrap();
-        let resource_path = app_data_dir.join("../Battle.net");
-
-        return Ok(display_path_string(&resource_path)?);
-    }
-
-    if key == "BattleNetInstall" {
-        if let Some(path) = env::var_os("programfiles(x86)") {
-            let path = Path::new(path.to_str().unwrap()).join("Battle.net");
-            return Ok(path.to_string_lossy().to_string());
+    match key {
+        "BattleNetInstall" => {
+            if let Some(path) = env::var_os("programfiles(x86)") {
+                let path = Path::new(path.to_str().unwrap()).join("Battle.net");
+                return Ok(path.to_string_lossy().to_string());
+            }
+            return Err(Error::Custom(format!(
+                "Failed to find the \"Program Files (x86)\" directory."
+            )));
         }
-
-        return Err(Error::Custom(format!(
-            "Failed to find the \"Program Files (x86)\" directory."
-        )));
+        "BattleNetConfig" => {
+            let app_data_dir = handle.path_resolver().app_data_dir().unwrap();
+            let resource_path = app_data_dir.join("../Battle.net");
+            return Ok(helpers::display_path_string(&resource_path)?);
+        }
+        "SteamInstall" => {
+            if let Some(path) = env::var_os("programfiles(x86)") {
+                let path = Path::new(path.to_str().unwrap()).join("Steam");
+                return Ok(path.to_string_lossy().to_string());
+            }
+            return Err(Error::Custom(format!(
+                "Failed to find the \"Program Files (x86)\" directory."
+            )));
+        }
+        _ => {
+            return Err(Error::Custom(format!(
+                "Encountered an incorrect setup key. Please report this issue to the developer."
+            )));
+        }
     }
-
-    return Err(Error::Custom(format!("Incorrect directory key.")));
 }
 
 #[tauri::command]
@@ -366,16 +303,21 @@ fn get_backgrounds() -> String {
 // fn update_background
 
 #[tauri::command]
-fn set_background(handle: AppHandle, id: &str) -> Result<(), Error> {
-    let config = read_config(&handle)?;
-    let battle_net_was_closed = close_battle_net();
-    let battle_net_config = config.battle_net_config.unwrap();
+fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
+    let mut config = helpers::read_config(&handle)?;
+
+    // TODO: Steam support and fix this error
+    if config.battle_net.enabled == false {
+        return Err(Error::Custom(format!("Battle.net is not enabled.")));
+    }
+
+    let battle_net_was_closed = helpers::close_battle_net();
+    let battle_net_config = config.battle_net.config.clone().unwrap();
+    let battle_net_install = config.battle_net.install.clone().unwrap();
 
     let cleanup = || {
         if battle_net_was_closed {
-            Command::new(config.battle_net_install.unwrap())
-                .spawn()
-                .ok();
+            Command::new(battle_net_install).spawn().ok();
         }
     };
 
@@ -467,21 +409,33 @@ fn set_background(handle: AppHandle, id: &str) -> Result<(), Error> {
         }
     };
 
+    config.background.current = Some(id.to_string());
+    helpers::write_config(&handle, &config)?;
+
     cleanup();
-    return Ok(());
+    return Ok(serde_json::to_string(&config)?);
 }
 
 #[tauri::command]
-fn reset_background(handle: AppHandle) -> Result<(), Error> {
-    let config = read_config(&handle)?;
-    let battle_net_was_closed = close_battle_net();
-    let battle_net_config = config.battle_net_config.unwrap();
+fn reset_background(handle: AppHandle) -> Result<String, Error> {
+    let mut config = helpers::read_config(&handle)?;
+
+    if config.background.current.is_none() {
+        return Ok(serde_json::to_string(&config)?);
+    }
+
+    // TODO: Steam support and fix this error
+    if config.battle_net.enabled == false {
+        return Err(Error::Custom(format!("Battle.net is not enabled.")));
+    }
+
+    let battle_net_was_closed = helpers::close_battle_net();
+    let battle_net_config = config.battle_net.config.clone().unwrap();
+    let battle_net_install = config.battle_net.install.clone().unwrap();
 
     let cleanup = || {
         if battle_net_was_closed {
-            Command::new(config.battle_net_install.unwrap())
-                .spawn()
-                .ok();
+            Command::new(battle_net_install).spawn().ok();
         }
     };
 
@@ -535,8 +489,11 @@ fn reset_background(handle: AppHandle) -> Result<(), Error> {
             filtered_args
         }
         None => {
+            config.background.current = None;
+            helpers::write_config(&handle, &config)?;
+
             cleanup();
-            return Ok(());
+            return Ok(serde_json::to_string(&config)?);
         }
     };
 
@@ -570,8 +527,11 @@ fn reset_background(handle: AppHandle) -> Result<(), Error> {
         }
     };
 
+    config.background.current = None;
+    helpers::write_config(&handle, &config)?;
+
     cleanup();
-    return Ok(());
+    return Ok(serde_json::to_string(&config)?);
 }
 
 fn main() {
@@ -602,5 +562,5 @@ fn main() {
             reset_background
         ])
         .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .expect("Encountered an error while starting OverBuddy");
 }
