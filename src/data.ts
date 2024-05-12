@@ -20,14 +20,12 @@ const LaunchConfig = z.object({
   }),
   steam: z.object({
     enabled: z.boolean(),
-    // config: z.string().nullable(),
+    config: z.string().nullable(),
     install: z.string().nullable()
   }),
   background: z.object({
     current: z.string().nullable()
   })
-  // battle_net_config: z.string().nullable(),
-  // battle_net_install: z.string().nullable()
 })
 type LaunchConfig = z.infer<typeof LaunchConfig>
 

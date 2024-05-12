@@ -8,7 +8,7 @@ pub struct BattleNetConfig {
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct SteamConfig {
     pub enabled: bool,
-    // pub config: Option<String>,
+    pub config: Option<String>,
     pub install: Option<String>,
 }
 
@@ -37,7 +37,7 @@ pub fn get_default_config() -> Config {
         },
         steam: SteamConfig {
             enabled: false,
-            // config: None,
+            config: None,
             install: None,
         },
         background: BackgroundConfig { current: None },
