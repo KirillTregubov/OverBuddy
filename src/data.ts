@@ -3,6 +3,8 @@ import { invoke } from '@tauri-apps/api'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+import { queryClient } from './main'
+
 const handleError = (error: unknown) => {
   if (error instanceof Error) error = error.message
   if (typeof error !== 'string') error = 'An unknown error occurred.'
@@ -20,6 +22,9 @@ const LaunchConfig = z.object({
     enabled: z.boolean(),
     // config: z.string().nullable(),
     install: z.string().nullable()
+  }),
+  background: z.object({
+    current: z.string().nullable()
   })
   // battle_net_config: z.string().nullable(),
   // battle_net_install: z.string().nullable()
@@ -159,7 +164,7 @@ export const useSetupErrorMutation = ({
 
       const config = LaunchConfig.safeParse(JSON.parse(data as string))
       if (!config.success) {
-        throw new Error(config.error.message)
+        throw new Error(`Failed to setup. ${config.error.message}`)
       }
       return config.data
     },
@@ -185,7 +190,7 @@ export const backgroundsQueryOptions = queryOptions({
     const data = await invoke('get_backgrounds')
     const backgrounds = BackgroundArray.safeParse(JSON.parse(data as string))
     if (!backgrounds.success) {
-      throw new Error(backgrounds.error.message)
+      throw new Error(`Failed to get backgrounds. ${backgrounds.error.message}`)
     }
     return backgrounds.data
   }
@@ -198,7 +203,14 @@ export const useBackgroundMutation = ({
 } = {}) =>
   useMutation({
     mutationFn: async (background: { id: string }) => {
-      return (await invoke('set_background', background)) as void
+      const data = (await invoke('set_background', background)) as string
+      const config = LaunchConfig.safeParse(JSON.parse(data))
+      if (!config.success) {
+        throw new Error(
+          `Failed to save background change. ${config.error.message}`
+        )
+      }
+      queryClient.setQueryData(['launch'], config.data)
     },
     onError: (error) => {
       handleError(error)
@@ -215,7 +227,12 @@ export const useResetBackgroundMutation = ({
 } = {}) =>
   useMutation({
     mutationFn: async () => {
-      return (await invoke('reset_background')) as void
+      const data = (await invoke('reset_background')) as string
+      const config = LaunchConfig.safeParse(JSON.parse(data))
+      if (!config.success) {
+        throw new Error(`Failed to reset background. ${config.error.message}`)
+      }
+      queryClient.setQueryData(['launch'], config.data)
     },
     onError: (error) => handleError(error),
     onSuccess: () => {

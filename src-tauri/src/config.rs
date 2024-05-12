@@ -13,10 +13,16 @@ pub struct SteamConfig {
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
+pub struct BackgroundConfig {
+    pub current: Option<String>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct Config {
     pub is_setup: bool,
     pub battle_net: BattleNetConfig,
     pub steam: SteamConfig,
+    pub background: BackgroundConfig,
 }
 
 pub static CONFIG_FILE: &'static str = "data.json";
@@ -34,5 +40,6 @@ pub fn get_default_config() -> Config {
             // config: None,
             install: None,
         },
+        background: BackgroundConfig { current: None },
     }
 }

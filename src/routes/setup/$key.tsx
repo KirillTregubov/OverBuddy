@@ -3,13 +3,14 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { open } from '@tauri-apps/api/dialog'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
+
 import {
   ConfigError,
   ConfigErrors,
   Platform,
   getSetupPath,
   useSetupErrorMutation
-} from '../../data'
+} from '@/data'
 import { childVariants, containerVariants } from './-constants'
 
 export const Route = createFileRoute('/setup/$key')({

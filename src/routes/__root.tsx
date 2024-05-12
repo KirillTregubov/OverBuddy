@@ -3,16 +3,16 @@ import {
   ErrorComponent,
   ErrorComponentProps,
   Outlet,
-  redirect,
-  rootRouteWithContext
+  createRootRouteWithContext,
+  redirect
 } from '@tanstack/react-router'
 import { invoke } from '@tauri-apps/api'
 import { useEffect } from 'react'
 import { Toaster } from 'sonner'
 
-import { launchQueryOptions } from '../data'
+import { launchQueryOptions } from '@/data'
 
-export const Route = rootRouteWithContext<{
+export const Route = createRootRouteWithContext<{
   queryClient: QueryClient
 }>()({
   beforeLoad: async ({ context: { queryClient }, location }) => {

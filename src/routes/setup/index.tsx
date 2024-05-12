@@ -1,8 +1,14 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
+import {
+  // Link,
+  createFileRoute,
+  useNavigate
+} from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import { BookLockIcon, GlobeIcon, SparklesIcon } from 'lucide-react'
+import { toast } from 'sonner'
 
 import logo from '@/assets/logo.svg'
+import { ConfigError, ConfigErrors, useSetupMutation } from '@/data'
 import { childVariants, containerVariants } from './-constants'
 
 export const Route = createFileRoute('/setup/')({
@@ -10,6 +16,37 @@ export const Route = createFileRoute('/setup/')({
 })
 
 export function SetupSplash() {
+  const navigate = useNavigate()
+  const { status, mutate, reset } = useSetupMutation({
+    onError: (error) => {
+      if (error instanceof ConfigError) {
+        toast.error(error.message)
+        if (ConfigErrors.safeParse(error.error_key).success) {
+          navigate({
+            to: '/setup/$key',
+            params: {
+              key: error.error_key
+            },
+            search: {
+              action: error.error_action || 'finding',
+              platforms: error.platforms
+            },
+            replace: true
+          })
+        }
+        return
+      }
+      toast.error(error.message)
+      reset()
+    },
+    onSuccess: () => {
+      navigate({
+        to: '/menu',
+        replace: true
+      })
+    }
+  })
+
   return (
     <motion.div
       className="mx-auto flex h-full max-w-xl select-none flex-col items-center justify-center pb-8"
@@ -88,23 +125,30 @@ export function SetupSplash() {
             </motion.h2>
             <motion.p variants={childVariants}>
               To change your background, this app needs to read and write your
-              Battle.net® or Steam® configuration files. It does{' '}
+              Battle.net®{/* or Steam®*/} configuration files. It does{' '}
               <span className="font-medium">NOT</span> modify any game files. To
-              apply the changes, your Battle.net or Steam client will be
+              apply the changes, your Battle.net{/* or Steam*/} client will be
               automatically restarted.
             </motion.p>
           </div>
         </div>
       </div>
       <motion.div variants={childVariants} className="flex w-full">
-        <Link
+        {/* <Link
           className="w-full select-none rounded-lg bg-zinc-50 px-5 py-3 text-center font-medium capitalize text-black transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-200/70 focus-visible:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:scale-95"
           to="/setup/select"
           replace
           draggable={false}
         >
           Continue
-        </Link>
+        </Link> */}
+        <button
+          className="w-full select-none rounded-lg bg-zinc-50 px-5 py-3 text-center font-medium capitalize text-black transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-200/70 focus-visible:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:scale-95"
+          disabled={status !== 'idle'}
+          onClick={() => mutate(['BattleNet'])}
+        >
+          Continue
+        </button>
       </motion.div>
     </motion.div>
   )
