@@ -10,7 +10,7 @@ import { invoke } from '@tauri-apps/api'
 import { useEffect } from 'react'
 import { Toaster } from 'sonner'
 
-import { launchQueryOptions } from '@/data'
+import { launchQueryOptions } from '@/lib/data'
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient

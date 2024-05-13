@@ -20,11 +20,11 @@ import {
   launchQueryOptions,
   useBackgroundMutation,
   useResetBackgroundMutation
-} from '@/data'
+} from '@/lib/data'
 
 export const Route = createFileRoute('/menu')({
   loader: async ({ context: { queryClient } }) =>
-    queryClient.ensureQueryData(backgroundsQueryOptions),
+    await queryClient.ensureQueryData(backgroundsQueryOptions),
   beforeLoad: async ({ context: { queryClient } }) => {
     const { is_setup } = await queryClient.fetchQuery(launchQueryOptions)
     if (!is_setup) {
@@ -64,8 +64,6 @@ function Menu() {
       reset()
     }
   })
-
-  console.log(config)
 
   const backgroundRefs = useRef<HTMLImageElement[]>([])
   const [activeBackground, setActiveBackground] = useState(data[0])

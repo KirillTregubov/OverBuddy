@@ -7,7 +7,12 @@ import { toast } from 'sonner'
 
 import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
-import { ConfigError, ConfigErrors, Platform, useSetupMutation } from '@/data'
+import {
+  ConfigError,
+  ConfigErrors,
+  Platform,
+  useSetupMutation
+} from '@/lib/data'
 import { childVariants, containerVariants } from './-constants'
 
 export const Route = createFileRoute('/setup/select')({

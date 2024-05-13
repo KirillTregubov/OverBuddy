@@ -1,3 +1,4 @@
 OverBuddy has been updated to the latest Overwatch version.
 - Old unavailable backgrounds have been removed and new backgrounds have been added.
 - Minor bug fixes and improvements have been made.
+- Fixed an issue where images were not loading properly.

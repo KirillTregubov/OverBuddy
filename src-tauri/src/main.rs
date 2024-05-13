@@ -31,7 +31,7 @@ fn mounted(window: Window) {
 #[tauri::command]
 fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
     let config = helpers::read_config(&handle)?;
-    println!("Launched with {:?}", config);
+    // println!("Launched with {:?}", config);
     helpers::write_config(&handle, &config)?;
 
     return Ok(serde_json::to_string(&config)?);
