@@ -10,7 +10,7 @@ import {
   Platform,
   getSetupPath,
   useSetupErrorMutation
-} from '@/data'
+} from '@/lib/data'
 import { childVariants, containerVariants } from './-constants'
 
 export const Route = createFileRoute('/setup/$key')({

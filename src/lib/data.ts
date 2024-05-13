@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-import { queryClient } from './main'
+import { queryClient } from '../main'
 
 const handleError = (error: unknown) => {
   if (error instanceof Error) error = error.message
@@ -185,11 +185,17 @@ export type BackgroundArray = z.infer<typeof BackgroundArray>
 export const backgroundsQueryOptions = queryOptions({
   queryKey: ['backgrounds'],
   queryFn: async () => {
+    // sleep 2s
     const data = await invoke('get_backgrounds')
     const backgrounds = BackgroundArray.safeParse(JSON.parse(data as string))
     if (!backgrounds.success) {
       throw new Error(`Failed to get backgrounds. ${backgrounds.error.message}`)
     }
+    // preload images
+    backgrounds.data.forEach((background) => {
+      const img = new Image()
+      img.src = `/backgrounds/${background.image}`
+    })
     return backgrounds.data
   }
 })

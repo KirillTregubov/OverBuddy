@@ -8,7 +8,7 @@ import { BookLockIcon, GlobeIcon, SparklesIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import logo from '@/assets/logo.svg'
-import { ConfigError, ConfigErrors, useSetupMutation } from '@/data'
+import { ConfigError, ConfigErrors, useSetupMutation } from '@/lib/data'
 import { childVariants, containerVariants } from './-constants'
 
 export const Route = createFileRoute('/setup/')({
