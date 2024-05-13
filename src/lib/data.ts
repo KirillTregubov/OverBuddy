@@ -185,7 +185,6 @@ export type BackgroundArray = z.infer<typeof BackgroundArray>
 export const backgroundsQueryOptions = queryOptions({
   queryKey: ['backgrounds'],
   queryFn: async () => {
-    // sleep 2s
     const data = await invoke('get_backgrounds')
     const backgrounds = BackgroundArray.safeParse(JSON.parse(data as string))
     if (!backgrounds.success) {
