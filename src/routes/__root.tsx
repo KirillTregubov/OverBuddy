@@ -33,7 +33,7 @@ export const Route = createRootRouteWithContext<{
       throw redirect({ to: '/menu' })
     }
   },
-  errorComponent: RootErrorComponent as any,
+  errorComponent: RootErrorComponent,
   component: RootComponent
 })
 
