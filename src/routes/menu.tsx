@@ -23,10 +23,22 @@ import {
 } from '@/lib/data'
 
 export const Route = createFileRoute('/menu')({
-  loader: async ({ context: { queryClient } }) =>
-    await queryClient.ensureQueryData(backgroundsQueryOptions),
+  loader: async ({ context }) => {
+    if (context === undefined) {
+      return
+    }
+    const { queryClient } = context
+    await queryClient.ensureQueryData(backgroundsQueryOptions)
+  },
   beforeLoad: async ({ context: { queryClient } }) => {
-    const { is_setup } = await queryClient.fetchQuery(launchQueryOptions)
+    const { is_setup } = await queryClient
+      .fetchQuery(launchQueryOptions)
+      .catch((error) => {
+        if (typeof error === 'string') {
+          error = Error(error)
+        }
+        throw error
+      })
     if (!is_setup) {
       throw redirect({ to: '/setup' })
     }
@@ -34,6 +46,7 @@ export const Route = createFileRoute('/menu')({
   component: Menu,
   pendingComponent: Loading
 })
+
 const onImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
   if (!event?.target) return
   ;(event.target as HTMLImageElement).src = placeholder

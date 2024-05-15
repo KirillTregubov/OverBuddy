@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Router, RouterProvider } from '@tanstack/react-router'
+import { RouterProvider, createRouter } from '@tanstack/react-router'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 
@@ -15,7 +15,7 @@ export const queryClient = new QueryClient({
   }
 })
 
-const router = new Router({
+const router = createRouter({
   routeTree,
   context: {
     queryClient

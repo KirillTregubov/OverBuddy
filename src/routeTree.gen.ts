@@ -49,22 +49,37 @@ const SetupKeyRoute = SetupKeyImport.update({
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/menu': {
+      id: '/menu'
+      path: '/menu'
+      fullPath: '/menu'
       preLoaderRoute: typeof MenuImport
       parentRoute: typeof rootRoute
     }
     '/setup': {
+      id: '/setup'
+      path: '/setup'
+      fullPath: '/setup'
       preLoaderRoute: typeof SetupImport
       parentRoute: typeof rootRoute
     }
     '/setup/$key': {
+      id: '/setup/$key'
+      path: '/$key'
+      fullPath: '/setup/$key'
       preLoaderRoute: typeof SetupKeyImport
       parentRoute: typeof SetupImport
     }
     '/setup/select': {
+      id: '/setup/select'
+      path: '/select'
+      fullPath: '/setup/select'
       preLoaderRoute: typeof SetupSelectImport
       parentRoute: typeof SetupImport
     }
     '/setup/': {
+      id: '/setup/'
+      path: '/'
+      fullPath: '/setup/'
       preLoaderRoute: typeof SetupIndexImport
       parentRoute: typeof SetupImport
     }
@@ -73,9 +88,13 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
-export const routeTree = rootRoute.addChildren([
+export const routeTree = rootRoute.addChildren({
   MenuRoute,
-  SetupRoute.addChildren([SetupKeyRoute, SetupSelectRoute, SetupIndexRoute]),
-])
+  SetupRoute: SetupRoute.addChildren({
+    SetupKeyRoute,
+    SetupSelectRoute,
+    SetupIndexRoute,
+  }),
+})
 
 /* prettier-ignore-end */

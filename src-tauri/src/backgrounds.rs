@@ -273,5 +273,12 @@ pub fn get_backgrounds() -> Vec<Background> {
             description: "Mirrorwatch Event (Season 10)",
             tags: vec!["Art"],
         },
+        Background {
+            id: "0x0800000000001219",
+            image: "porsche.jpg",
+            name: "Porsche D.Va",
+            description: "Porsche Event (Season 10)",
+            tags: vec!["Art"],
+        },
     ]
 }

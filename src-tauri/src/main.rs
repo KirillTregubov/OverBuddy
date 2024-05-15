@@ -30,10 +30,102 @@ fn mounted(window: Window) {
 
 #[tauri::command]
 fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
-    let config = helpers::read_config(&handle)?;
+    let mut config = helpers::read_config(&handle)?;
     // println!("Launched with {:?}", config);
-    helpers::write_config(&handle, &config)?;
 
+    if config.is_setup {
+        if config.battle_net.enabled {
+            let battle_net_config = config.battle_net.config.clone().unwrap();
+            let mut file = match fs::OpenOptions::new()
+                .read(true)
+                .open(battle_net_config.clone())
+            {
+                Ok(file) => file,
+                Err(_) => {
+                    return Err(Error::Custom(format!(
+                        "Failed to open Battle.net.config file at {}",
+                        battle_net_config
+                    )));
+                }
+            };
+            let mut contents = String::new();
+            match file.read_to_string(&mut contents) {
+                Ok(_) => {}
+                Err(_) => {
+                    return Err(Error::Custom(format!(
+                        "Failed to read Battle.net.config file at {}",
+                        battle_net_config
+                    )));
+                }
+            }
+            let mut json: serde_json::Value = match serde_json::from_str(&contents) {
+                Ok(json) => json,
+                Err(_) => {
+                    return Err(Error::Custom(format!(
+                        "Failed to parse Battle.net.config file at {}",
+                        battle_net_config
+                    )));
+                }
+            };
+
+            if json
+                .get("Games")
+                .and_then(|games| games.get("prometheus"))
+                .is_none()
+            {
+                config.battle_net.enabled = false;
+                config.battle_net.install = None;
+                config.battle_net.config = None;
+            } else {
+                if let Some(launch_args) =
+                    json["Games"]["prometheus"]["AdditionalLaunchArguments"].as_str()
+                {
+                    let current_background = launch_args
+                        .split_whitespace()
+                        .find(|s| s.starts_with("--lobbyMap="))
+                        .and_then(|s| s.split('=').nth(1))
+                        .map(String::from);
+
+                    if let Some(ref current_background) = current_background {
+                        if current_background.is_empty() {
+                            let new_launch_args = launch_args
+                                .split_whitespace()
+                                .filter(|&s| s != "--lobbyMap=")
+                                .collect::<Vec<&str>>()
+                                .join(" ");
+
+                            if let Some(game_config) = json
+                                .get_mut("Games")
+                                .and_then(|games| games.get_mut("prometheus"))
+                            {
+                                game_config.as_object_mut().unwrap().insert(
+                                    "AdditionalLaunchArguments".to_string(),
+                                    json!(new_launch_args),
+                                );
+
+                                let mut file = fs::OpenOptions::new()
+                                    .write(true)
+                                    .truncate(true)
+                                    .open(battle_net_config)?;
+                                let pretty_formatter =
+                                    serde_json::ser::PrettyFormatter::with_indent(b"    ");
+                                let mut serializer =
+                                    Serializer::with_formatter(&mut file, pretty_formatter);
+                                json.serialize(&mut serializer)?;
+                            }
+                        }
+                    }
+                    config.background.current = current_background;
+                }
+            }
+        }
+    }
+
+    if config.battle_net.enabled == false && config.steam.enabled == false {
+        config.is_setup = false;
+    }
+
+    helpers::write_config(&handle, &config)?;
     return Ok(serde_json::to_string(&config)?);
 }
 
@@ -177,15 +269,15 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
                     .as_object_mut()
                     .unwrap()
                     .insert("AdditionalLaunchArguments".to_string(), json!(""));
-            }
-            let mut file = fs::OpenOptions::new()
-                .write(true)
-                .truncate(true)
-                .open(battle_net_config)?;
 
-            let pretty_formatter = serde_json::ser::PrettyFormatter::with_indent(b"    ");
-            let mut serializer = Serializer::with_formatter(&mut file, pretty_formatter);
-            json.serialize(&mut serializer)?;
+                let mut file = fs::OpenOptions::new()
+                    .write(true)
+                    .truncate(true)
+                    .open(battle_net_config)?;
+                let pretty_formatter = serde_json::ser::PrettyFormatter::with_indent(b"    ");
+                let mut serializer = Serializer::with_formatter(&mut file, pretty_formatter);
+                json.serialize(&mut serializer)?;
+            }
         }
 
         // Enable Battle.net
@@ -357,9 +449,7 @@ fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
         }
     };
 
-    let launch_args = json["Games"]["prometheus"]["AdditionalLaunchArguments"]
-        .as_str()
-        .map(|s| s.to_string());
+    let launch_args = json["Games"]["prometheus"]["AdditionalLaunchArguments"].as_str();
 
     let new_arg = format!("--lobbyMap={}", id);
     let launch_args: String = match launch_args {
