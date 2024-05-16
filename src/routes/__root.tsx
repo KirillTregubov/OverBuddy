@@ -19,14 +19,7 @@ export const Route = createRootRouteWithContext<{
     if (location.pathname !== '/') {
       return
     }
-    const { is_setup } = await queryClient
-      .fetchQuery(launchQueryOptions)
-      .catch((error) => {
-        if (typeof error === 'string') {
-          error = Error(error)
-        }
-        throw error
-      })
+    const { is_setup } = await queryClient.fetchQuery(launchQueryOptions)
     if (!is_setup) {
       throw redirect({ to: '/setup' })
     } else {

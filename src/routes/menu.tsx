@@ -23,22 +23,10 @@ import {
 } from '@/lib/data'
 
 export const Route = createFileRoute('/menu')({
-  loader: async ({ context }) => {
-    if (context === undefined) {
-      return
-    }
-    const { queryClient } = context
-    await queryClient.ensureQueryData(backgroundsQueryOptions)
-  },
+  loader: async ({ context: { queryClient } }) => 
+    await queryClient.ensureQueryData(backgroundsQueryOptions),
   beforeLoad: async ({ context: { queryClient } }) => {
-    const { is_setup } = await queryClient
-      .fetchQuery(launchQueryOptions)
-      .catch((error) => {
-        if (typeof error === 'string') {
-          error = Error(error)
-        }
-        throw error
-      })
+    const { is_setup } = await queryClient.fetchQuery(launchQueryOptions)
     if (!is_setup) {
       throw redirect({ to: '/setup' })
     }
@@ -252,7 +240,7 @@ function Menu() {
           onError={onImageError}
           draggable="false"
         />
-        <div className="absolute bottom-0 flex w-full items-center gap-5 bg-gradient-to-b from-transparent to-zinc-950/50 to-25% p-4 pt-8">
+        <div className="absolute bottom-0 flex w-full items-center gap-5 bg-gradient-to-b from-transparent to-zinc-950/50 to-25% p-4 pt-8 rounded-b-lg">
           <motion.div
             key={`${activeBackground.id}-description`}
             className="flex select-none flex-col mr-auto"

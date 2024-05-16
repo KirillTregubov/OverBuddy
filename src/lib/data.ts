@@ -32,13 +32,17 @@ type LaunchConfig = z.infer<typeof LaunchConfig>
 export const launchQueryOptions = queryOptions({
   queryKey: ['launch'],
   queryFn: async () => {
-    const data = await invoke('get_launch_config')
+    const data = await invoke('get_launch_config').catch((error) => {
+      if (typeof error !== 'string') throw error
+      throw new Error(error)
+    })
     const config = LaunchConfig.safeParse(JSON.parse(data as string))
     if (!config.success) {
       throw new Error(config.error.message)
     }
     return config.data
-  }
+  },
+  staleTime: 0
 })
 
 const Platform = z.enum(['BattleNet', 'Steam'])

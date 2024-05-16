@@ -1,4 +1,2 @@
-OverBuddy has been updated to the latest Overwatch patch.
-- Added the Porsche crossover event background.
-- Fixed an issue during setup.
-- Currently applied background now reflects configuration changes.
+OverBuddy has new functionality!
+- Fixed various issues and made improvements.
