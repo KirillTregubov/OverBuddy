@@ -1,7 +1,19 @@
-import { Outlet, createFileRoute } from '@tanstack/react-router'
+import { launchQueryOptions } from '@/lib/data'
+import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 
 export const Route = createFileRoute('/setup')({
+  beforeLoad: async ({ context: { queryClient } }) => {
+    const { is_setup } = await queryClient
+      .fetchQuery(launchQueryOptions)
+      .catch(() => {
+        throw redirect({ to: '/' })
+      })
+
+    if (is_setup) {
+      throw redirect({ to: '/menu' })
+    }
+  },
   component: Setup
 })
 

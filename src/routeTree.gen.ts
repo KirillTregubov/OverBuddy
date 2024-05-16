@@ -13,6 +13,7 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as SetupImport } from './routes/setup'
 import { Route as MenuImport } from './routes/menu'
+import { Route as IndexImport } from './routes/index'
 import { Route as SetupIndexImport } from './routes/setup/index'
 import { Route as SetupSelectImport } from './routes/setup/select'
 import { Route as SetupKeyImport } from './routes/setup/$key'
@@ -26,6 +27,11 @@ const SetupRoute = SetupImport.update({
 
 const MenuRoute = MenuImport.update({
   path: '/menu',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const IndexRoute = IndexImport.update({
+  path: '/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -48,6 +54,13 @@ const SetupKeyRoute = SetupKeyImport.update({
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
     '/menu': {
       id: '/menu'
       path: '/menu'
@@ -89,6 +102,7 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 export const routeTree = rootRoute.addChildren({
+  IndexRoute,
   MenuRoute,
   SetupRoute: SetupRoute.addChildren({
     SetupKeyRoute,

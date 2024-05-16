@@ -23,10 +23,15 @@ import {
 } from '@/lib/data'
 
 export const Route = createFileRoute('/menu')({
-  loader: async ({ context: { queryClient } }) => 
+  loader: async ({ context: { queryClient } }) =>
     await queryClient.ensureQueryData(backgroundsQueryOptions),
   beforeLoad: async ({ context: { queryClient } }) => {
-    const { is_setup } = await queryClient.fetchQuery(launchQueryOptions)
+    const { is_setup } = await queryClient
+      .fetchQuery(launchQueryOptions)
+      .catch(() => {
+        throw redirect({ to: '/' })
+      })
+
     if (!is_setup) {
       throw redirect({ to: '/setup' })
     }
