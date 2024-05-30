@@ -112,3 +112,44 @@ export const routeTree = rootRoute.addChildren({
 })
 
 /* prettier-ignore-end */
+
+/* ROUTE_MANIFEST_START
+{
+  "routes": {
+    "__root__": {
+      "filePath": "__root.tsx",
+      "children": [
+        "/",
+        "/menu",
+        "/setup"
+      ]
+    },
+    "/": {
+      "filePath": "index.tsx"
+    },
+    "/menu": {
+      "filePath": "menu.tsx"
+    },
+    "/setup": {
+      "filePath": "setup.tsx",
+      "children": [
+        "/setup/$key",
+        "/setup/select",
+        "/setup/"
+      ]
+    },
+    "/setup/$key": {
+      "filePath": "setup/$key.tsx",
+      "parent": "/setup"
+    },
+    "/setup/select": {
+      "filePath": "setup/select.tsx",
+      "parent": "/setup"
+    },
+    "/setup/": {
+      "filePath": "setup/index.tsx",
+      "parent": "/setup"
+    }
+  }
+}
+ROUTE_MANIFEST_END */

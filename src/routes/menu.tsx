@@ -11,7 +11,6 @@ import {
   // SettingsIcon
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { toast } from 'sonner'
 
 import placeholder from '@/assets/placeholder.svg'
 import Loading from '@/components/Loading'
@@ -21,6 +20,7 @@ import {
   useBackgroundMutation,
   useResetBackgroundMutation
 } from '@/lib/data'
+import { handleError } from '@/lib/errors'
 
 export const Route = createFileRoute('/menu')({
   loader: async ({ context: { queryClient } }) =>
@@ -80,7 +80,7 @@ function Menu() {
     const index = data.findIndex((bg) => bg.id === config.background.current)
     if (index === -1) {
       // FIXME: Handle removed background
-      toast.error('Background has been removed.')
+      handleError('Background has been removed.')
     }
 
     handleSelect(index)
@@ -138,7 +138,7 @@ function Menu() {
             <motion.button
               key={background.id}
               className={clsx(
-                'aspect-video shadow-lg transition-[width,height,box-shadow]',
+                'aspect-video w-fit shadow-lg transition-[width,height,box-shadow]',
                 activeBackground.id === background.id
                   ? 'h-36 w-64 rounded-xl shadow-orange-600/20'
                   : 'h-28 w-52 rounded-lg shadow-orange-600/10 hover:shadow-orange-600/20'

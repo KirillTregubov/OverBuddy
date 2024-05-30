@@ -31,9 +31,13 @@ fn mounted(window: Window) {
 #[tauri::command]
 fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
     let mut config = helpers::read_config(&handle)?;
-    // println!("Launched with {:?}", config);
+    println!("Launched with {:?}", config);
 
     if config.is_setup {
+        return Err(Error::Custom(format!(
+            "Failed to read Battle.net.config file at {}",
+            config.battle_net.config.clone().unwrap()
+        )));
         if config.battle_net.enabled {
             let battle_net_config = config.battle_net.config.clone().unwrap();
             let mut file = match fs::OpenOptions::new()
@@ -103,6 +107,8 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
                                     json!(new_launch_args),
                                 );
 
+                                println!("Writing to {}", battle_net_config);
+
                                 let mut file = fs::OpenOptions::new()
                                     .write(true)
                                     .truncate(true)
@@ -112,6 +118,8 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
                                 let mut serializer =
                                     Serializer::with_formatter(&mut file, pretty_formatter);
                                 json.serialize(&mut serializer)?;
+
+                                println!("End Write");
                             }
                         }
                     }
@@ -277,6 +285,24 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
                 let pretty_formatter = serde_json::ser::PrettyFormatter::with_indent(b"    ");
                 let mut serializer = Serializer::with_formatter(&mut file, pretty_formatter);
                 json.serialize(&mut serializer)?;
+            } else {
+                let launch_args = json["Games"]["prometheus"]["AdditionalLaunchArguments"]
+                    .as_str()
+                    .map(|s| s.to_string());
+                match launch_args {
+                    Some(arguments) => {
+                        let current_background = arguments
+                            .split_whitespace()
+                            .find(|s| s.starts_with("--lobbyMap="))
+                            .and_then(|s| s.split('=').nth(1))
+                            .map(String::from);
+
+                        if let Some(ref current_background) = current_background {
+                            config.background.current = Some(current_background.clone());
+                        }
+                    }
+                    None => (),
+                };
             }
         }
 
@@ -409,6 +435,7 @@ fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
 
     let cleanup = || {
         if battle_net_was_closed {
+            // TODO: test error
             Command::new(battle_net_install).spawn().ok();
         }
     };
@@ -624,6 +651,13 @@ fn reset_background(handle: AppHandle) -> Result<String, Error> {
     return Ok(serde_json::to_string(&config)?);
 }
 
+#[tauri::command]
+fn reset(handle: AppHandle) -> Result<String, Error> {
+    let config = config::get_default_config();
+    helpers::write_config(&handle, &config)?;
+    return Ok(serde_json::to_string(&config)?);
+}
+
 fn main() {
     tauri::Builder::default()
         // .setup(|app| {
@@ -649,7 +683,8 @@ fn main() {
             resolve_setup_error,
             get_backgrounds,
             set_background,
-            reset_background
+            reset_background,
+            reset
         ])
         .run(tauri::generate_context!())
         .expect("Encountered an error while starting OverBuddy");
