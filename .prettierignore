@@ -2,3 +2,4 @@ src-tauri/target
 dist
 pnpm-lock.yaml
 src/routeTree.gen.ts
+*.ts.timestamp*

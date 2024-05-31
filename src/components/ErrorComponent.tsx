@@ -1,5 +1,6 @@
-import { ErrorComponentProps, useRouter } from '@tanstack/react-router'
+import { useRouter, type ErrorComponentProps } from '@tanstack/react-router'
 import { invoke } from '@tauri-apps/api'
+import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 
@@ -111,7 +112,10 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
       <img
         src="/tracer.png"
         alt="logo"
-        className={`h-full w-auto pt-20 transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+        className={clsx(
+          'h-full w-auto pt-20 transition-opacity duration-500',
+          imageLoaded ? 'opacity-100' : 'opacity-0'
+        )}
         loading="eager"
         onLoad={() => setImageLoaded(true)}
       />
