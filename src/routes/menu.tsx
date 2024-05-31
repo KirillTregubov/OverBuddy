@@ -251,7 +251,7 @@ function Menu() {
           onError={onImageError}
           draggable="false"
         />
-        <div className="absolute bottom-0 flex w-full items-center gap-5 rounded-b-lg bg-gradient-to-b from-transparent to-zinc-950/50 to-25% p-4 pt-8">
+        <div className="absolute bottom-0 flex w-full items-center gap-5 rounded-b-lg bg-gradient-to-b from-transparent via-zinc-950/30 to-zinc-950/50 to-25% p-4 pt-8">
           {activeBackground !== undefined && (
             <motion.div
               key={`${activeBackground.id}-description`}

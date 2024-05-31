@@ -10,23 +10,16 @@ import {
   staggerChildrenVariants
 } from '@/lib/animations'
 import { useResetMutation } from '@/lib/data'
-
-const PathHighlight = ({ text }: { text: string }) => {
-  return (
-    <span className="select-all rounded bg-zinc-800 px-1.5 pb-0.5 pt-px">
-      {text}
-    </span>
-  )
-}
+import Highlight from './Highlight'
 
 const FormattedError = ({ text }: { text: string }) => {
-  const regex = /\b[a-zA-Z]:\\[^:\n\r\*?<>"|]+(?:\\[^:\n\r\*?<>"|]+)*/g
+  const regex = /\[\[(.*?)\]\]/g
   const parts = []
   let lastIdx = 0
 
-  text.replace(regex, (match, offset) => {
+  text.replace(regex, (match, captured, offset) => {
     parts.push(text.slice(lastIdx, offset))
-    parts.push(<PathHighlight key={offset} text={match} />)
+    parts.push(<Highlight key={offset}>{captured}</Highlight>)
     lastIdx = offset + match.length
     return ''
   })
@@ -35,7 +28,11 @@ const FormattedError = ({ text }: { text: string }) => {
     parts.push(text.slice(lastIdx))
   }
 
-  return <motion.p variants={moveInVariants}>{parts}</motion.p>
+  return (
+    <motion.p variants={moveInVariants} className="text-balance">
+      {parts}
+    </motion.p>
+  )
 }
 
 export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
@@ -79,7 +76,7 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
       >
         {/* <TanstackErrorComponent error={error} /> */}
         <motion.h1
-          className="mb-1 text-xl font-medium"
+          className="mb-1 select-none text-xl font-medium"
           variants={moveInVariants}
         >
           Oops! Something went wrong.
@@ -87,7 +84,7 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
         <FormattedError text={error.message} />
         <motion.div className="mt-4 flex gap-2" variants={moveInVariants}>
           <button
-            className="select-none rounded-lg bg-zinc-50 px-4 py-2 text-center font-medium text-black transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-200/70 focus-visible:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:scale-95"
+            className="select-none rounded-lg bg-zinc-50 px-4 py-2 font-medium text-black transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-200/70 focus-visible:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:scale-95"
             onClick={() => {
               // Reset the router error boundary
               reset()
@@ -98,7 +95,7 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
             Retry
           </button>
           <button
-            className="select-none rounded-lg bg-zinc-700 px-4 py-2 text-center font-medium text-white transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-500/70 focus-visible:bg-zinc-500/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="select-none rounded-lg bg-zinc-800 px-4 py-2 font-medium text-white transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-600/70 focus-visible:bg-zinc-600/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={status !== 'idle'}
             onClick={() => {
               mutate()
@@ -113,11 +110,12 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
         src="/tracer.png"
         alt="logo"
         className={clsx(
-          'h-full w-auto pt-20 transition-opacity duration-500',
+          'h-full w-auto pb-6 pt-20 transition-opacity duration-500',
           imageLoaded ? 'opacity-100' : 'opacity-0'
         )}
         loading="eager"
         onLoad={() => setImageLoaded(true)}
+        draggable={false}
       />
     </motion.main>
   )

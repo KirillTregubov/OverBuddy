@@ -1,7 +1,7 @@
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-import { Platform } from '@/lib/schema'
+import { Platform } from '@/lib/schemas'
 
 /* ConfigErrors */
 export const ConfigErrors = z.enum([
@@ -42,13 +42,15 @@ export class SetupError extends Error {
 }
 
 /* Handle non-critical errors */
-export function handleError(error: unknown) {
+export function handleError(error: unknown, reportable = true) {
   if (error instanceof Error) error = error.message
   else if (typeof error !== 'string') error = 'An unknown error occurred.'
-  toast.error(error as string, {
-    action: {
-      label: 'Report',
-      onClick: () => toast.dismiss() // TODO: Implement error reporting
-    }
+  toast.error((error as string).replaceAll(/\[\[|\]\]/g, '"'), {
+    action: reportable
+      ? {
+          label: 'Report',
+          onClick: () => toast.dismiss() // TODO: Implement error reporting
+        }
+      : undefined
   })
 }

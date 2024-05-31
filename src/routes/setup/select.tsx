@@ -10,7 +10,7 @@ import Steam from '@/assets/Steam.svg'
 import { moveInVariants, staggerChildrenVariants } from '@/lib/animations'
 import { useSetupMutation } from '@/lib/data'
 import { ConfigError, ConfigErrors, handleError } from '@/lib/errors'
-import { Platform } from '@/lib/schema'
+import { Platform } from '@/lib/schemas'
 
 export const Route = createFileRoute('/setup/select')({
   component: SetupSelect
@@ -21,21 +21,21 @@ export function SetupSelect() {
   const navigate = useNavigate()
   const { status, mutate, reset } = useSetupMutation({
     onError: (error) => {
-      if (error instanceof ConfigError) {
-        toast.error(error.message)
-        if (ConfigErrors.safeParse(error.error_key).success) {
-          navigate({
-            to: '/setup/$key',
-            params: {
-              key: error.error_key
-            },
-            search: {
-              action: error.error_action || 'finding',
-              platforms: error.platforms
-            },
-            replace: true
-          })
-        }
+      if (
+        error instanceof ConfigError &&
+        ConfigErrors.safeParse(error.error_key).success
+      ) {
+        navigate({
+          to: '/setup/$key',
+          params: {
+            key: error.error_key
+          },
+          search: {
+            action: error.error_action || 'finding',
+            platforms: error.platforms
+          },
+          replace: true
+        })
         return
       }
       handleError(error)

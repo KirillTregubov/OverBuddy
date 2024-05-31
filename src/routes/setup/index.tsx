@@ -5,7 +5,6 @@ import {
 } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import { BookLockIcon, GlobeIcon, SparklesIcon } from 'lucide-react'
-import { toast } from 'sonner'
 
 import logo from '@/assets/logo.svg'
 import { moveInVariants, staggerChildrenVariants } from '@/lib/animations'
@@ -20,21 +19,21 @@ export function SetupSplash() {
   const navigate = useNavigate()
   const { status, mutate, reset } = useSetupMutation({
     onError: (error) => {
-      if (error instanceof ConfigError) {
-        toast.error(error.message)
-        if (ConfigErrors.safeParse(error.error_key).success) {
-          navigate({
-            to: '/setup/$key',
-            params: {
-              key: error.error_key
-            },
-            search: {
-              action: error.error_action || 'finding',
-              platforms: error.platforms
-            },
-            replace: true
-          })
-        }
+      if (
+        error instanceof ConfigError &&
+        ConfigErrors.safeParse(error.error_key).success
+      ) {
+        navigate({
+          to: '/setup/$key',
+          params: {
+            key: error.error_key
+          },
+          search: {
+            action: error.error_action || 'finding',
+            platforms: error.platforms
+          },
+          replace: true
+        })
         return
       }
       handleError(error)

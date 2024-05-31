@@ -1,9 +1,16 @@
+import { fadeInVariants } from '@/lib/animations'
+import { motion } from 'framer-motion'
 import { LoaderPinwheel } from 'lucide-react'
 
 export default function Loading() {
   return (
-    <div className="flex h-screen items-center justify-center">
-      <LoaderPinwheel className="animate-spin text-zinc-600" size={36} />
-    </div>
+    <motion.div
+      className="flex h-screen items-center justify-center"
+      variants={fadeInVariants}
+      initial="hidden"
+      animate="show"
+    >
+      <LoaderPinwheel className="animate-spin text-zinc-700" size={36} />
+    </motion.div>
   )
 }

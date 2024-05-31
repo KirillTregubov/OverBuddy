@@ -10,7 +10,7 @@ import {
   SetupError,
   handleError
 } from '@/lib/errors'
-import { LaunchConfig, Platform } from '@/lib/schema'
+import { LaunchConfig, type Platform } from '@/lib/schemas'
 import { queryClient } from '@/main'
 
 export const launchQueryOptions = queryOptions({
@@ -61,13 +61,12 @@ export const useSetupMutation = ({
       if (!config.data.is_setup) {
         throw new SetupError()
       }
+
+      queryClient.setQueryData(['launch'], config.data)
       return config.data
     },
     onError,
-    onSuccess: (data) => {
-      queryClient.setQueryData(['launch'], data)
-      onSuccess?.(data)
-    }
+    onSuccess
   })
 
 export const getSetupPath = (key: ConfigErrors) =>
@@ -124,6 +123,8 @@ export const useSetupErrorMutation = ({
       if (!config.success) {
         throw new Error(`Failed to setup. ${config.error.message}`)
       }
+
+      queryClient.setQueryData(['launch'], config.data)
       return config.data
     },
     onError,
