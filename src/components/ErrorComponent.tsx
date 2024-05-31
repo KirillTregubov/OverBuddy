@@ -13,7 +13,7 @@ import { useResetMutation } from '@/lib/data'
 
 const PathHighlight = ({ text }: { text: string }) => {
   return (
-    <span className="px-1.5 pb-0.5 pt-px bg-zinc-800 rounded select-all">
+    <span className="select-all rounded bg-zinc-800 px-1.5 pb-0.5 pt-px">
       {text}
     </span>
   )
@@ -68,18 +68,18 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
 
   return (
     <motion.main
-      className="w-screen h-screen flex overflow-hidden"
+      className="flex h-screen w-screen overflow-hidden"
       variants={fadeInVariants}
       initial="hidden"
       animate="show"
     >
       <motion.div
-        className="p-8 pr-0 flex justify-center flex-col w-full"
+        className="flex w-full flex-col justify-center p-8 pr-0"
         variants={staggerChildrenVariants}
       >
         {/* <TanstackErrorComponent error={error} /> */}
         <motion.h1
-          className="font-medium text-xl mb-1"
+          className="mb-1 text-xl font-medium"
           variants={moveInVariants}
         >
           Oops! Something went wrong.

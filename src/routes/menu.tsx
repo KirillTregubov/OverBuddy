@@ -177,7 +177,7 @@ function Menu() {
               />
               <div
                 className={clsx(
-                  'absolute bottom-0 left-0 right-0 transform-gpu select-none pointer-events-none truncate text-ellipsis bg-gradient-to-t from-zinc-950/50 to-transparent p-1 text-center font-bold text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] transition-[font-size,border-radius] will-change-transform',
+                  'pointer-events-none absolute bottom-0 left-0 right-0 transform-gpu select-none truncate text-ellipsis bg-gradient-to-t from-zinc-950/50 to-transparent p-1 text-center font-bold text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] transition-[font-size,border-radius] will-change-transform',
                   activeBackground?.id === background.id
                     ? 'rounded-b-xl text-sm'
                     : 'rounded-b-lg py-1.5 text-xs'
@@ -251,11 +251,11 @@ function Menu() {
           onError={onImageError}
           draggable="false"
         />
-        <div className="absolute bottom-0 flex w-full items-center gap-5 bg-gradient-to-b from-transparent to-zinc-950/50 to-25% p-4 pt-8 rounded-b-lg">
+        <div className="absolute bottom-0 flex w-full items-center gap-5 rounded-b-lg bg-gradient-to-b from-transparent to-zinc-950/50 to-25% p-4 pt-8">
           {activeBackground !== undefined && (
             <motion.div
               key={`${activeBackground.id}-description`}
-              className="flex select-none flex-col mr-auto"
+              className="mr-auto flex select-none flex-col"
               initial={{ opacity: 0, transform: 'translateY(8px)' }}
               animate={{ opacity: 1, transform: 'translateY(0px)' }}
               transition={{ duration: 0.2 }}
@@ -311,7 +311,7 @@ function Menu() {
           </button> */}
           {activeBackground !== undefined && (
             <button
-              className="h-14 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-orange-50 transition-[border-color,transform,border-radius] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-orange-50 focus-visible:scale-105 focus-visible:border-orange-50 focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:pointer-events-none  w-40 "
+              className="h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-orange-50 transition-[border-color,transform,border-radius] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-orange-50 focus-visible:scale-105 focus-visible:border-orange-50 focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:pointer-events-none"
               onClick={() => setBackground({ id: activeBackground.id })}
               disabled={
                 config.background.current === activeBackground.id ||
