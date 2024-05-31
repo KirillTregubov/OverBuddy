@@ -12,13 +12,13 @@ async function updateVersion(type: string) {
   const cargoToml = fs.readFileSync(cargoTomlPath, 'utf8')
 
   // Get current version from package.json
-  let currentVersion = packageJson.version
+  let currentVersion = (packageJson as any).version
   console.log(`Current version: ${currentVersion}`)
 
   // Determine new version
   let newVersion = ''
   if (['patch', 'minor', 'major'].includes(type)) {
-    newVersion = semver.inc(currentVersion, type)
+    newVersion = semver.inc(currentVersion, type)!
   } else {
     newVersion = type // Custom version
   }
@@ -40,8 +40,8 @@ async function updateVersion(type: string) {
   }
 
   // Update package.json
-  packageJson.version = newVersion
-  fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2))
+  ;(packageJson as any).version = newVersion
+  fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n')
 
   // Update Cargo.toml
   const updatedCargoToml = cargoToml.replace(

@@ -42,15 +42,8 @@ export class SetupError extends Error {
 }
 
 /* Handle non-critical errors */
-export function handleError(error: unknown, reportable = true) {
+export function handleError(error: unknown) {
   if (error instanceof Error) error = error.message
   else if (typeof error !== 'string') error = 'An unknown error occurred.'
-  toast.error((error as string).replaceAll(/\[\[|\]\]/g, '"'), {
-    action: reportable
-      ? {
-          label: 'Report',
-          onClick: () => toast.dismiss() // TODO: Implement error reporting
-        }
-      : undefined
-  })
+  toast.error((error as string).replaceAll(/\[\[|\]\]/g, '"'))
 }

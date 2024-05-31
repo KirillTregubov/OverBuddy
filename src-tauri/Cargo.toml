@@ -1,6 +1,6 @@
 [package]
 name = "overbuddy"
-version = "1.1.2"
+version = "1.2.0"
 description = "Elevate your Overwatch™ 2 experience by customizing your in-game menu background with ease."
 authors = ["Kirill Tregubov"]
 license = "../LICENSE"

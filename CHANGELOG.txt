@@ -1,2 +1,5 @@
-OverBuddy has new functionality!
+OverBuddy has been updated!
+- Added a new error screen and updated setup error resolution steps.
+- Improved error handling and reliability with backups to Battle.net configuration.
+- Enhanced styling and animation quality.
 - Fixed various issues and made improvements.
