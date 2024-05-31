@@ -3,8 +3,10 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 
-import { routeTree } from './routeTree.gen'
-import './styles.css'
+import ErrorComponent from '@/components/ErrorComponent'
+import Toaster from '@/components/Toaster'
+import { routeTree } from '@/routeTree.gen'
+import '@/styles.css'
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,7 +25,9 @@ const router = createRouter({
   defaultPreload: 'intent',
   // Since we're using React Query, we don't want loader calls to ever be stale
   // This will ensure that the loader is always called when the route is preloaded or visited
-  defaultPreloadStaleTime: 0
+  defaultPreloadStaleTime: 0,
+  notFoundMode: 'root',
+  defaultErrorComponent: ErrorComponent
 })
 
 declare module '@tanstack/react-router' {
@@ -37,5 +41,6 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
     </QueryClientProvider>
+    <Toaster />
   </React.StrictMode>
 )

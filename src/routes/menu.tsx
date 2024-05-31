@@ -11,7 +11,6 @@ import {
   // SettingsIcon
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { toast } from 'sonner'
 
 import placeholder from '@/assets/placeholder.svg'
 import Loading from '@/components/Loading'
@@ -21,24 +20,18 @@ import {
   useBackgroundMutation,
   useResetBackgroundMutation
 } from '@/lib/data'
+import { handleError } from '@/lib/errors'
 
 export const Route = createFileRoute('/menu')({
-  loader: async ({ context }) => {
-    if (context === undefined) {
-      return
-    }
-    const { queryClient } = context
-    await queryClient.ensureQueryData(backgroundsQueryOptions)
-  },
+  loader: async ({ context: { queryClient } }) =>
+    await queryClient.ensureQueryData(backgroundsQueryOptions),
   beforeLoad: async ({ context: { queryClient } }) => {
     const { is_setup } = await queryClient
       .fetchQuery(launchQueryOptions)
-      .catch((error) => {
-        if (typeof error === 'string') {
-          error = Error(error)
-        }
-        throw error
+      .catch(() => {
+        throw redirect({ to: '/' })
       })
+
     if (!is_setup) {
       throw redirect({ to: '/setup' })
     }
@@ -87,7 +80,7 @@ function Menu() {
     const index = data.findIndex((bg) => bg.id === config.background.current)
     if (index === -1) {
       // FIXME: Handle removed background
-      toast.error('Background has been removed.')
+      handleError('Background has been removed.')
     }
 
     handleSelect(index)
@@ -140,13 +133,13 @@ function Menu() {
         </button>
       </div> */}
       <div className="relative -mt-6">
-        <div className="scrollbar-hide flex h-48 flex-shrink-0 items-center gap-3 overflow-x-auto scroll-smooth px-12">
+        <div className="scrollbar-hide -mx-1 flex h-48 flex-shrink-0 items-center gap-3 overflow-x-auto scroll-smooth px-12 before:pointer-events-none before:absolute before:-left-1 before:z-10 before:h-full before:w-6 before:content-[''] before:bg-easing-l-menu-top after:pointer-events-none after:absolute after:-right-1 after:z-10 after:h-full after:w-6 after:content-[''] after:bg-easing-r-menu-top">
           {data.map((background, index) => (
             <motion.button
               key={background.id}
               className={clsx(
-                'aspect-video shadow-lg transition-[width,height,box-shadow]',
-                activeBackground.id === background.id
+                'aspect-video w-fit shadow-lg transition-[width,height,box-shadow]',
+                activeBackground?.id === background.id
                   ? 'h-36 w-64 rounded-xl shadow-orange-600/20'
                   : 'h-28 w-52 rounded-lg shadow-orange-600/10 hover:shadow-orange-600/20'
               )}
@@ -154,7 +147,7 @@ function Menu() {
               whileInView={{ transform: 'scale(1)' }}
               whileHover={{
                 transform:
-                  activeBackground.id === background.id
+                  activeBackground?.id === background.id
                     ? 'scale(1)'
                     : 'scale(1.05)',
                 transition: { duration: 0.2 }
@@ -172,7 +165,7 @@ function Menu() {
                 alt={background.name}
                 className={clsx(
                   'h-full w-full select-none object-cover transition-[border-radius]',
-                  activeBackground.id === background.id
+                  activeBackground?.id === background.id
                     ? 'rounded-xl'
                     : 'rounded-lg'
                 )}
@@ -184,8 +177,8 @@ function Menu() {
               />
               <div
                 className={clsx(
-                  'absolute bottom-0 left-0 right-0 transform-gpu select-none pointer-events-none truncate text-ellipsis bg-gradient-to-t from-zinc-950/50 to-transparent p-1 text-center font-bold text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] transition-[font-size,border-radius] will-change-transform',
-                  activeBackground.id === background.id
+                  'pointer-events-none absolute bottom-0 left-0 right-0 transform-gpu select-none truncate text-ellipsis bg-gradient-to-t from-zinc-950/50 to-transparent p-1 text-center font-bold text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] transition-[font-size,border-radius] will-change-transform',
+                  activeBackground?.id === background.id
                     ? 'rounded-b-xl text-sm'
                     : 'rounded-b-lg py-1.5 text-xs'
                 )}
@@ -196,7 +189,7 @@ function Menu() {
           ))}
         </div>
         <motion.div
-          className="absolute left-1 top-1/2 -mt-4"
+          className="absolute left-1 top-1/2 z-20 -mt-4"
           initial={{ transform: 'translateX(15px)' }}
           animate={{ transform: 'translateX(0px)' }}
           transition={{ duration: 0.3 }}
@@ -211,7 +204,7 @@ function Menu() {
           </button>
         </motion.div>
         <motion.div
-          className="absolute right-1 top-1/2 -mt-4"
+          className="absolute right-1 top-1/2 z-20 -mt-4"
           initial={{ transform: 'translateX(-15px)' }}
           animate={{ transform: 'translateX(0px)' }}
           transition={{ duration: 0.3 }}
@@ -232,37 +225,45 @@ function Menu() {
         whileInView={{ transform: 'scale(1)' }}
         transition={{ duration: 0.3 }}
       >
-        <div className="absolute left-0 top-0 flex h-fit w-fit gap-2 p-3 text-sm text-zinc-200">
-          {activeBackground.tags.map((tag) => (
-            <motion.p
-              key={activeBackground.name + '-' + tag}
-              className="rounded-md border border-zinc-800/80 bg-zinc-700/80 px-2.5 py-1 font-medium text-white backdrop-blur will-change-transform"
-              initial={{ opacity: 0, transform: 'translateY(-8px)' }}
-              animate={{ opacity: 1, transform: 'translateY(0px)' }}
-              transition={{ duration: 0.2 }}
-            >
-              {tag}
-            </motion.p>
-          ))}
-        </div>
+        {activeBackground !== undefined && (
+          <div className="absolute left-0 top-0 flex h-fit w-fit gap-2 p-3 text-sm text-zinc-200">
+            {activeBackground.tags.map((tag) => (
+              <motion.p
+                key={activeBackground.name + '-' + tag}
+                className="rounded-md border border-zinc-800/80 bg-zinc-700/80 px-2.5 py-1 font-medium text-white backdrop-blur will-change-transform"
+                initial={{ opacity: 0, transform: 'translateY(-8px)' }}
+                animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                transition={{ duration: 0.2 }}
+              >
+                {tag}
+              </motion.p>
+            ))}
+          </div>
+        )}
         <img
           alt="Selected Wallpaper"
           className="h-full w-[61rem] select-none rounded-lg object-cover" //w-[55rem]
-          src={`/backgrounds/${activeBackground.image}`}
+          src={
+            activeBackground
+              ? `/backgrounds/${activeBackground.image}`
+              : placeholder
+          }
           onError={onImageError}
           draggable="false"
         />
-        <div className="absolute bottom-0 flex w-full items-center gap-5 bg-gradient-to-b from-transparent to-zinc-950/50 to-25% p-4 pt-8">
-          <motion.div
-            key={`${activeBackground.id}-description`}
-            className="flex select-none flex-col mr-auto"
-            initial={{ opacity: 0, transform: 'translateY(8px)' }}
-            animate={{ opacity: 1, transform: 'translateY(0px)' }}
-            transition={{ duration: 0.2 }}
-          >
-            <h1 className="text-2xl font-bold">{activeBackground.name}</h1>
-            <p className="text-lg">{activeBackground.description}</p>
-          </motion.div>
+        <div className="absolute bottom-0 flex w-full items-center gap-5 rounded-b-lg bg-zinc-950/50 p-4 pt-0 before:absolute before:-top-8 before:left-0 before:h-8 before:w-full before:content-[''] before:bg-easing-b-menu-bottom">
+          {activeBackground !== undefined && (
+            <motion.div
+              key={`${activeBackground.id}-description`}
+              className="mr-auto flex select-none flex-col"
+              initial={{ opacity: 0, transform: 'translateY(8px)' }}
+              animate={{ opacity: 1, transform: 'translateY(0px)' }}
+              transition={{ duration: 0.2 }}
+            >
+              <h1 className="text-2xl font-bold">{activeBackground.name}</h1>
+              <p className="text-lg">{activeBackground.description}</p>
+            </motion.div>
+          )}
           {config.background.current !== null && (
             <button
               className={clsx(
@@ -308,56 +309,58 @@ function Menu() {
               className="fill-transparent transition-colors group-hover:fill-current group-focus-visible:fill-current group-active:fill-orange-200 group-active:stroke-orange-200"
             />
           </button> */}
-          <button
-            className="h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-orange-50 transition-[border-color,transform,border-radius] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-orange-50 focus-visible:scale-105 focus-visible:border-orange-50 focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:pointer-events-none"
-            onClick={() => setBackground({ id: activeBackground.id })}
-            disabled={
-              config.background.current === activeBackground.id ||
-              setStatus === 'success'
-            }
-            // key={`${activeBackground.id}-set`}
-            key={
-              config.background.current === activeBackground.id
-                ? 'current'
-                : 'not-current'
-            }
-          >
-            <AnimatePresence mode="wait">
-              {config.background.current === activeBackground.id ||
-              setStatus === 'success' ? (
-                <motion.span
-                  className="text-orange-100"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  key="success"
-                >
-                  Applied
-                </motion.span>
-              ) : setStatus === 'pending' ? (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  key="pending"
-                >
-                  <LoaderPinwheel className="mx-auto animate-spin text-orange-200" />
-                </motion.span>
-              ) : (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  key="idle"
-                >
-                  Apply
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </button>
+          {activeBackground !== undefined && (
+            <button
+              className="h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-orange-50 transition-[border-color,transform,border-radius] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-orange-50 focus-visible:scale-105 focus-visible:border-orange-50 focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:pointer-events-none"
+              onClick={() => setBackground({ id: activeBackground.id })}
+              disabled={
+                config.background.current === activeBackground.id ||
+                setStatus === 'success'
+              }
+              // key={`${activeBackground.id}-set`}
+              key={
+                config.background.current === activeBackground.id
+                  ? 'current'
+                  : 'not-current'
+              }
+            >
+              <AnimatePresence mode="wait">
+                {config.background.current === activeBackground.id ||
+                setStatus === 'success' ? (
+                  <motion.span
+                    className="text-orange-100"
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    key="success"
+                  >
+                    Applied
+                  </motion.span>
+                ) : setStatus === 'pending' ? (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    key="pending"
+                  >
+                    <LoaderPinwheel className="mx-auto animate-spin text-orange-200" />
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    key="idle"
+                  >
+                    Apply
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </button>
+          )}
         </div>
       </motion.div>
     </motion.div>

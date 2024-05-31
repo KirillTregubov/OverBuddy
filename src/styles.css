@@ -4,9 +4,7 @@
 
 @layer utilities {
   .scrollbar-hide {
-    /* IE and Edge */
     -ms-overflow-style: none;
-    /* Firefox */
     scrollbar-width: none;
   }
 
@@ -19,7 +17,6 @@
   box-sizing: border-box;
 }
 
-/* Fade in */
 .underline-fade-in::after {
   content: '';
   position: absolute;

@@ -7,13 +7,10 @@ import { toast } from 'sonner'
 
 import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
-import {
-  ConfigError,
-  ConfigErrors,
-  Platform,
-  useSetupMutation
-} from '@/lib/data'
-import { childVariants, containerVariants } from './-constants'
+import { moveInVariants, staggerChildrenVariants } from '@/lib/animations'
+import { useSetupMutation } from '@/lib/data'
+import { ConfigError, ConfigErrors, handleError } from '@/lib/errors'
+import { Platform } from '@/lib/schemas'
 
 export const Route = createFileRoute('/setup/select')({
   component: SetupSelect
@@ -24,24 +21,24 @@ export function SetupSelect() {
   const navigate = useNavigate()
   const { status, mutate, reset } = useSetupMutation({
     onError: (error) => {
-      if (error instanceof ConfigError) {
-        toast.error(error.message)
-        if (ConfigErrors.safeParse(error.error_key).success) {
-          navigate({
-            to: '/setup/$key',
-            params: {
-              key: error.error_key
-            },
-            search: {
-              action: error.error_action || 'finding',
-              platforms: error.platforms
-            },
-            replace: true
-          })
-        }
+      if (
+        error instanceof ConfigError &&
+        ConfigErrors.safeParse(error.error_key).success
+      ) {
+        navigate({
+          to: '/setup/$key',
+          params: {
+            key: error.error_key
+          },
+          search: {
+            action: error.error_action || 'finding',
+            platforms: error.platforms
+          },
+          replace: true
+        })
         return
       }
-      toast.error(error.message)
+      handleError(error)
       reset()
     },
     onSuccess: () => {
@@ -55,27 +52,27 @@ export function SetupSelect() {
   return (
     <motion.div
       className="mx-auto flex h-full max-w-xl select-none flex-col items-center justify-center pb-8"
-      variants={containerVariants}
+      variants={staggerChildrenVariants}
       initial="hidden"
       animate="show"
     >
       <div className="mb-6 flex flex-col items-center gap-2 text-center text-zinc-400">
         <motion.h1
           className="text-2xl font-medium text-white"
-          variants={childVariants}
+          variants={moveInVariants}
         >
           Select your Platform(s)
         </motion.h1>
-        <motion.p variants={childVariants}>
+        <motion.p variants={moveInVariants}>
           Select the platform(s) you use to play Overwatch™. This will allow
           OverBuddy to automatically detect your installation and apply the
           desired changes.
         </motion.p>
-        <motion.p variants={childVariants}>
+        <motion.p variants={moveInVariants}>
           You can change this later in the settings.
         </motion.p>
       </div>
-      <motion.div className="mb-8 flex gap-8" variants={childVariants}>
+      <motion.div className="mb-8 flex gap-8" variants={moveInVariants}>
         <button
           className="group outline-none"
           onClick={() => {
@@ -190,7 +187,7 @@ export function SetupSelect() {
         </button>
       </motion.div>
       <motion.button
-        className="w-full select-none rounded-lg bg-zinc-50 px-5 py-3 font-medium capitalize text-black transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-200/70 focus-visible:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:!scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full select-none rounded-lg bg-zinc-50 px-4 py-3 font-medium capitalize text-black transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-200/70 focus-visible:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:!scale-95 disabled:cursor-not-allowed disabled:opacity-50"
         disabled={status !== 'idle'}
         onClick={() => {
           if (platforms.length === 0) {
@@ -199,7 +196,7 @@ export function SetupSelect() {
           }
           mutate(platforms)
         }}
-        variants={childVariants}
+        variants={moveInVariants}
       >
         Continue
       </motion.button>

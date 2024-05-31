@@ -14,5 +14,17 @@ export default {
       }
     }
   },
-  plugins: []
+  plugins: [
+    require('tailwind-easing-gradients')({
+      gradients: {
+        'menu-bottom': {
+          color: ['rgba(9, 9, 11, 0)', 'rgba(9, 9, 11, 0.5)']
+        },
+        'menu-top': {
+          color: ['transparent', 'rgb(24, 24, 27)']
+        }
+      },
+      easing: 'ease-in-out'
+    })
+  ]
 }

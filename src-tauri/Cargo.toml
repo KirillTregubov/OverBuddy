@@ -1,10 +1,10 @@
 [package]
 name = "overbuddy"
-version = "1.1.2"
+version = "1.2.0"
 description = "Elevate your Overwatch™ 2 experience by customizing your in-game menu background with ease."
 authors = ["Kirill Tregubov"]
-license = ""
-repository = ""
+license = "../LICENSE"
+repository = "https://github.com/KirillTregubov/OverBuddy"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -18,7 +18,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "1.0"
 dunce = "1.0.4"
-sysinfo = "0.30.5"
+sysinfo = "0.30.12"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

@@ -1,7 +1,20 @@
-import { Outlet, createFileRoute } from '@tanstack/react-router'
+import { fadeInVariants } from '@/lib/animations'
+import { launchQueryOptions } from '@/lib/data'
+import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 
 export const Route = createFileRoute('/setup')({
+  beforeLoad: async ({ context: { queryClient } }) => {
+    const { is_setup } = await queryClient
+      .fetchQuery(launchQueryOptions)
+      .catch(() => {
+        throw redirect({ to: '/' })
+      })
+
+    if (is_setup) {
+      throw redirect({ to: '/menu' })
+    }
+  },
   component: Setup
 })
 
@@ -9,9 +22,9 @@ export function Setup() {
   return (
     <motion.div
       className="h-full w-full"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 1 }}
+      variants={fadeInVariants}
+      initial="hidden"
+      animate="show"
     >
       <Outlet />
       <motion.div

@@ -3,74 +3,31 @@ import { invoke } from '@tauri-apps/api'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-import { queryClient } from '../main'
-
-const handleError = (error: unknown) => {
-  if (error instanceof Error) error = error.message
-  if (typeof error !== 'string') error = 'An unknown error occurred.'
-  toast.error(error as string)
-}
-
-const LaunchConfig = z.object({
-  is_setup: z.boolean(),
-  battle_net: z.object({
-    enabled: z.boolean(),
-    config: z.string().nullable(),
-    install: z.string().nullable()
-  }),
-  steam: z.object({
-    enabled: z.boolean(),
-    config: z.string().nullable(),
-    install: z.string().nullable()
-  }),
-  background: z.object({
-    current: z.string().nullable()
-  })
-})
-type LaunchConfig = z.infer<typeof LaunchConfig>
+import {
+  ConfigError,
+  ConfigErrorSchema,
+  ConfigErrors,
+  SetupError,
+  handleError
+} from '@/lib/errors'
+import { LaunchConfig, type Platform } from '@/lib/schemas'
+import { queryClient } from '@/main'
 
 export const launchQueryOptions = queryOptions({
   queryKey: ['launch'],
   queryFn: async () => {
-    const data = await invoke('get_launch_config')
+    const data = await invoke('get_launch_config').catch((error) => {
+      if (typeof error !== 'string') throw error
+      throw new Error(error)
+    })
     const config = LaunchConfig.safeParse(JSON.parse(data as string))
     if (!config.success) {
       throw new Error(config.error.message)
     }
     return config.data
-  }
+  },
+  staleTime: Infinity
 })
-
-const Platform = z.enum(['BattleNet', 'Steam'])
-export type Platform = z.infer<typeof Platform>
-
-export const ConfigErrors = z.enum([
-  'BattleNetConfig',
-  'BattleNetInstall',
-  'SteamInstall'
-])
-export type ConfigErrors = z.infer<typeof ConfigErrors>
-
-const ConfigErrorSchema = z.object({
-  error_key: ConfigErrors.or(z.enum(['NoOverwatch'])),
-  message: z.string(),
-  error_action: z.string().nullable(),
-  platforms: z.array(Platform)
-})
-export type ConfigErrorSchema = z.infer<typeof ConfigErrorSchema>
-
-export class ConfigError extends Error {
-  error_key: ConfigErrorSchema['error_key']
-  error_action: ConfigErrorSchema['error_action']
-  platforms: ConfigErrorSchema['platforms']
-
-  constructor(public error: ConfigErrorSchema) {
-    super(error.message)
-    this.error_key = error.error_key
-    this.error_action = error.error_action
-    this.platforms = error.platforms
-  }
-}
 
 export const useSetupMutation = ({
   onError,
@@ -102,8 +59,10 @@ export const useSetupMutation = ({
         throw new Error(config.error.message)
       }
       if (!config.data.is_setup) {
-        throw new Error('Setup failed')
+        throw new SetupError()
       }
+
+      queryClient.setQueryData(['launch'], config.data)
       return config.data
     },
     onError,
@@ -164,6 +123,8 @@ export const useSetupErrorMutation = ({
       if (!config.success) {
         throw new Error(`Failed to setup. ${config.error.message}`)
       }
+
+      queryClient.setQueryData(['launch'], config.data)
       return config.data
     },
     onError,
@@ -240,6 +201,30 @@ export const useResetBackgroundMutation = ({
     onError: (error) => handleError(error),
     onSuccess: () => {
       toast.success('Reset to default background.')
+      onSuccess?.()
+    },
+    onSettled
+  })
+
+export const useResetMutation = ({
+  onSuccess,
+  onSettled
+}: {
+  onSuccess?: () => void
+  onSettled?: () => void
+} = {}) =>
+  useMutation({
+    mutationFn: async () => {
+      const data = (await invoke('reset')) as string
+      const config = LaunchConfig.safeParse(JSON.parse(data))
+      if (!config.success) {
+        throw new Error(`Failed to reset.`)
+      }
+      queryClient.setQueryData(['launch'], config.data)
+    },
+    onError: (error) => handleError(error),
+    onSuccess: () => {
+      toast.success('Reset to default settings.')
       onSuccess?.()
     },
     onSettled
