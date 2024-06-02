@@ -1,4 +1,6 @@
 OverBuddy has been updated!
+- Added detection for outdated backgrounds and provide options to reset them.
+Other v1.2 changes:
 - Added a new error screen and updated setup error resolution steps.
 - Improved error handling and reliability with backups to Battle.net configuration.
 - Enhanced styling and animation quality.

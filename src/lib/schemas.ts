@@ -16,7 +16,8 @@ export const LaunchConfig = z.object({
     install: z.string().nullable()
   }),
   background: z.object({
-    current: z.string().nullable()
+    current: z.string().nullable(),
+    is_outdated: z.boolean()
   })
 })
 export type LaunchConfig = z.infer<typeof LaunchConfig>

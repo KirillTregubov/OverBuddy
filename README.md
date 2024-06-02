@@ -2,7 +2,7 @@
     <img width="128px" height="128px" src="src-tauri/icons/128x128@2x.png">
     <h1>OverBuddy</h1>
     <p>Elevate your Overwatch™ 2 experience by customizing your in-game menu background with ease.</p>
-    <p>Current Version: 1.2.0</p>
+    <p>Current Version: 1.2.1</p>
     <div>
       <a href="https://github.com/KirillTregubov/OverBuddy/releases/latest">Download</a>
       ·

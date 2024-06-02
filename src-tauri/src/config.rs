@@ -15,6 +15,7 @@ pub struct SteamConfig {
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct BackgroundConfig {
     pub current: Option<String>,
+    pub is_outdated: bool,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
@@ -40,6 +41,9 @@ pub fn get_default_config() -> Config {
             config: None,
             install: None,
         },
-        background: BackgroundConfig { current: None },
+        background: BackgroundConfig {
+            current: None,
+            is_outdated: false,
+        },
     }
 }

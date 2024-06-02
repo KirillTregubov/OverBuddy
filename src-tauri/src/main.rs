@@ -57,7 +57,7 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
                     )));
                 }
             };
-            let mut json: serde_json::Value = match from_reader(file) {
+            let json: serde_json::Value = match from_reader(file) {
                 Ok(json) => json,
                 Err(_) => {
                     return Err(Error::Custom(format!(
@@ -84,37 +84,28 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
                         .split_whitespace()
                         .find(|s| s.starts_with("--lobbyMap="))
                         .and_then(|s| s.split('=').nth(1))
-                        .map(String::from);
-                    let mut new_background = current_background.clone();
-
-                    if let Some(ref current_background) = current_background {
-                        if current_background.is_empty() {
-                            let new_launch_args = launch_args
-                                .split_whitespace()
-                                .filter(|&s| s != "--lobbyMap=")
-                                .collect::<Vec<&str>>()
-                                .join(" ");
-
-                            // TODO: Provide the option to restore saved background
-
-                            if launch_args != new_launch_args {
-                                if let Some(game_config) = json
-                                    .get_mut("Games")
-                                    .and_then(|games| games.get_mut("prometheus"))
-                                {
-                                    game_config.as_object_mut().unwrap().insert(
-                                        "AdditionalLaunchArguments".to_string(),
-                                        json!(new_launch_args),
-                                    );
-
-                                    helpers::safe_json_write(battle_net_config, &json)?;
-                                }
+                        .map(|s| {
+                            if s.is_empty() {
+                                None
+                            } else {
+                                Some(String::from(s))
                             }
-                            new_background = None;
-                        }
-                    }
+                        })
+                        .flatten();
 
-                    config.background.current = new_background;
+                    config.background.current =
+                        current_background
+                            .as_ref()
+                            .and_then(|current_background_id| {
+                                backgrounds::find_background_by_id(current_background_id)
+                                    .map(|background| background.id.to_string())
+                            });
+
+                    if config.background.current.is_none() && current_background.is_some() {
+                        config.background.is_outdated = true;
+                    } else {
+                        config.background.is_outdated = false;
+                    }
                 }
             }
         }
@@ -269,7 +260,16 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
                     .unwrap()
                     .insert("AdditionalLaunchArguments".to_string(), json!(""));
 
+                let battle_net_was_closed = helpers::close_battle_net();
+
                 helpers::safe_json_write(battle_net_config, &json)?;
+
+                if battle_net_was_closed {
+                    // TODO: test error
+                    Command::new(config.battle_net.install.clone().unwrap())
+                        .spawn()
+                        .ok();
+                }
             } else {
                 let launch_args = json["Games"]["prometheus"]["AdditionalLaunchArguments"]
                     .as_str()
@@ -280,7 +280,14 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
                             .split_whitespace()
                             .find(|s| s.starts_with("--lobbyMap="))
                             .and_then(|s| s.split('=').nth(1))
-                            .map(String::from);
+                            .map(|s| {
+                                if s.is_empty() {
+                                    None
+                                } else {
+                                    Some(String::from(s))
+                                }
+                            })
+                            .flatten();
 
                         if let Some(ref current_background) = current_background {
                             config.background.current = Some(current_background.clone());
@@ -485,6 +492,7 @@ fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
     helpers::safe_json_write(battle_net_config, &json)?;
 
     config.background.current = Some(id.to_string());
+    config.background.is_outdated = false;
     helpers::write_config(&handle, &config)?;
 
     cleanup();
@@ -494,10 +502,6 @@ fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
 #[tauri::command]
 fn reset_background(handle: AppHandle) -> Result<String, Error> {
     let mut config = helpers::read_config(&handle)?;
-
-    if config.background.current.is_none() {
-        return Ok(serde_json::to_string(&config)?);
-    }
 
     // TODO: Steam support and fix this error
     if config.battle_net.enabled == false {
@@ -550,10 +554,10 @@ fn reset_background(handle: AppHandle) -> Result<String, Error> {
         }
     };
 
-    let launch_args = json["Games"]["prometheus"]["AdditionalLaunchArguments"]
+    match json["Games"]["prometheus"]["AdditionalLaunchArguments"]
         .as_str()
-        .map(|s| s.to_string());
-    let launch_args: String = match launch_args {
+        .map(|s| s.to_string())
+    {
         Some(arguments) => {
             let filtered_args = arguments
                 .split_whitespace()
@@ -561,21 +565,14 @@ fn reset_background(handle: AppHandle) -> Result<String, Error> {
                 .collect::<Vec<&str>>()
                 .join(" ");
 
-            filtered_args
+            json["Games"]["prometheus"]["AdditionalLaunchArguments"] = json!(filtered_args);
+            helpers::safe_json_write(battle_net_config, &json)?;
         }
-        None => {
-            config.background.current = None;
-            helpers::write_config(&handle, &config)?;
-
-            cleanup();
-            return Ok(serde_json::to_string(&config)?);
-        }
+        None => (),
     };
 
-    json["Games"]["prometheus"]["AdditionalLaunchArguments"] = json!(launch_args);
-    helpers::safe_json_write(battle_net_config, &json)?;
-
     config.background.current = None;
+    config.background.is_outdated = false;
     helpers::write_config(&handle, &config)?;
 
     cleanup();
