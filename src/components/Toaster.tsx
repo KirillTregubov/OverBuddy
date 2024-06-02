@@ -7,7 +7,7 @@ export default function Toaster() {
       richColors
       toastOptions={{
         classNames: {
-          toast: 'select-none'
+          toast: 'select-none w-96'
         }
       }}
     />

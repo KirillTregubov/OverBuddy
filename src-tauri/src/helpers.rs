@@ -56,6 +56,24 @@ pub fn close_battle_net() -> bool {
 //     Ok(false)
 // }
 
+fn merge(a: &mut Value, b: Value) {
+    if let Value::Object(a) = a {
+        if let Value::Object(b) = b {
+            for (k, v) in b {
+                if v.is_null() {
+                    a.remove(&k);
+                } else {
+                    merge(a.entry(k).or_insert(Value::Null), v);
+                }
+            }
+
+            return;
+        }
+    }
+
+    *a = b;
+}
+
 pub fn read_config(handle: &AppHandle) -> Result<Config, Error> {
     let app_local_data_dir = handle.path_resolver().app_local_data_dir().unwrap();
 
@@ -91,12 +109,21 @@ pub fn read_config(handle: &AppHandle) -> Result<Config, Error> {
         Ok(contents) => contents,
         Err(_) => String::new(),
     };
-    let config: Config = match serde_json::from_str(&config) {
+    let config: Config = match serde_json::from_str::<Value>(&config) {
         Ok(json) => {
-            let result: Result<Config, _> = serde_json::from_value(json);
+            let result: Result<Config, _> = serde_json::from_value(json.clone());
             match result {
                 Ok(config) => config,
-                Err(_) => get_default_config(),
+                Err(_) => {
+                    let mut config: Value = serde_json::to_value(get_default_config()).unwrap();
+                    merge(&mut config, json);
+                    serde_json::from_value(config).map_err(|_| {
+                        Error::Custom(format!(
+                            "Failed to parse configuration file [[{}]]",
+                            config_file_path.to_str().unwrap()
+                        ))
+                    })?
+                }
             }
         }
         Err(_) => get_default_config(),

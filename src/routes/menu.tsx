@@ -21,6 +21,7 @@ import {
   useResetBackgroundMutation
 } from '@/lib/data'
 import { handleError } from '@/lib/errors'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/menu')({
   loader: async ({ context: { queryClient } }) =>
@@ -73,6 +74,20 @@ function Menu() {
 
   const backgroundRefs = useRef<HTMLImageElement[]>([])
   const [activeBackground, setActiveBackground] = useState(data[0])
+
+  useEffect(() => {
+    if (!config.background.is_outdated) return
+    toast.error(
+      'Your background is outdated. This may result in a black screen in game.',
+      {
+        id: 'reset-background',
+        action: {
+          label: 'Reset to Default',
+          onClick: () => resetBackground()
+        }
+      }
+    )
+  }, [])
 
   useEffect(() => {
     if (config.background.current === null) return
@@ -264,7 +279,8 @@ function Menu() {
               <p className="text-lg">{activeBackground.description}</p>
             </motion.div>
           )}
-          {config.background.current !== null && (
+          {(config.background.is_outdated ||
+            config.background.current !== null) && (
             <button
               className={clsx(
                 'relative h-14 w-48 select-none text-center text-lg font-medium uppercase tracking-wider transition-[color,transform] will-change-transform hover:text-zinc-300 focus-visible:text-zinc-300 focus-visible:outline-none active:scale-95 disabled:pointer-events-none',
