@@ -155,8 +155,8 @@ function Menu() {
               className={clsx(
                 'aspect-video w-fit shadow-lg transition-[width,height,box-shadow]',
                 activeBackground?.id === background.id
-                  ? 'h-36 w-64 rounded-xl shadow-orange-600/20'
-                  : 'h-28 w-52 rounded-lg shadow-orange-600/10 hover:shadow-orange-600/20'
+                  ? 'h-36 rounded-xl shadow-orange-600/20'
+                  : 'h-28 rounded-lg shadow-orange-600/10 hover:shadow-orange-600/20'
               )}
               initial={{ transform: 'scale(.9)' }}
               whileInView={{ transform: 'scale(1)' }}
@@ -204,13 +204,13 @@ function Menu() {
           ))}
         </div>
         <motion.div
-          className="absolute left-1 top-1/2 z-20 -mt-4"
+          className="pointer-events-none absolute left-1 top-0 z-20 flex h-full items-center"
           initial={{ transform: 'translateX(15px)' }}
           animate={{ transform: 'translateX(0px)' }}
           transition={{ duration: 0.3 }}
         >
           <button
-            className="group rounded-full transition-transform will-change-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none active:scale-95"
+            className="group pointer-events-auto rounded-full transition-transform will-change-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none active:scale-95"
             onClick={() => handleNavigate('prev')}
           >
             <div className="rounded-full bg-zinc-800/70 p-1 backdrop-blur transition-[box-shadow] group-focus-visible:ring-2 group-focus-visible:ring-white">
@@ -219,13 +219,13 @@ function Menu() {
           </button>
         </motion.div>
         <motion.div
-          className="absolute right-1 top-1/2 z-20 -mt-4"
+          className="pointer-events-none absolute right-1 top-0 z-20 flex h-full items-center"
           initial={{ transform: 'translateX(-15px)' }}
           animate={{ transform: 'translateX(0px)' }}
           transition={{ duration: 0.3 }}
         >
           <button
-            className="group rounded-full transition-transform will-change-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none active:scale-95"
+            className="group pointer-events-auto rounded-full transition-transform will-change-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none active:scale-95"
             onClick={() => handleNavigate('next')}
           >
             <div className="rounded-full bg-zinc-800/70 p-1 backdrop-blur group-focus-visible:ring-2 group-focus-visible:ring-white">
