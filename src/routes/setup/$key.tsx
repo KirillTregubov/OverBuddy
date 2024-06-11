@@ -11,7 +11,7 @@ import {
   staggerChildrenVariants
 } from '@/lib/animations'
 import { getSetupPath, useSetupErrorMutation } from '@/lib/data'
-import { ConfigError, ConfigErrors, handleError } from '@/lib/errors'
+import { ConfigError, ConfigErrors } from '@/lib/errors'
 import { type Platform } from '@/lib/schemas'
 import clsx from 'clsx'
 import { useState } from 'react'
@@ -68,7 +68,6 @@ function ConfigureComponent() {
           return
         }
       }
-      handleError(error)
     }
   })
 
@@ -89,7 +88,7 @@ function ConfigureComponent() {
           className="mb-1 select-none text-xl font-bold"
           variants={moveInVariants}
         >
-          Setup Error
+          Setup Incomplete
         </motion.h1>
         <motion.h2
           className="text-balance leading-7 text-zinc-400"

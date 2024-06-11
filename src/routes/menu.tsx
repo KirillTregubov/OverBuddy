@@ -54,9 +54,9 @@ function Menu() {
     mutate: setBackground,
     reset: resetSetBackground
   } = useBackgroundMutation({
-    onError: () => {
-      resetSetBackground()
-    }
+    // onError: () => {
+    //   resetSetBackground()
+    // }
   })
 
   const {

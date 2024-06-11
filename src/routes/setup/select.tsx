@@ -9,7 +9,7 @@ import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
 import { moveInVariants, staggerChildrenVariants } from '@/lib/animations'
 import { useSetupMutation } from '@/lib/data'
-import { ConfigError, ConfigErrors, handleError } from '@/lib/errors'
+import { ConfigError, ConfigErrors } from '@/lib/errors'
 import { Platform } from '@/lib/schemas'
 
 export const Route = createFileRoute('/setup/select')({
@@ -19,7 +19,7 @@ export const Route = createFileRoute('/setup/select')({
 export function SetupSelect() {
   const [platforms, setPlatforms] = useState<Platform[]>([])
   const navigate = useNavigate()
-  const { status, mutate, reset } = useSetupMutation({
+  const { status, mutate } = useSetupMutation({
     onError: (error) => {
       if (
         error instanceof ConfigError &&
@@ -38,8 +38,6 @@ export function SetupSelect() {
         })
         return
       }
-      handleError(error)
-      reset()
     },
     onSuccess: () => {
       navigate({
@@ -83,7 +81,7 @@ export function SetupSelect() {
             setPlatforms([...platforms, 'BattleNet'])
           }}
         >
-          <div className="flex flex-col items-center gap-2 transition-transform duration-200 will-change-transform group-active:scale-90">
+          <div className="flex flex-col items-center gap-2 transition-transform duration-200 will-change-transform group-hover:scale-105 group-focus-visible:scale-105 group-active:scale-90">
             <img
               src={BattleNet}
               alt="Battle.net Logo"
@@ -91,7 +89,7 @@ export function SetupSelect() {
               width="64px"
               height="64px"
               className={clsx(
-                'rounded-full ring-white grayscale transition-[transform,filter,box-shadow] will-change-transform group-hover:scale-110 group-focus-visible:scale-110 group-focus-visible:ring',
+                'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
                 platforms.includes('BattleNet')
                   ? 'grayscale-0 group-active:grayscale'
                   : 'group-active:grayscale-0'
@@ -100,7 +98,7 @@ export function SetupSelect() {
             />
             <h2
               className={clsx(
-                'flex items-center gap-1 text-center font-medium transition-colors',
+                'flex items-center gap-1 text-center font-medium transition',
                 platforms.includes('BattleNet')
                   ? 'text-white group-active:text-zinc-400'
                   : 'text-zinc-400 group-active:text-white'
@@ -139,7 +137,7 @@ export function SetupSelect() {
             setPlatforms([...platforms, 'Steam'])
           }}
         >
-          <div className="flex flex-col items-center gap-2 transition-transform duration-200 will-change-transform group-active:scale-90">
+          <div className="flex flex-col items-center gap-2 transition-transform duration-200 will-change-transform group-hover:scale-105 group-focus-visible:scale-105 group-active:scale-90">
             <img
               src={Steam}
               alt="Steam Logo"
@@ -147,7 +145,7 @@ export function SetupSelect() {
               width="64px"
               height="64px"
               className={clsx(
-                'rounded-full ring-white grayscale transition-[transform,filter,box-shadow] will-change-transform group-hover:scale-110 group-focus-visible:scale-110 group-focus-visible:ring',
+                'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
                 platforms.includes('Steam')
                   ? 'grayscale-0 group-active:grayscale'
                   : 'group-active:grayscale-0'
@@ -156,7 +154,7 @@ export function SetupSelect() {
             />
             <h2
               className={clsx(
-                'flex items-center gap-1 text-center font-medium transition-colors',
+                'flex items-center gap-1 text-center font-medium transition',
                 platforms.includes('Steam')
                   ? 'text-white group-active:text-zinc-400'
                   : 'text-zinc-400 group-active:text-white'

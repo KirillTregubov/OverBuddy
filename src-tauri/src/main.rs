@@ -21,8 +21,11 @@ use tauri::Window;
 
 #[tauri::command]
 fn mounted(window: Window) {
-    thread::sleep(Duration::from_millis(500));
     let window = window.get_window("main").unwrap();
+    if window.is_visible().unwrap() {
+        return;
+    }
+    thread::sleep(Duration::from_millis(500));
     window.show().unwrap();
     window.set_focus().unwrap();
 }
@@ -125,7 +128,7 @@ enum ErrorKey {
     BattleNetInstall,
     BattleNetConfig,
     SteamInstall,
-    // SteamConfig,
+    SteamConfig,
 }
 #[derive(Serialize)]
 struct SetupError {
@@ -303,7 +306,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
     }
 
     if platforms.contains(&"Steam") {
-        // Check if Battle.net is installed
+        // Check if Steam is installed
         if config.steam.install.is_none() {
             static LAUNCHER_PATH: &str = "Steam\\steam.exe";
             if let Some(program_files_dir) = env::var_os("programfiles(x86)") {
@@ -323,7 +326,47 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
             })?));
         }
 
+        let steam_install = config.steam.install.clone().unwrap();
+        println!("Config: {:?}", config);
+
         // Check if Steam config exists
+        static CONFIG_FILE: &str = "localconfig.vdf";
+
+        let steam_path = Path::new(&steam_install)
+            .parent()
+            .expect("Failed to get parent directory of the executable");
+        let userdata_path = steam_path.join("userdata");
+
+        if userdata_path.exists() && userdata_path.is_dir() {
+            match fs::read_dir(&userdata_path) {
+                Ok(entries) => {
+                    for entry in entries.filter_map(Result::ok) {
+                        let config_path = entry.path().join("config");
+                        let config_file_path = config_path.join(CONFIG_FILE);
+                        if config_file_path.exists() && config_file_path.is_file() {
+                            println!("Found config file: {:?}", config_file_path);
+                        }
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Failed to read directory: {}", e);
+                }
+            }
+        } else {
+            eprintln!("Userdata path does not exist or is not a directory");
+        }
+
+        return Err(Error::Custom(serde_json::to_string(&SetupError {
+            error_key: ErrorKey::SteamConfig,
+            message: format!(
+                "Failed to find [[{}]] in [[{}]].",
+                CONFIG_FILE,
+                userdata_path.to_string_lossy().to_string()
+            ),
+            error_action: Some("finding".to_string()),
+            platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
+        })?));
+
         return Err(Error::Custom("Not implemented yet".to_string()));
         // TODO: Implement Steam setup
 

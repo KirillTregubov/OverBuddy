@@ -52,6 +52,8 @@ export const useSetupMutation = ({
         if (configError.success) {
           throw new ConfigError(configError.data)
         }
+
+        throw new Error(configError.error.message)
       })
 
       const config = LaunchConfig.safeParse(JSON.parse(data as string))
@@ -177,8 +179,8 @@ export const useBackgroundMutation = ({
       queryClient.setQueryData(['launch'], config.data)
     },
     onError: (error) => {
-      handleError(error)
-      onError?.(error)
+      const newError = error
+      onError?.(newError)
     }
   })
 

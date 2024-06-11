@@ -1,51 +1,51 @@
 import {
-  // Link,
-  createFileRoute,
-  useNavigate
+  createFileRoute
+  // useNavigate
 } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import { BookLockIcon, GlobeIcon, SparklesIcon } from 'lucide-react'
 
 import logo from '@/assets/logo.svg'
+import { LinkButton } from '@/components/Button'
 import { moveInVariants, staggerChildrenVariants } from '@/lib/animations'
-import { useSetupMutation } from '@/lib/data'
-import { ConfigError, ConfigErrors, handleError } from '@/lib/errors'
+// import { useSetupMutation } from '@/lib/data'
+// import { ConfigError, ConfigErrors, handleError } from '@/lib/errors'
 
 export const Route = createFileRoute('/setup/')({
   component: SetupSplash
 })
 
 export function SetupSplash() {
-  const navigate = useNavigate()
-  const { status, mutate, reset } = useSetupMutation({
-    onError: (error) => {
-      if (
-        error instanceof ConfigError &&
-        ConfigErrors.safeParse(error.error_key).success
-      ) {
-        navigate({
-          to: '/setup/$key',
-          params: {
-            key: error.error_key
-          },
-          search: {
-            action: error.error_action || 'finding',
-            platforms: error.platforms
-          },
-          replace: true
-        })
-        return
-      }
-      handleError(error)
-      reset()
-    },
-    onSuccess: () => {
-      navigate({
-        to: '/menu',
-        replace: true
-      })
-    }
-  })
+  // const navigate = useNavigate()
+  // const { status, mutate, reset } = useSetupMutation({
+  //   onError: (error) => {
+  //     if (
+  //       error instanceof ConfigError &&
+  //       ConfigErrors.safeParse(error.error_key).success
+  //     ) {
+  //       navigate({
+  //         to: '/setup/$key',
+  //         params: {
+  //           key: error.error_key
+  //         },
+  //         search: {
+  //           action: error.error_action || 'finding',
+  //           platforms: error.platforms
+  //         },
+  //         replace: true
+  //       })
+  //       return
+  //     }
+  //     handleError(error)
+  //     reset()
+  //   },
+  //   onSuccess: () => {
+  //     navigate({
+  //       to: '/menu',
+  //       replace: true
+  //     })
+  //   }
+  // })
 
   return (
     <motion.div
@@ -135,21 +135,22 @@ export function SetupSplash() {
         </div>
       </div>
       <motion.div variants={moveInVariants} className="flex w-full">
-        {/* <Link
-          className="w-full select-none rounded-lg bg-zinc-50 px-4 py-3 text-center font-medium capitalize text-black transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-200/70 focus-visible:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:scale-95"
+        <LinkButton
+          primary
+          className="w-full py-3"
           to="/setup/select"
           replace
           draggable={false}
         >
           Continue
-        </Link> */}
-        <button
-          className="w-full select-none rounded-lg bg-zinc-50 px-4 py-3 text-center font-medium capitalize text-black transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-200/70 focus-visible:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+        </LinkButton>
+        {/* <Button
+          primary
           disabled={status !== 'idle'}
           onClick={() => mutate(['BattleNet'])}
         >
           Continue
-        </button>
+        </Button> */}
       </motion.div>
     </motion.div>
   )

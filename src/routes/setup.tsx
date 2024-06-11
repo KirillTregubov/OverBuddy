@@ -18,7 +18,9 @@ export const Route = createFileRoute('/setup')({
   component: Setup
 })
 
-export function Setup() {
+const mode = 'release' // import.meta.env.MODE === 'development' ? 'dev' : 'release'
+
+function Setup() {
   return (
     <motion.div
       className="h-full w-full"
@@ -36,7 +38,7 @@ export function Setup() {
         <div className="m-auto max-w-2xl">
           <p>
             Made with ❤️ by <span className="font-bold">Kirill Tregubov</span>.
-            Version {import.meta.env.PACKAGE_VERSION} (release).
+            Version {import.meta.env.PACKAGE_VERSION} ({mode}).
           </p>
           {/* <p>
             Blizzard Entertainment, Battle.net and Overwatch are trademarks or
