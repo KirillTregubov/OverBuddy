@@ -1,8 +1,7 @@
 import { useRouter, type ErrorComponentProps } from '@tanstack/react-router'
 import { invoke } from '@tauri-apps/api'
-import clsx from 'clsx'
 import { motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 import {
   fadeInVariants,
@@ -10,31 +9,9 @@ import {
   staggerChildrenVariants
 } from '@/lib/animations'
 import { useResetMutation } from '@/lib/data'
+import { FormattedError } from '@/lib/errors'
 import { Button } from './Button'
-import Highlight from './Highlight'
-
-const FormattedError = ({ text }: { text: string }) => {
-  const regex = /\[\[(.*?)\]\]/g
-  const parts = []
-  let lastIdx = 0
-
-  text.replace(regex, (match, captured, offset) => {
-    parts.push(text.slice(lastIdx, offset))
-    parts.push(<Highlight key={offset}>{captured}</Highlight>)
-    lastIdx = offset + match.length
-    return ''
-  })
-
-  if (lastIdx < text.length) {
-    parts.push(text.slice(lastIdx))
-  }
-
-  return (
-    <motion.p variants={moveInVariants} className="text-balance">
-      {parts}
-    </motion.p>
-  )
-}
+import TracerImage from './TracerImage'
 
 export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter()
@@ -54,7 +31,6 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
       resetMutation()
     }
   })
-  const [imageLoaded, setImageLoaded] = useState(false)
 
   useEffect(() => {
     invoke('mounted')
@@ -82,7 +58,9 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
         >
           Oops! Something went wrong.
         </motion.h1>
-        <FormattedError text={error.message} />
+        <motion.p variants={moveInVariants} className="text-balance">
+          <FormattedError text={error.message} />
+        </motion.p>
         <motion.div className="mt-4 flex gap-2" variants={moveInVariants}>
           <Button
             primary
@@ -102,17 +80,7 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
           {/* TODO: report error */}
         </motion.div>
       </motion.div>
-      <img
-        src="/tracer.png"
-        alt="logo"
-        className={clsx(
-          'h-full w-auto pb-6 pt-20 transition-opacity duration-500',
-          imageLoaded ? 'opacity-100' : 'opacity-0'
-        )}
-        loading="eager"
-        onLoad={() => setImageLoaded(true)}
-        draggable={false}
-      />
+      <TracerImage />
     </motion.main>
   )
 }

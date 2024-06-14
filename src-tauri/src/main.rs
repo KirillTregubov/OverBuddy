@@ -54,7 +54,7 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
                 Ok(file) => file,
                 Err(_) => {
                     return Err(Error::Custom(format!(
-                        "Failed to open [[{}]] file at [[{}]]",
+                        "Failed to open [[{}]] file at [[{}]]. If you have changed your Battle.net installation, please reset to default settings.",
                         helpers::get_file_name_from_path(&battle_net_config).unwrap_or("unknown"),
                         battle_net_config
                     )));
@@ -112,6 +112,10 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
                 }
             }
         }
+
+        if config.steam.enabled {
+            // TODO: check for new configs, ensure current config exists, restore from backup?
+        }
     }
 
     if config.battle_net.enabled == false && config.steam.enabled == false {
@@ -128,13 +132,11 @@ enum ErrorKey {
     BattleNetInstall,
     BattleNetConfig,
     SteamInstall,
-    SteamConfig,
 }
 #[derive(Serialize)]
 struct SetupError {
     error_key: ErrorKey,
     message: String,
-    error_action: Option<String>,
     platforms: Option<Vec<String>>,
 }
 
@@ -159,7 +161,6 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
                 error_key: ErrorKey::BattleNetInstall,
                 message: "Failed to find your Battle.net installation.".to_string(),
-                error_action: Some("finding".to_string()),
                 platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
             })?));
         }
@@ -189,7 +190,6 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
                                 "Failed to find [[{}]] in [[{}]].",
                                 CONFIG_FILE, display_path
                             ),
-                            error_action: Some("finding".to_string()),
                             platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
                         })?));
                     }
@@ -197,7 +197,6 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
                     return Err(Error::Custom(serde_json::to_string(&SetupError {
                         error_key: ErrorKey::BattleNetConfig,
                         message: "Failed to find the Battle.net AppData directory.".to_string(),
-                        error_action: Some("finding".to_string()),
                         platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
                     })?));
                 }
@@ -216,7 +215,6 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
                         "Failed to open [[{}]] file in [[{}]]",
                         CONFIG_FILE, battle_net_config
                     ),
-                    error_action: Some("opening".to_string()),
                     platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
                 })?));
             }
@@ -231,7 +229,6 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
                         "Failed to read [[{}]] file in [[{}]]",
                         CONFIG_FILE, battle_net_config
                     ),
-                    error_action: Some("reading".to_string()),
                     platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
                 })?));
             }
@@ -247,7 +244,6 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
                 error_key: ErrorKey::NoOverwatch,
                 message: "You do not have Overwatch installed on Battle.net.".to_string(),
-                error_action: None,
                 platforms: None,
             })?));
         }
@@ -321,7 +317,6 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
                 error_key: ErrorKey::SteamInstall,
                 message: "Failed to find your Steam installation.".to_string(),
-                error_action: Some("finding".to_string()),
                 platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
             })?));
         }
@@ -332,11 +327,19 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
         // Check if Steam config exists
         static CONFIG_FILE: &str = "localconfig.vdf";
 
-        let steam_path = Path::new(&steam_install)
-            .parent()
-            .expect("Failed to get parent directory of the executable");
-        let userdata_path = steam_path.join("userdata");
+        let steam_path = Path::new(&steam_install).parent().ok_or_else(|| {
+            Error::Custom(
+                serde_json::to_string(&SetupError {
+                    error_key: ErrorKey::SteamInstall,
+                    message: "Failed to read the parent directory of your Steam installation."
+                        .to_string(),
+                    platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
+                })
+                .unwrap(),
+            )
+        })?;
 
+        let userdata_path = steam_path.join("userdata");
         if userdata_path.exists() && userdata_path.is_dir() {
             match fs::read_dir(&userdata_path) {
                 Ok(entries) => {
@@ -344,34 +347,62 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
                         let config_path = entry.path().join("config");
                         let config_file_path = config_path.join(CONFIG_FILE);
                         if config_file_path.exists() && config_file_path.is_file() {
-                            println!("Found config file: {:?}", config_file_path);
+                            if config.steam.available_configs.is_none() {
+                                config.steam.available_configs =
+                                    Some(vec![config_file_path.to_string_lossy().to_string()]);
+                            } else {
+                                config
+                                    .steam
+                                    .available_configs
+                                    .as_mut()
+                                    .unwrap()
+                                    .push(config_file_path.to_string_lossy().to_string());
+                            }
                         }
                     }
                 }
-                Err(e) => {
-                    eprintln!("Failed to read directory: {}", e);
+                Err(_) => {
+                    return Err(Error::Custom(serde_json::to_string(&SetupError {
+                        error_key: ErrorKey::SteamInstall,
+                        message: format!(
+                            "Failed to find any configurations in your Steam userdata folder [[{}]].",
+                            userdata_path.to_string_lossy().to_string()
+                        ),
+                        platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
+                    })?));
                 }
             }
         } else {
-            eprintln!("Userdata path does not exist or is not a directory");
+            return Err(Error::Custom(serde_json::to_string(&SetupError {
+                error_key: ErrorKey::SteamInstall,
+                message: format!(
+                    "Failed to read Steam userdata folder [[{}]] from your Steam installation.",
+                    userdata_path.to_string_lossy().to_string()
+                ),
+                platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
+            })?));
         }
 
-        return Err(Error::Custom(serde_json::to_string(&SetupError {
-            error_key: ErrorKey::SteamConfig,
-            message: format!(
-                "Failed to find [[{}]] in [[{}]].",
-                CONFIG_FILE,
-                userdata_path.to_string_lossy().to_string()
-            ),
-            error_action: Some("finding".to_string()),
-            platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
-        })?));
-
-        return Err(Error::Custom("Not implemented yet".to_string()));
-        // TODO: Implement Steam setup
+        if config.steam.available_configs.is_none()
+            || config.steam.available_configs.as_ref().unwrap().is_empty()
+        {
+            return Err(Error::Custom(serde_json::to_string(&SetupError {
+                error_key: ErrorKey::SteamInstall,
+                message: "Failed to find any configurations in your Steam userdata folder."
+                    .to_string(),
+                platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
+            })?));
+        }
 
         // Enable Steam
-        // config.steam.enabled = true;
+        config.steam.enabled = true;
+    }
+
+    if config.battle_net.enabled == false && config.steam.enabled == false {
+        return Err(Error::Custom(format!(
+            "Failed to setup one of your requested platforms: [[{}]].",
+            platforms.join("]], [[").replace("BattleNet", "Battle.net")
+        )));
     }
 
     config.is_setup = true;

@@ -119,6 +119,8 @@ export const useSetupErrorMutation = ({
         if (configError.success) {
           throw new ConfigError(configError.data)
         }
+
+        throw new Error(configError.error.message)
       })
 
       const config = LaunchConfig.safeParse(JSON.parse(data as string))

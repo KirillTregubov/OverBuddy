@@ -9,7 +9,7 @@ import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
 import { moveInVariants, staggerChildrenVariants } from '@/lib/animations'
 import { useSetupMutation } from '@/lib/data'
-import { ConfigError, ConfigErrors } from '@/lib/errors'
+import { ConfigError, ConfigErrors, handleError } from '@/lib/errors'
 import { Platform } from '@/lib/schemas'
 
 export const Route = createFileRoute('/setup/select')({
@@ -31,11 +31,12 @@ export function SetupSelect() {
             key: error.error_key
           },
           search: {
-            action: error.error_action || 'finding',
+            message: error.message,
             platforms: error.platforms
           },
           replace: true
         })
+        handleError('Failed to complete setup.')
         return
       }
     },

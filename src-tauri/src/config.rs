@@ -10,6 +10,7 @@ pub struct SteamConfig {
     pub enabled: bool,
     pub config: Option<String>,
     pub install: Option<String>,
+    pub available_configs: Option<Vec<String>>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
@@ -40,6 +41,7 @@ pub fn get_default_config() -> Config {
             enabled: false,
             config: None,
             install: None,
+            available_configs: None,
         },
         background: BackgroundConfig {
             current: None,

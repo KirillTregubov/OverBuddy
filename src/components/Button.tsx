@@ -1,5 +1,6 @@
-import { Link } from '@tanstack/react-router'
+import { Link, type LinkProps } from '@tanstack/react-router'
 import clsx from 'clsx'
+import { motion, type HTMLMotionProps } from 'framer-motion'
 
 type ButtonProps = {
   children: React.ReactNode
@@ -40,10 +41,23 @@ export function LinkButton({
   primary,
   children,
   ...props
-}: React.ComponentProps<typeof Link> & ButtonProps) {
+}: LinkProps & React.ComponentProps<typeof Link> & ButtonProps) {
   return (
     <Link {...props} className={buttonClasses(className, primary)}>
       {children}
     </Link>
+  )
+}
+
+export function MotionButton({
+  className,
+  primary,
+  children,
+  ...props
+}: ButtonProps & HTMLMotionProps<'button'>) {
+  return (
+    <motion.button className={buttonClasses(className, primary)} {...props}>
+      {children}
+    </motion.button>
   )
 }
