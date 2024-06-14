@@ -11,6 +11,7 @@ import {
 import { useResetMutation } from '@/lib/data'
 import { FormattedError } from '@/lib/errors'
 import { Button } from './Button'
+import { ReportButton } from './Reporter'
 import TracerImage from './TracerImage'
 
 export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
@@ -65,11 +66,8 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
           <Button
             primary
             onClick={() => {
-              // Reset the router error boundary
-              reset()
-
-              // Invalidate the route to reload the loader
-              router.invalidate()
+              reset() // reset router error boundary
+              router.invalidate() // reload the loader
             }}
           >
             Retry
@@ -77,7 +75,7 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
           <Button disabled={status !== 'idle'} onClick={() => mutate()}>
             Reset to Defaults
           </Button>
-          {/* TODO: report error */}
+          <ReportButton error={error} />
         </motion.div>
       </motion.div>
       <TracerImage />

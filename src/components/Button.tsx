@@ -15,7 +15,7 @@ const primaryClasses =
 
 export function buttonClasses(className?: string, primary = false) {
   return clsx(
-    'select-none rounded-lg px-4 py-2 text-center font-medium capitalize transition-[background-color,box-shadow,transform] will-change-transform focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50',
+    'select-none rounded-lg px-4 py-2 text-center font-medium transition-[background-color,box-shadow,transform] will-change-transform focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50',
     primary ? primaryClasses : defaultClasses,
     className
   )

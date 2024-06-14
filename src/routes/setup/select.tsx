@@ -9,7 +9,12 @@ import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
 import { moveInVariants, staggerChildrenVariants } from '@/lib/animations'
 import { useSetupMutation } from '@/lib/data'
-import { ConfigError, ConfigErrors, handleError } from '@/lib/errors'
+import {
+  ConfigError,
+  ConfigErrors,
+  SetupError,
+  handleError
+} from '@/lib/errors'
 import { Platform } from '@/lib/schemas'
 
 export const Route = createFileRoute('/setup/select')({
@@ -19,9 +24,12 @@ export const Route = createFileRoute('/setup/select')({
 export function SetupSelect() {
   const [platforms, setPlatforms] = useState<Platform[]>([])
   const navigate = useNavigate()
-  const { status, mutate } = useSetupMutation({
+  const { status, mutate, reset } = useSetupMutation({
     onError: (error) => {
-      if (
+      if (error instanceof SetupError) {
+        handleError(error)
+        reset()
+      } else if (
         error instanceof ConfigError &&
         ConfigErrors.safeParse(error.error_key).success
       ) {
