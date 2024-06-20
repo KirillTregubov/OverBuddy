@@ -15,6 +15,7 @@ import { Route as SetupImport } from './routes/setup'
 import { Route as MenuImport } from './routes/menu'
 import { Route as IndexImport } from './routes/index'
 import { Route as SetupIndexImport } from './routes/setup/index'
+import { Route as SetupSteamsetupImport } from './routes/setup/steam_setup'
 import { Route as SetupSelectImport } from './routes/setup/select'
 import { Route as SetupKeyImport } from './routes/setup/$key'
 
@@ -37,6 +38,11 @@ const IndexRoute = IndexImport.update({
 
 const SetupIndexRoute = SetupIndexImport.update({
   path: '/',
+  getParentRoute: () => SetupRoute,
+} as any)
+
+const SetupSteamsetupRoute = SetupSteamsetupImport.update({
+  path: '/steam_setup',
   getParentRoute: () => SetupRoute,
 } as any)
 
@@ -89,6 +95,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SetupSelectImport
       parentRoute: typeof SetupImport
     }
+    '/setup/steam_setup': {
+      id: '/setup/steam_setup'
+      path: '/steam_setup'
+      fullPath: '/setup/steam_setup'
+      preLoaderRoute: typeof SetupSteamsetupImport
+      parentRoute: typeof SetupImport
+    }
     '/setup/': {
       id: '/setup/'
       path: '/'
@@ -107,6 +120,7 @@ export const routeTree = rootRoute.addChildren({
   SetupRoute: SetupRoute.addChildren({
     SetupKeyRoute,
     SetupSelectRoute,
+    SetupSteamsetupRoute,
     SetupIndexRoute,
   }),
 })
@@ -135,6 +149,7 @@ export const routeTree = rootRoute.addChildren({
       "children": [
         "/setup/$key",
         "/setup/select",
+        "/setup/steam_setup",
         "/setup/"
       ]
     },
@@ -144,6 +159,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/setup/select": {
       "filePath": "setup/select.tsx",
+      "parent": "/setup"
+    },
+    "/setup/steam_setup": {
+      "filePath": "setup/steam_setup.tsx",
       "parent": "/setup"
     },
     "/setup/": {

@@ -44,7 +44,7 @@ export function SetupSelect() {
           },
           replace: true
         })
-        handleError('Failed to complete setup.')
+        // handleError('Failed to complete setup.')
         return
       }
     },

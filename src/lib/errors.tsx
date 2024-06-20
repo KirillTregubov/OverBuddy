@@ -8,8 +8,8 @@ import { Platform } from '@/lib/schemas'
 export const ConfigErrors = z.enum([
   'BattleNetConfig',
   'BattleNetInstall',
-  'SteamInstall'
-  // 'Steam'
+  'SteamInstall',
+  'SteamAccount'
 ])
 export type ConfigErrors = z.infer<typeof ConfigErrors>
 
@@ -41,6 +41,12 @@ export class SetupError extends Error {
     super('Failed to setup!')
   }
 }
+
+export const SetupPathResponse = z.object({
+  path: z.string(),
+  defaultPath: z.string()
+})
+export type SetupPathResponse = z.infer<typeof SetupPathResponse>
 
 /* Handle non-critical errors */
 // , reportable = true

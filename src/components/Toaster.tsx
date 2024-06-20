@@ -10,6 +10,7 @@ export default function Toaster() {
           toast: 'select-none w-96'
         }
       }}
+      offset="0.75rem"
     />
   )
 }

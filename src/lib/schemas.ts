@@ -13,7 +13,8 @@ export const LaunchConfig = z.object({
   steam: z.object({
     enabled: z.boolean(),
     config: z.string().nullable(),
-    install: z.string().nullable()
+    install: z.string().nullable(),
+    available_configs: z.array(z.string()).nullable()
   }),
   background: z.object({
     current: z.string().nullable(),

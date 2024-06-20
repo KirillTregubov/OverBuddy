@@ -43,7 +43,9 @@ function ConfigureComponent() {
   const navigate = useNavigate()
   const { key } = Route.useParams() as { key: ConfigErrors }
   const { message, platforms } = Route.useSearch()
-  const { data: defaultPath } = useSuspenseQuery(getSetupPath(key))
+  const {
+    data: { path, defaultPath }
+  } = useSuspenseQuery(getSetupPath(key))
 
   const { mutate, reset } = useSetupErrorMutation({
     onSuccess: async () => {
@@ -53,6 +55,7 @@ function ConfigureComponent() {
       })
     },
     onError: (error) => {
+      console.log(error)
       if (
         error instanceof ConfigError &&
         ConfigErrors.safeParse(error.error_key).success
@@ -93,11 +96,16 @@ function ConfigureComponent() {
         >
           Setup Incomplete
         </motion.h1>
-        <motion.h2
-          className="text-balance leading-7 text-zinc-400"
+        <motion.p
+          className="mb-2 text-pretty leading-7 text-zinc-400"
           variants={moveInVariants}
         >
           <FormattedError text={message} />
+        </motion.p>
+        <motion.p
+          className="text-pretty leading-7 text-zinc-400"
+          variants={moveInVariants}
+        >
           {key === 'BattleNetInstall' ? (
             <>
               {' '}
@@ -106,27 +114,52 @@ function ConfigureComponent() {
               <span className="mt-2 block">
                 If you do have Battle.net installed, please select the{' '}
                 <Highlight>Battle.net Launcher.exe</Highlight> file, which is
-                likely located in <Highlight>{defaultPath}</Highlight>.
+                likely located in <Highlight>{path}</Highlight>.
               </span>
             </>
           ) : key === 'BattleNetConfig' ? (
             <>
               {' '}
               Please select the <Highlight>Battle.net.config</Highlight> file,
-              which is likely located in <Highlight>{defaultPath}</Highlight>.
+              which is likely located in <Highlight>{path}</Highlight>.
+            </>
+          ) : key === 'SteamInstall' ? (
+            <>
+              {' '}
+              Please select the <Highlight>steam.exe</Highlight> file, which is
+              located in your Steam installation directory (defaults to{' '}
+              <Highlight>{path}</Highlight>).
             </>
           ) : (
-            key === 'SteamInstall' && (
+            key === 'SteamAccount' && (
               <>
                 {' '}
-                Please select the <Highlight>steam.exe</Highlight> file, which
-                is likely located in <Highlight>{defaultPath}</Highlight>.
+                Please ensure you have logged into an account on Steam. If you
+                have already done so, please select the{' '}
+                <Highlight>steam.exe</Highlight> file, which is located in your
+                Steam installation directory (defaults to{' '}
+                <Highlight>{path}</Highlight>).
               </>
             )
           )}
-        </motion.h2>
+        </motion.p>
 
-        <div className="mt-4">
+        <div className="mt-4 flex gap-2">
+          {key === 'SteamAccount' && (
+            <MotionButton
+              primary
+              onClick={() => {
+                mutate({
+                  key,
+                  path: undefined,
+                  platforms
+                })
+              }}
+              variants={moveInVariants}
+            >
+              Retry
+            </MotionButton>
+          )}
           <MotionButton
             onClick={async () => {
               const selected = await open({

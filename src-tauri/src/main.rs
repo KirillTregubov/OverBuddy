@@ -11,7 +11,7 @@ use serde_json::{from_reader, json};
 use std::env;
 use std::fs::{self, File};
 use std::io::Read;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::thread;
 use std::time::Duration;
@@ -132,6 +132,7 @@ enum ErrorKey {
     BattleNetInstall,
     BattleNetConfig,
     SteamInstall,
+    SteamAccount,
 }
 #[derive(Serialize)]
 struct SetupError {
@@ -361,16 +362,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
                         }
                     }
                 }
-                Err(_) => {
-                    return Err(Error::Custom(serde_json::to_string(&SetupError {
-                        error_key: ErrorKey::SteamInstall,
-                        message: format!(
-                            "Failed to find any configurations in your Steam userdata folder [[{}]].",
-                            userdata_path.to_string_lossy().to_string()
-                        ),
-                        platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
-                    })?));
-                }
+                Err(_) => {}
             }
         } else {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
@@ -387,9 +379,8 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
             || config.steam.available_configs.as_ref().unwrap().is_empty()
         {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
-                error_key: ErrorKey::SteamInstall,
-                message: "Failed to find any configurations in your Steam userdata folder."
-                    .to_string(),
+                error_key: ErrorKey::SteamAccount,
+                message: "Failed to find any accounts in your Steam userdata folder.".to_string(),
                 platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
             })?));
         }
@@ -423,15 +414,12 @@ fn resolve_setup_error(
     match key {
         "BattleNetInstall" => {
             config.battle_net.install = Some(path.to_string());
-            helpers::write_config(&handle, &config)?;
         }
         "BattleNetConfig" => {
             config.battle_net.config = Some(path.to_string());
-            helpers::write_config(&handle, &config)?;
         }
-        "SteamInstall" => {
+        "SteamInstall" | "SteamAccount" => {
             config.steam.install = Some(path.to_string());
-            helpers::write_config(&handle, &config)?;
         }
         _ => {
             return Err(Error::Custom(format!(
@@ -440,6 +428,7 @@ fn resolve_setup_error(
         }
     };
 
+    helpers::write_config(&handle, &config)?;
     return Ok(setup(handle, platforms)?);
 }
 
@@ -447,27 +436,48 @@ fn resolve_setup_error(
 fn get_setup_path(key: &str, handle: AppHandle) -> Result<String, Error> {
     match key {
         "BattleNetInstall" => {
-            if let Some(path) = env::var_os("programfiles(x86)") {
-                let path = Path::new(path.to_str().unwrap()).join("Battle.net");
-                return Ok(path.to_string_lossy().to_string());
-            }
-            return Err(Error::Custom(format!(
-                "Failed to find the [[Program Files (x86)]] directory."
-            )));
+            let path = env::var_os("programfiles(x86)")
+                .map(|path| Path::new(&path).join("Battle.net"))
+                .filter(|path| path.exists())
+                .map(|path| path.to_string_lossy().to_string())
+                .unwrap_or_else(|| String::new());
+
+            return Ok(serde_json::to_string(&json!({
+                "path": path,
+                "defaultPath": path
+            }))?);
         }
         "BattleNetConfig" => {
-            let app_data_dir = handle.path_resolver().app_data_dir().unwrap();
-            let resource_path = app_data_dir.join("../Battle.net");
-            return Ok(helpers::display_path_string(&resource_path)?);
+            let path = helpers::display_path_string(
+                &handle
+                    .path_resolver()
+                    .app_data_dir()
+                    .unwrap()
+                    .join("../Battle.net"),
+            );
+
+            return Ok(serde_json::to_string(&json!({
+                "path": path,
+                "defaultPath": path
+            }))?);
         }
-        "SteamInstall" => {
-            if let Some(path) = env::var_os("programfiles(x86)") {
-                let path = Path::new(path.to_str().unwrap()).join("Steam");
-                return Ok(path.to_string_lossy().to_string());
-            }
-            return Err(Error::Custom(format!(
-                "Failed to find the [[Program Files (x86)]] directory."
-            )));
+        "SteamInstall" | "SteamAccount" => {
+            let path = env::var_os("programfiles(x86)")
+                .map(|path| Path::new(&path).join("Steam"))
+                .filter(|path| path.exists())
+                .map(|path| path.to_string_lossy().to_string())
+                .unwrap_or_else(|| String::new());
+
+            let default_path = env::var_os("windir")
+                .map(|os_str| PathBuf::from(os_str))
+                .and_then(|path| path.parent().map(PathBuf::from))
+                .map(|path| path.to_string_lossy().to_string())
+                .unwrap_or_else(|| String::new());
+
+            return Ok(serde_json::to_string(&json!({
+                "path": path,
+                "defaultPath": default_path
+            }))?);
         }
         _ => {
             return Err(Error::Custom(format!(

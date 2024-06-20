@@ -1,17 +1,17 @@
 import { fadeInVariants } from '@/lib/animations'
 import { launchQueryOptions } from '@/lib/data'
-import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
+import { Outlet, createFileRoute, redirect } from '@tanstack/react-router' //
 import { motion } from 'framer-motion'
 
 export const Route = createFileRoute('/setup')({
   beforeLoad: async ({ context: { queryClient } }) => {
-    const { is_setup } = await queryClient
+    const { is_setup, steam } = await queryClient
       .fetchQuery(launchQueryOptions)
       .catch(() => {
         throw redirect({ to: '/' })
       })
 
-    if (is_setup) {
+    if (is_setup && (!steam.enabled || steam.config)) {
       throw redirect({ to: '/menu' })
     }
   },
@@ -30,7 +30,7 @@ function Setup() {
     >
       <Outlet />
       <motion.div
-        className="absolute bottom-0 w-full select-none pb-2.5 text-center text-zinc-400"
+        className="absolute bottom-0 w-full select-none pb-3 text-center text-zinc-400"
         initial={{ transform: 'scale(.9)' }}
         animate={{ transform: 'scale(1)' }}
         transition={{ duration: 0.3 }}

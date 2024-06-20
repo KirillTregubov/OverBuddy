@@ -8,6 +8,7 @@ import {
   ConfigErrorSchema,
   ConfigErrors,
   SetupError,
+  SetupPathResponse,
   handleError
 } from '@/lib/errors'
 import { LaunchConfig, type Platform } from '@/lib/schemas'
@@ -29,58 +30,74 @@ export const launchQueryOptions = queryOptions({
   staleTime: Infinity
 })
 
+type SetupResponse = {
+  platforms: Platform[]
+  config: LaunchConfig
+}
+
+const setupMutation = async (platforms: Platform[]): Promise<SetupResponse> => {
+  const data = await invoke('setup', { platforms }).catch((error) => {
+    if (typeof error !== 'string') throw error
+
+    let parsed
+    try {
+      parsed = JSON.parse(error as string)
+    } catch (_) {
+      throw new Error(error)
+    }
+
+    const configError = ConfigErrorSchema.safeParse(parsed)
+    if (configError.success) {
+      throw new ConfigError(configError.data)
+    }
+
+    throw new Error(configError.error.message)
+  })
+
+  const config = LaunchConfig.safeParse(JSON.parse(data as string))
+  if (!config.success) {
+    throw new Error(config.error.message)
+  }
+  if (!config.data.is_setup) {
+    throw new SetupError()
+  }
+
+  queryClient.setQueryData(['launch'], config.data)
+  return { platforms, config: config.data }
+}
+
 export const useSetupMutation = ({
   onError,
   onSuccess
 }: {
   onError?: (error: Error | ConfigError) => void
-  onSuccess?: (data: LaunchConfig) => void
+  onSuccess?: (data: SetupResponse) => void
 } = {}) =>
   useMutation({
-    mutationFn: async (platforms: Platform[]) => {
-      const data = await invoke('setup', { platforms }).catch((error) => {
-        if (typeof error !== 'string') throw error
-
-        let parsed
-        try {
-          parsed = JSON.parse(error as string)
-        } catch (_) {
-          throw new Error(error)
-        }
-
-        const configError = ConfigErrorSchema.safeParse(parsed)
-        if (configError.success) {
-          throw new ConfigError(configError.data)
-        }
-
-        throw new Error(configError.error.message)
-      })
-
-      const config = LaunchConfig.safeParse(JSON.parse(data as string))
-      if (!config.success) {
-        throw new Error(config.error.message)
-      }
-      if (!config.data.is_setup) {
-        throw new SetupError()
-      }
-
-      queryClient.setQueryData(['launch'], config.data)
-      return config.data
-    },
+    mutationFn: setupMutation,
     onError,
     onSuccess
   })
 
 export const getSetupPath = (key: ConfigErrors) =>
   queryOptions({
-    queryKey: ['directory', key],
+    queryKey: ['setup_path', key],
     queryFn: async () => {
       try {
-        return (await invoke('get_setup_path', { key })) as string
+        const data = await invoke('get_setup_path', { key })
+        const setupPath = SetupPathResponse.safeParse(
+          JSON.parse(data as string)
+        )
+        if (!setupPath.success) {
+          throw new Error(setupPath.error.message)
+        }
+        return setupPath.data
       } catch (error) {
         handleError(error)
+
+        if (typeof error === 'string') throw new Error(error)
       }
-      throw new Error('Failed to get directory')
+      throw new Error('Failed to get setup paths.')
     }
   })
 
@@ -89,7 +106,7 @@ export const useSetupErrorMutation = ({
   onSuccess
 }: {
   onError?: (error: Error | ConfigError) => void
-  onSuccess?: (data: LaunchConfig) => void
+  onSuccess?: (data: SetupResponse) => void
 } = {}) =>
   useMutation({
     mutationFn: async ({
@@ -98,9 +115,15 @@ export const useSetupErrorMutation = ({
       platforms
     }: {
       key: ConfigErrorSchema['error_key']
-      path: string
+      path: string | undefined
       platforms: Platform[]
     }) => {
+      if (!path && key === 'SteamAccount') {
+        return setupMutation(platforms)
+      } else if (!path) {
+        throw new Error(`Invalid path for key ${key}`)
+      }
+
       const data = await invoke('resolve_setup_error', {
         key,
         path,
@@ -129,7 +152,7 @@ export const useSetupErrorMutation = ({
       }
 
       queryClient.setQueryData(['launch'], config.data)
-      return config.data
+      return { platforms, config: config.data }
     },
     onError,
     onSuccess
@@ -155,11 +178,20 @@ export const backgroundsQueryOptions = queryOptions({
     if (!backgrounds.success) {
       throw new Error(`Failed to get backgrounds. ${backgrounds.error.message}`)
     }
+
     // preload images
-    backgrounds.data.forEach((background) => {
-      const img = new Image()
-      img.src = `/backgrounds/${background.image}`
-    })
+    await Promise.allSettled(
+      backgrounds.data.map(
+        (background) =>
+          new Promise<void>((resolve, reject) => {
+            const img = new Image()
+            img.onload = () => resolve()
+            img.onerror = () => reject()
+            img.src = `/backgrounds/${background.image}`
+          })
+      )
+    )
+
     return backgrounds.data
   }
 })

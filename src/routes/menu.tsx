@@ -27,7 +27,7 @@ export const Route = createFileRoute('/menu')({
   loader: async ({ context: { queryClient } }) =>
     await queryClient.ensureQueryData(backgroundsQueryOptions),
   beforeLoad: async ({ context: { queryClient } }) => {
-    const { is_setup } = await queryClient
+    const { is_setup, steam } = await queryClient
       .fetchQuery(launchQueryOptions)
       .catch(() => {
         throw redirect({ to: '/' })
@@ -35,6 +35,10 @@ export const Route = createFileRoute('/menu')({
 
     if (!is_setup) {
       throw redirect({ to: '/setup' })
+    }
+
+    if (steam.enabled && !steam.config) {
+      throw redirect({ to: '/setup/steam_setup' })
     }
   },
   component: Menu,
