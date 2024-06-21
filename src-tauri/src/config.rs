@@ -6,11 +6,25 @@ pub struct BattleNetConfig {
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
+pub struct SteamLocalConfig {
+    pub id: String,
+    pub file: String,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
+pub struct SteamProfile {
+    pub id: Option<String>,
+    pub avatar: Option<String>,
+    pub name: Option<String>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct SteamConfig {
     pub enabled: bool,
-    pub config: Option<String>,
+    pub setup: bool,
     pub install: Option<String>,
-    pub available_configs: Option<Vec<String>>,
+    pub configs: Option<Vec<SteamLocalConfig>>,
+    pub profiles: Option<Vec<SteamProfile>>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
@@ -39,9 +53,10 @@ pub fn get_default_config() -> Config {
         },
         steam: SteamConfig {
             enabled: false,
-            config: None,
+            setup: false,
+            configs: None,
+            profiles: None,
             install: None,
-            available_configs: None,
         },
         background: BackgroundConfig {
             current: None,

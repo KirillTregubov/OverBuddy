@@ -70,7 +70,7 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
               router.invalidate() // reload the loader
             }}
           >
-            Retry
+            Reload
           </Button>
           <Button disabled={status !== 'idle'} onClick={() => mutate()}>
             Reset to Defaults

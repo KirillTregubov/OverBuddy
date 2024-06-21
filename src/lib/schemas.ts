@@ -3,6 +3,18 @@ import { z } from 'zod'
 export const Platform = z.enum(['BattleNet', 'Steam'])
 export type Platform = z.infer<typeof Platform>
 
+const SteamConfig = z.object({
+  id: z.string(),
+  file: z.string()
+})
+
+export const SteamProfile = z.object({
+  id: z.string(),
+  name: z.string(),
+  avatar: z.string()
+})
+export type SteamProfile = z.infer<typeof SteamProfile>
+
 export const LaunchConfig = z.object({
   is_setup: z.boolean(),
   battle_net: z.object({
@@ -12,9 +24,10 @@ export const LaunchConfig = z.object({
   }),
   steam: z.object({
     enabled: z.boolean(),
-    config: z.string().nullable(),
+    setup: z.boolean(),
+    profiles: z.array(SteamProfile).nullable(),
     install: z.string().nullable(),
-    available_configs: z.array(z.string()).nullable()
+    configs: z.array(SteamConfig).nullable()
   }),
   background: z.object({
     current: z.string().nullable(),

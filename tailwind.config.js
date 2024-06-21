@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       animation: {
-        'spin-cog': 'spin-cog 1.5s ease infinite'
+        'spin-cog': 'spin-cog 1.5s ease 1'
       },
       keyframes: {
         'spin-cog': {

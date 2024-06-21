@@ -5,12 +5,11 @@ import { AnimatePresence, motion } from 'framer-motion'
 import {
   ChevronLeft,
   ChevronRight,
-  LoaderPinwheel //,
-  // LoaderIcon,
-  // HeartIcon,
-  // SettingsIcon
+  LoaderPinwheel,
+  SettingsIcon
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
 
 import placeholder from '@/assets/placeholder.svg'
 import Loading from '@/components/Loading'
@@ -21,7 +20,6 @@ import {
   useResetBackgroundMutation
 } from '@/lib/data'
 import { handleError } from '@/lib/errors'
-import { toast } from 'sonner'
 
 export const Route = createFileRoute('/menu')({
   loader: async ({ context: { queryClient } }) =>
@@ -37,7 +35,7 @@ export const Route = createFileRoute('/menu')({
       throw redirect({ to: '/setup' })
     }
 
-    if (steam.enabled && !steam.config) {
+    if (steam.enabled && !steam.setup) {
       throw redirect({ to: '/setup/steam_setup' })
     }
   },
@@ -57,23 +55,15 @@ function Menu() {
     status: setStatus,
     mutate: setBackground,
     reset: resetSetBackground
-  } = useBackgroundMutation({
-    // onError: () => {
-    //   resetSetBackground()
-    // }
-  })
+  } = useBackgroundMutation()
 
   const {
     status: resetStatus,
     mutate: resetBackground,
     reset
   } = useResetBackgroundMutation({
-    onSuccess: () => {
-      resetSetBackground()
-    },
-    onSettled: () => {
-      reset()
-    }
+    onSuccess: () => resetSetBackground(),
+    onSettled: () => reset()
   })
 
   const backgroundRefs = useRef<HTMLImageElement[]>([])
@@ -98,10 +88,8 @@ function Menu() {
 
     const index = data.findIndex((bg) => bg.id === config.background.current)
     if (index === -1) {
-      // FIXME: Handle removed background
       handleError('Background has been removed.')
     }
-
     handleSelect(index)
   }, [config.background.current])
 
@@ -135,29 +123,20 @@ function Menu() {
 
   return (
     <motion.div
-      className="relative flex h-full w-full flex-col p-6"
+      className="relative flex h-full w-full flex-col p-6" // absolute right-10 top-10
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      {/* <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">
-          Main Menu <span className="font-medium">Customizer</span>
-        </h1>
-        <button className="rounded-full bg-transparent p-2 transition-colors hover:bg-zinc-700/70 active:bg-zinc-600">
-          <SettingsIcon
-            size={24}
-            className="hover:animate-spin-cog rotate-[30deg] transition-transform will-change-transform"
-          />
-        </button>
-      </div> */}
-      <div className="relative -mt-6">
-        <div className="scrollbar-hide -mx-1 flex h-48 flex-shrink-0 items-center gap-3 overflow-x-auto scroll-smooth px-12 before:pointer-events-none before:absolute before:-left-1 before:z-10 before:h-full before:w-6 before:content-[''] before:bg-easing-l-menu-top after:pointer-events-none after:absolute after:-right-1 after:z-10 after:h-full after:w-6 after:content-[''] after:bg-easing-r-menu-top">
+      {/* mt-4 mt-6 when no topbar, -mb-3 mt-3 when on bottom */}
+      <div className="relative -mt-4 mb-2">
+        <div className="scrollbar-hide -mx-1 flex h-44 flex-shrink-0 items-center gap-3 overflow-x-auto scroll-smooth px-12 before:pointer-events-none before:absolute before:-left-1 before:z-10 before:h-full before:w-6 before:content-[''] before:bg-easing-l-menu-top after:pointer-events-none after:absolute after:-right-1 after:z-10 after:h-full after:w-6 after:content-[''] after:bg-easing-r-menu-top">
           {data.map((background, index) => (
             <motion.button
               key={background.id}
+              onClick={() => handleSelect(index)}
               className={clsx(
-                'aspect-video w-fit shadow-lg transition-[width,height,box-shadow]',
+                'aspect-video w-fit shadow-lg ring-white ring-offset-transparent transition-[width,height,box-shadow] focus-visible:outline-none focus-visible:ring-2',
                 activeBackground?.id === background.id
                   ? 'h-36 rounded-xl shadow-orange-600/20'
                   : 'h-28 rounded-lg shadow-orange-600/10 hover:shadow-orange-600/20'
@@ -190,7 +169,6 @@ function Menu() {
                 )}
                 src={`/backgrounds/${background.image}`}
                 ref={(el) => (backgroundRefs.current[index] = el!)}
-                onClick={() => handleSelect(index)}
                 onError={onImageError}
                 draggable="false"
               />
@@ -245,23 +223,39 @@ function Menu() {
         transition={{ duration: 0.3 }}
       >
         {activeBackground !== undefined && (
-          <div className="absolute left-0 top-0 flex h-fit w-fit gap-2 p-3 text-sm text-zinc-200">
+          <div className="absolute left-0 top-0 flex h-fit w-fit gap-2 p-3 text-sm">
             {activeBackground.tags.map((tag) => (
               <motion.p
                 key={activeBackground.name + '-' + tag}
-                className="rounded-md border border-zinc-800/80 bg-zinc-700/80 px-2.5 py-1 font-medium text-white backdrop-blur will-change-transform"
-                initial={{ opacity: 0, transform: 'translateY(-8px)' }}
-                animate={{ opacity: 1, transform: 'translateY(0px)' }}
-                transition={{ duration: 0.2 }}
+                className="select-none rounded-md border border-zinc-800/80 bg-zinc-700/80 px-2 py-1 font-medium text-zinc-100 backdrop-blur will-change-transform"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.15 }}
               >
                 {tag}
               </motion.p>
             ))}
           </div>
         )}
+        <div className="absolute right-0 top-0 p-3">
+          <motion.button
+            className="rounded-full border-2 border-zinc-800/80 bg-zinc-700/80 p-2 text-zinc-100 ring-zinc-100 backdrop-blur transition-[border-color,box-shadow] hover:border-zinc-100 focus-visible:border-zinc-100 focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none"
+            initial={{ rotate: 30, scale: 1, opacity: 0 }}
+            animate={{ opacity: 1 }}
+            whileHover={{ rotate: 390, scale: 1.05 }}
+            whileFocus={{ rotate: 390, scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{
+              rotate: { duration: 1, ease: 'easeOut' },
+              duration: 0.15
+            }}
+          >
+            <SettingsIcon size={24} />
+          </motion.button>
+        </div>
         <img
           alt="Selected Wallpaper"
-          className="h-full w-[61rem] select-none rounded-lg object-cover" //w-[55rem]
+          className="h-full w-full select-none rounded-lg object-cover shadow-lg" //w-[61rem], old: w-[55rem]
           src={
             activeBackground
               ? `/backgrounds/${activeBackground.image}`
@@ -331,7 +325,7 @@ function Menu() {
           </button> */}
           {activeBackground !== undefined && (
             <button
-              className="h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-orange-50 transition-[border-color,transform,border-radius] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-orange-50 focus-visible:scale-105 focus-visible:border-orange-50 focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:pointer-events-none"
+              className="h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-white transition-[border-color,transform,border-radius,box-shadow] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-orange-50 focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:pointer-events-none"
               onClick={() => setBackground({ id: activeBackground.id })}
               disabled={
                 config.background.current === activeBackground.id ||

@@ -11,7 +11,7 @@ import {
   SetupPathResponse,
   handleError
 } from '@/lib/errors'
-import { LaunchConfig, type Platform } from '@/lib/schemas'
+import { LaunchConfig, SteamProfile, type Platform } from '@/lib/schemas'
 import { queryClient } from '@/main'
 
 export const launchQueryOptions = queryOptions({
@@ -158,6 +158,46 @@ export const useSetupErrorMutation = ({
     onSuccess
   })
 
+const STEAM_AVATAR_URL = 'https://avatars.akamai.steamstatic.com'
+
+export const steamQueryOptions = queryOptions({
+  queryKey: ['steam'],
+  queryFn: async () => {
+    const data = await invoke('get_steam_accounts')
+    const accounts = z.array(SteamProfile).safeParse(JSON.parse(data as string))
+    if (!accounts.success) {
+      throw new Error(`Failed to get Steam accounts. ${accounts.error.message}`)
+    }
+    // replace the avatar string with a modified string
+    accounts.data.forEach((account) => {
+      account.avatar = `${STEAM_AVATAR_URL}/${account.avatar}_full.jpg`
+    })
+
+    return accounts.data as SteamProfile[]
+  }
+})
+
+export const useSteamConfirmMutation = ({
+  onSuccess
+}: {
+  onSuccess?: () => void
+} = {}) =>
+  useMutation({
+    mutationFn: async () => {
+      console.log('test')
+      const data = (await invoke('confirm_steam_setup')) as string
+      const config = LaunchConfig.safeParse(JSON.parse(data))
+      if (!config.success) {
+        throw new Error(
+          `Failed to save background change. ${config.error.message}`
+        )
+      }
+      queryClient.setQueryData(['launch'], config.data)
+    },
+    onError: (error) => handleError(error),
+    onSuccess
+  })
+
 export const Background = z.object({
   id: z.string(),
   image: z.string(),
@@ -213,8 +253,7 @@ export const useBackgroundMutation = ({
       queryClient.setQueryData(['launch'], config.data)
     },
     onError: (error) => {
-      const newError = error
-      onError?.(newError)
+      onError?.(error)
     }
   })
 

@@ -4,6 +4,7 @@
 mod backgrounds;
 mod config;
 mod helpers;
+mod steam_helpers;
 
 use helpers::Error;
 use serde::Serialize;
@@ -348,16 +349,21 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
                         let config_path = entry.path().join("config");
                         let config_file_path = config_path.join(CONFIG_FILE);
                         if config_file_path.exists() && config_file_path.is_file() {
-                            if config.steam.available_configs.is_none() {
-                                config.steam.available_configs =
-                                    Some(vec![config_file_path.to_string_lossy().to_string()]);
+                            let new_config = config::SteamLocalConfig {
+                                id: entry.file_name().to_string_lossy().to_string(),
+                                file: config_file_path.to_string_lossy().to_string(),
+                            };
+
+                            if config.steam.configs.is_none() {
+                                config.steam.configs = Some(vec![new_config]);
                             } else {
-                                config
-                                    .steam
-                                    .available_configs
-                                    .as_mut()
-                                    .unwrap()
-                                    .push(config_file_path.to_string_lossy().to_string());
+                                let available_configs = config.steam.configs.as_mut().unwrap();
+                                if !available_configs
+                                    .iter()
+                                    .any(|config| config.id == new_config.id)
+                                {
+                                    available_configs.push(new_config);
+                                }
                             }
                         }
                     }
@@ -375,9 +381,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
             })?));
         }
 
-        if config.steam.available_configs.is_none()
-            || config.steam.available_configs.as_ref().unwrap().is_empty()
-        {
+        if config.steam.configs.is_none() || config.steam.configs.as_ref().unwrap().is_empty() {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
                 error_key: ErrorKey::SteamAccount,
                 message: "Failed to find any accounts in your Steam userdata folder.".to_string(),
@@ -485,6 +489,31 @@ fn get_setup_path(key: &str, handle: AppHandle) -> Result<String, Error> {
             )));
         }
     }
+}
+
+#[tauri::command]
+fn get_steam_accounts(handle: AppHandle) -> Result<String, Error> {
+    let config = helpers::read_config(&handle)?;
+    let accounts = helpers::get_steam_profiles(&config)?;
+
+    return Ok(serde_json::to_string(&accounts)?);
+}
+
+#[tauri::command]
+fn confirm_steam_setup(handle: AppHandle) -> Result<String, Error> {
+    let mut config = helpers::read_config(&handle)?;
+
+    if config.steam.configs.is_none() || config.steam.configs.as_ref().unwrap().is_empty() {
+        return Err(Error::Custom(
+            "Failed to find any accounts in your Steam userdata folder.".to_string(),
+        ));
+    }
+
+    config.steam.profiles = Some(helpers::get_steam_profiles(&config)?);
+    config.steam.setup = true;
+    helpers::write_config(&handle, &config)?;
+
+    return Ok(serde_json::to_string(&config)?);
 }
 
 #[tauri::command]
@@ -691,8 +720,10 @@ fn main() {
             mounted,
             get_launch_config,
             setup,
-            get_setup_path,
             resolve_setup_error,
+            get_setup_path,
+            get_steam_accounts,
+            confirm_steam_setup,
             get_backgrounds,
             set_background,
             reset_background,

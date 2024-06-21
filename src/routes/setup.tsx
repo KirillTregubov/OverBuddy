@@ -11,14 +11,15 @@ export const Route = createFileRoute('/setup')({
         throw redirect({ to: '/' })
       })
 
-    if (is_setup && (!steam.enabled || steam.config)) {
+    if (is_setup && (!steam.enabled || steam.setup)) {
+      console.log('redirected with', steam)
       throw redirect({ to: '/menu' })
     }
   },
   component: Setup
 })
 
-const mode = 'release' // import.meta.env.MODE === 'development' ? 'dev' : 'release'
+const mode = import.meta.env.MODE === 'development' ? 'dev' : 'release'
 
 function Setup() {
   return (

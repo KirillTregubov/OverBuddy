@@ -15,7 +15,7 @@ export const Route = createFileRoute('/setup/')({
   component: SetupSplash
 })
 
-export function SetupSplash() {
+function SetupSplash() {
   // const navigate = useNavigate()
   // const { status, mutate, reset } = useSetupMutation({
   //   onError: (error) => {
@@ -68,26 +68,23 @@ export function SetupSplash() {
         Welcome to <span className="font-bold">OverBuddy</span>!
       </motion.h1>
       <div className="mb-10 flex flex-col gap-5 text-zinc-400">
-        <div className="flex items-start gap-4">
+        <motion.div className="flex items-start gap-4">
           <motion.div
             className="mt-1 rounded-lg bg-zinc-800 p-3 text-white"
             variants={moveInVariants}
           >
             <SparklesIcon size={20} />
           </motion.div>
-          <div>
-            <motion.h2
-              className="mb-1 flex gap-2 text-lg font-medium text-white"
-              variants={moveInVariants}
-            >
+          <motion.div variants={moveInVariants}>
+            <motion.h2 className="mb-1 flex gap-2 text-lg font-medium text-white">
               Personalized Overwatch™ Experience
             </motion.h2>
-            <motion.p variants={moveInVariants}>
+            <motion.p>
               Explore all available backgrounds and select your favourite to
               customize your in-game menu.
             </motion.p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
         <div className="flex items-start gap-4">
           <motion.div
             className="mt-1 rounded-lg bg-zinc-800 p-3 text-white"
@@ -95,20 +92,17 @@ export function SetupSplash() {
           >
             <GlobeIcon size={20} />
           </motion.div>
-          <div>
-            <motion.h2
-              className="mb-1 flex items-center gap-2 text-lg font-medium text-white"
-              variants={moveInVariants}
-            >
+          <motion.div variants={moveInVariants}>
+            <motion.h2 className="mb-1 flex items-center gap-2 text-lg font-medium text-white">
               Free and Open Source
             </motion.h2>
-            <motion.p variants={moveInVariants}>
+            <motion.p>
               OverBuddy is free to use and open source. It operates
               independently and is not affiliated with Blizzard Entertainment®.
               You can undo the changes made by this app at any time by reverting
               to the default background.
             </motion.p>
-          </div>
+          </motion.div>
         </div>
         <div className="flex items-start gap-4">
           <motion.div
@@ -117,21 +111,18 @@ export function SetupSplash() {
           >
             <BookLockIcon size={20} />
           </motion.div>
-          <div>
-            <motion.h2
-              className="mb-1 flex items-center gap-2 text-lg font-medium text-white"
-              variants={moveInVariants}
-            >
+          <motion.div variants={moveInVariants}>
+            <motion.h2 className="mb-1 flex items-center gap-2 text-lg font-medium text-white">
               Privacy Notice
             </motion.h2>
-            <motion.p variants={moveInVariants}>
+            <motion.p>
               To change your background, this app needs to read and write your
               Battle.net®{/* or Steam®*/} configuration files. It does{' '}
               <span className="font-medium">NOT</span> modify any game files. To
               apply the changes, your Battle.net{/* or Steam*/} client will be
               automatically restarted.
             </motion.p>
-          </div>
+          </motion.div>
         </div>
       </div>
       <motion.div variants={moveInVariants} className="flex w-full">

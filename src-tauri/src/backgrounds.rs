@@ -148,7 +148,7 @@ const BACKGROUNDS: &[Background] = &[
         image: "zero_hour_owl.jpg",
         name: "Overwatch League Zero Hour",
         description: "Overwatch League Promo (Season 4)",
-        tags: &[],
+        tags: &["Esports"],
     },
     // Background {
     //     id: "0x0800000000001133",
@@ -211,7 +211,7 @@ const BACKGROUNDS: &[Background] = &[
         image: "overwatch_world_cup.jpg",
         name: "Overwatch World Cup",
         description: "Overwatch World Cup 2023 (Season 7)",
-        tags: &[],
+        tags: &["Esports"],
     },
     // Background {
     //     id: "0x0800000000001173",
@@ -277,6 +277,13 @@ const BACKGROUNDS: &[Background] = &[
         image: "porsche.jpg",
         name: "Porsche D.Va",
         description: "Porsche Event (Season 10)",
+        tags: &["Art"],
+    },
+    Background {
+        id: "0x080000000000123F",
+        image: "ultrawatch_art.jpg",
+        name: "Ultrawatch Art",
+        description: "Ultrawatch Event (Season 11)",
         tags: &["Art"],
     },
 ];
