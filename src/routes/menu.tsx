@@ -13,13 +13,15 @@ import { toast } from 'sonner'
 
 import placeholder from '@/assets/placeholder.svg'
 import Loading from '@/components/Loading'
+import { MotionComponent, MotionLink } from '@/components/Motion'
+import { fadeInVariants } from '@/lib/animations'
 import {
   backgroundsQueryOptions,
   launchQueryOptions,
   useBackgroundMutation,
   useResetBackgroundMutation
 } from '@/lib/data'
-import { handleError } from '@/lib/errors'
+import { useDraggable } from 'react-use-draggable-scroll'
 
 export const Route = createFileRoute('/menu')({
   loader: async ({ context: { queryClient } }) =>
@@ -49,14 +51,13 @@ const onImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
 }
 
 function Menu() {
-  const { data } = useSuspenseQuery(backgroundsQueryOptions)
+  const { data: backgrounds } = useSuspenseQuery(backgroundsQueryOptions)
   const { data: config } = useSuspenseQuery(launchQueryOptions)
   const {
     status: setStatus,
     mutate: setBackground,
     reset: resetSetBackground
   } = useBackgroundMutation()
-
   const {
     status: resetStatus,
     mutate: resetBackground,
@@ -65,9 +66,12 @@ function Menu() {
     onSuccess: () => resetSetBackground(),
     onSettled: () => reset()
   })
-
   const backgroundRefs = useRef<HTMLImageElement[]>([])
-  const [activeBackground, setActiveBackground] = useState(data[0])
+  const [activeBackground, setActiveBackground] = useState(backgrounds[0])
+  const draggableRef = useRef<HTMLDivElement>(
+    null
+  ) as React.MutableRefObject<HTMLDivElement>
+  const { events } = useDraggable(draggableRef)
 
   useEffect(() => {
     if (!config.background.is_outdated) return
@@ -86,10 +90,10 @@ function Menu() {
   useEffect(() => {
     if (config.background.current === null) return
 
-    const index = data.findIndex((bg) => bg.id === config.background.current)
-    if (index === -1) {
-      handleError('Background has been removed.')
-    }
+    const index = backgrounds.findIndex(
+      (bg) => bg.id === config.background.current
+    )
+    if (index === -1) return
     handleSelect(index)
   }, [config.background.current])
 
@@ -97,7 +101,7 @@ function Menu() {
     const ref = backgroundRefs.current[index]
     if (!ref || ref.id === activeBackground?.id) return
 
-    setActiveBackground(data[index])
+    setActiveBackground(backgrounds[index])
     resetSetBackground()
     if (ref) {
       ref.scrollIntoView({
@@ -109,13 +113,16 @@ function Menu() {
 
   const handleNavigate = (direction: 'prev' | 'next') => {
     if (!activeBackground) return
-    const currentIndex = data.findIndex((bg) => bg.id === activeBackground.id)
+    const currentIndex = backgrounds.findIndex(
+      (bg) => bg.id === activeBackground.id
+    )
     let newIndex
 
     if (direction === 'prev') {
-      newIndex = currentIndex - 1 < 0 ? data.length - 1 : currentIndex - 1
+      newIndex =
+        currentIndex - 1 < 0 ? backgrounds.length - 1 : currentIndex - 1
     } else {
-      newIndex = currentIndex + 1 >= data.length ? 0 : currentIndex + 1
+      newIndex = currentIndex + 1 >= backgrounds.length ? 0 : currentIndex + 1
     }
 
     handleSelect(newIndex)
@@ -123,15 +130,19 @@ function Menu() {
 
   return (
     <motion.div
-      className="relative flex h-full w-full flex-col p-6" // absolute right-10 top-10
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
+      className="relative flex h-full w-full flex-col p-6"
+      variants={fadeInVariants}
+      initial="hidden"
+      animate="show"
     >
-      {/* mt-4 mt-6 when no topbar, -mb-3 mt-3 when on bottom */}
       <div className="relative -mt-4 mb-2">
-        <div className="scrollbar-hide -mx-1 flex h-44 flex-shrink-0 items-center gap-3 overflow-x-auto scroll-smooth px-12 before:pointer-events-none before:absolute before:-left-1 before:z-10 before:h-full before:w-6 before:content-[''] before:bg-easing-l-menu-top after:pointer-events-none after:absolute after:-right-1 after:z-10 after:h-full after:w-6 after:content-[''] after:bg-easing-r-menu-top">
-          {data.map((background, index) => (
+        <div
+          className="scrollbar-hide -mx-1 flex h-44 flex-shrink-0 cursor-grab items-center gap-3 overflow-x-auto px-12 before:pointer-events-none before:absolute before:-left-1 before:z-10 before:h-full before:w-6 before:content-[''] before:bg-easing-l-menu-top after:pointer-events-none after:absolute after:-right-1 after:z-10 after:h-full after:w-6 after:content-[''] after:bg-easing-r-menu-top"
+          // scroll-smooth
+          {...events}
+          ref={draggableRef}
+        >
+          {backgrounds.map((background, index) => (
             <motion.button
               key={background.id}
               onClick={() => handleSelect(index)}
@@ -142,7 +153,7 @@ function Menu() {
                   : 'h-28 rounded-lg shadow-orange-600/10 hover:shadow-orange-600/20'
               )}
               initial={{ transform: 'scale(.9)' }}
-              whileInView={{ transform: 'scale(1)' }}
+              animate={{ transform: 'scale(1)' }}
               whileHover={{
                 transform:
                   activeBackground?.id === background.id
@@ -154,7 +165,6 @@ function Menu() {
                 transform: 'scale(1)',
                 transition: { duration: 0.2 }
               }}
-              viewport={{ once: true }}
               transition={{ duration: 0.3 }}
               tabIndex={-1}
             >
@@ -162,7 +172,7 @@ function Menu() {
                 id={background.id}
                 alt={background.name}
                 className={clsx(
-                  'h-full w-full select-none object-cover transition-[border-radius]',
+                  'h-full w-full object-cover transition-[border-radius]',
                   activeBackground?.id === background.id
                     ? 'rounded-xl'
                     : 'rounded-lg'
@@ -170,7 +180,7 @@ function Menu() {
                 src={`/backgrounds/${background.image}`}
                 ref={(el) => (backgroundRefs.current[index] = el!)}
                 onError={onImageError}
-                draggable="false"
+                onDragStart={(e) => e.preventDefault()}
               />
               <div
                 className={clsx(
@@ -195,7 +205,7 @@ function Menu() {
             className="group pointer-events-auto rounded-full transition-transform will-change-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none active:scale-95"
             onClick={() => handleNavigate('prev')}
           >
-            <div className="rounded-full bg-zinc-800/70 p-1 backdrop-blur transition-[box-shadow] group-focus-visible:ring-2 group-focus-visible:ring-white">
+            <div className="rounded-full bg-zinc-800/70 p-1 backdrop-blur transition-colors group-hover:bg-zinc-700/70 group-focus-visible:bg-zinc-700/70 group-focus-visible:ring-2 group-focus-visible:ring-white">
               <ChevronLeft size={24} className="text-white" />
             </div>
           </button>
@@ -210,7 +220,7 @@ function Menu() {
             className="group pointer-events-auto rounded-full transition-transform will-change-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none active:scale-95"
             onClick={() => handleNavigate('next')}
           >
-            <div className="rounded-full bg-zinc-800/70 p-1 backdrop-blur group-focus-visible:ring-2 group-focus-visible:ring-white">
+            <div className="rounded-full bg-zinc-800/70 p-1 backdrop-blur transition-colors group-hover:bg-zinc-700/70 group-focus-visible:bg-zinc-700/70 group-focus-visible:ring-2 group-focus-visible:ring-white">
               <ChevronRight size={24} className="text-white" />
             </div>
           </button>
@@ -237,32 +247,36 @@ function Menu() {
             ))}
           </div>
         )}
-        <div className="absolute right-0 top-0 p-3">
-          <motion.button
-            className="rounded-full border-2 border-zinc-800/80 bg-zinc-700/80 p-2 text-zinc-100 ring-zinc-100 backdrop-blur transition-[border-color,box-shadow] hover:border-zinc-100 focus-visible:border-zinc-100 focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none"
-            initial={{ rotate: 30, scale: 1, opacity: 0 }}
-            animate={{ opacity: 1 }}
-            whileHover={{ rotate: 390, scale: 1.05 }}
-            whileFocus={{ rotate: 390, scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{
-              rotate: { duration: 1, ease: 'easeOut' },
-              duration: 0.15
-            }}
-          >
-            <SettingsIcon size={24} />
-          </motion.button>
-        </div>
+        {/* NOTE: changeme */}
+        {true && (
+          <div className="absolute right-0 top-0 p-3">
+            <MotionLink
+              to="/settings"
+              className="block rounded-full border-2 border-zinc-800/80 bg-zinc-700/80 p-2 text-zinc-100 ring-zinc-100 backdrop-blur transition-[border-color,box-shadow] hover:border-zinc-100 focus-visible:border-zinc-100 focus-visible:outline-none focus-visible:ring-1 active:border-zinc-100 disabled:pointer-events-none"
+              initial={{ rotate: 30, scale: 1, opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              whileHover={{ rotate: 390, scale: 1.05 }}
+              whileFocus={{ rotate: 390, scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{
+                rotate: { duration: 1, ease: 'easeOut' },
+                duration: 0.15
+              }}
+            >
+              <MotionComponent as={SettingsIcon} size={24} />
+            </MotionLink>
+          </div>
+        )}
         <img
           alt="Selected Wallpaper"
-          className="h-full w-full select-none rounded-lg object-cover shadow-lg" //w-[61rem], old: w-[55rem]
+          className="h-full w-full rounded-lg object-cover shadow-lg"
           src={
             activeBackground
               ? `/backgrounds/${activeBackground.image}`
               : placeholder
           }
           onError={onImageError}
-          draggable="false"
+          onDragStart={(e) => e.preventDefault()}
         />
         <div className="absolute bottom-0 flex w-full items-center gap-5 rounded-b-lg bg-zinc-950/50 p-4 pt-0 before:absolute before:-top-8 before:left-0 before:h-8 before:w-full before:content-[''] before:bg-easing-b-menu-bottom">
           {activeBackground !== undefined && (
@@ -290,7 +304,6 @@ function Menu() {
                 resetBackground()
               }}
               disabled={resetStatus !== 'idle'}
-              // key={`${activeBackground.id}-reset`}
             >
               <AnimatePresence mode="wait">
                 {resetStatus === 'pending' || resetStatus === 'success' ? (

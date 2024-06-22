@@ -281,12 +281,15 @@ const BACKGROUNDS: &[Background] = &[
     },
     Background {
         id: "0x080000000000123F",
-        image: "ultrawatch_art.jpg",
-        name: "Ultrawatch Art",
-        description: "Ultrawatch Event (Season 11)",
+        image: "calamity_empress_ashe.jpg",
+        name: "Calamity Empress Ashe",
+        description: "Season 11 Mythic Skin",
         tags: &["Art"],
     },
 ];
+
+// Map Codes found
+// 0x0800000000000871 - Rialto
 
 pub fn get_backgrounds() -> &'static [Background] {
     &BACKGROUNDS

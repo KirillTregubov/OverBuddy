@@ -7,7 +7,12 @@ import { toast } from 'sonner'
 
 import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
-import { moveInVariants, staggerChildrenVariants } from '@/lib/animations'
+import { MotionButton } from '@/components/Button'
+import {
+  fadeInVariants,
+  moveInVariants,
+  staggerChildrenVariants
+} from '@/lib/animations'
 import { useSetupMutation } from '@/lib/data'
 import {
   ConfigError,
@@ -44,7 +49,6 @@ function SetupSelect() {
           },
           replace: true
         })
-        // handleError('Failed to complete setup.')
         return
       }
     },
@@ -58,151 +62,158 @@ function SetupSelect() {
 
   return (
     <motion.div
-      className="mx-auto flex h-full max-w-xl select-none flex-col items-center justify-center gap-8 pb-8"
-      variants={staggerChildrenVariants}
+      className="h-full w-full"
+      variants={fadeInVariants}
       initial="hidden"
       animate="show"
     >
-      <div className="flex flex-col items-center gap-2 text-center text-zinc-400">
-        <motion.h1
-          className="text-2xl font-medium text-white"
+      <motion.div
+        className="flex h-full w-full select-none flex-col items-center justify-center gap-8"
+        variants={staggerChildrenVariants}
+        initial="hidden"
+        animate="show"
+      >
+        <div className="flex flex-col items-center gap-2 text-center text-zinc-400">
+          <motion.h1
+            className="text-2xl font-medium text-white"
+            variants={moveInVariants}
+          >
+            Select your Platform(s)
+          </motion.h1>
+          <motion.p variants={moveInVariants}>
+            Select the platform(s) you use to play Overwatch™. This will allow
+            OverBuddy to automatically detect your installation(s) and configure
+            accordingly.
+          </motion.p>
+          <motion.p variants={moveInVariants}>
+            You can change this later in the settings.
+          </motion.p>
+        </div>
+        <motion.div className="flex gap-8" variants={moveInVariants}>
+          <button
+            className="group flex flex-col items-center gap-2 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+            onClick={() => {
+              if (platforms.includes('BattleNet')) {
+                setPlatforms(platforms.filter((p) => p !== 'BattleNet'))
+                return
+              }
+              setPlatforms([...platforms, 'BattleNet'])
+            }}
+          >
+            <img
+              src={BattleNet}
+              alt="Battle.net Logo"
+              title="Battle.net"
+              width="64px"
+              height="64px"
+              className={clsx(
+                'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
+                platforms.includes('BattleNet')
+                  ? 'grayscale-0 group-active:grayscale'
+                  : 'group-active:grayscale-0'
+              )}
+            />
+            <h2
+              className={clsx(
+                'flex items-center gap-1 text-center font-medium transition',
+                platforms.includes('BattleNet')
+                  ? 'text-white group-active:text-zinc-400'
+                  : 'text-zinc-400 group-active:text-white'
+              )}
+            >
+              <AnimatePresence mode="wait">
+                {platforms.includes('BattleNet') ? (
+                  <motion.span
+                    initial={{ opacity: 0.5 }}
+                    animate={{ opacity: 1 }}
+                    key="checked"
+                  >
+                    <CheckCircleIcon size={20} />
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    initial={{ opacity: 0.5 }}
+                    animate={{ opacity: 1 }}
+                    key="unchecked"
+                  >
+                    <CircleIcon size={20} />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+              Battle.net
+            </h2>
+          </button>
+          <button
+            className="group flex flex-col items-center gap-2 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+            onClick={() => {
+              if (platforms.includes('Steam')) {
+                setPlatforms(platforms.filter((p) => p !== 'Steam'))
+                return
+              }
+              setPlatforms([...platforms, 'Steam'])
+            }}
+          >
+            <img
+              src={Steam}
+              alt="Steam Logo"
+              title="Steam"
+              width="64px"
+              height="64px"
+              className={clsx(
+                'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
+                platforms.includes('Steam')
+                  ? 'grayscale-0 group-active:grayscale'
+                  : 'group-active:grayscale-0'
+              )}
+            />
+            <h2
+              className={clsx(
+                'flex items-center gap-1 text-center font-medium transition',
+                platforms.includes('Steam')
+                  ? 'text-white group-active:text-zinc-400'
+                  : 'text-zinc-400 group-active:text-white'
+              )}
+            >
+              <AnimatePresence mode="wait">
+                {platforms.includes('Steam') ? (
+                  <motion.span
+                    initial={{ opacity: 0.5 }}
+                    animate={{ opacity: 1 }}
+                    key="checked"
+                  >
+                    <CheckCircleIcon size={20} />
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    initial={{ opacity: 0.5 }}
+                    animate={{ opacity: 1 }}
+                    key="unchecked"
+                  >
+                    <CircleIcon size={20} />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+              Steam
+            </h2>
+          </button>
+        </motion.div>
+        {/* TODO: retry button */}
+        <MotionButton
+          primary
+          className="w-full py-3"
+          disabled={status !== 'idle'}
+          onClick={() => {
+            if (platforms.length === 0) {
+              toast.warning('You must select at least one platform.')
+              return
+            }
+            mutate(platforms)
+          }}
           variants={moveInVariants}
         >
-          Select your Platform(s)
-        </motion.h1>
-        <motion.p variants={moveInVariants}>
-          Select the platform(s) you use to play Overwatch™. This will allow
-          OverBuddy to automatically detect your installation(s) and configure
-          accordingly.
-        </motion.p>
-        <motion.p variants={moveInVariants}>
-          You can change this later in the settings.
-        </motion.p>
-      </div>
-      <motion.div className="flex gap-8" variants={moveInVariants}>
-        <button
-          className="group flex flex-col items-center gap-2 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
-          onClick={() => {
-            if (platforms.includes('BattleNet')) {
-              setPlatforms(platforms.filter((p) => p !== 'BattleNet'))
-              return
-            }
-            setPlatforms([...platforms, 'BattleNet'])
-          }}
-        >
-          <img
-            src={BattleNet}
-            alt="Battle.net Logo"
-            title="Battle.net"
-            width="64px"
-            height="64px"
-            className={clsx(
-              'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
-              platforms.includes('BattleNet')
-                ? 'grayscale-0 group-active:grayscale'
-                : 'group-active:grayscale-0'
-            )}
-            draggable={false}
-          />
-          <h2
-            className={clsx(
-              'flex items-center gap-1 text-center font-medium transition',
-              platforms.includes('BattleNet')
-                ? 'text-white group-active:text-zinc-400'
-                : 'text-zinc-400 group-active:text-white'
-            )}
-          >
-            <AnimatePresence mode="wait">
-              {platforms.includes('BattleNet') ? (
-                <motion.span
-                  initial={{ opacity: 0.5 }}
-                  animate={{ opacity: 1 }}
-                  key="checked"
-                >
-                  <CheckCircleIcon size={20} />
-                </motion.span>
-              ) : (
-                <motion.span
-                  initial={{ opacity: 0.5 }}
-                  animate={{ opacity: 1 }}
-                  key="unchecked"
-                >
-                  <CircleIcon size={20} />
-                </motion.span>
-              )}
-            </AnimatePresence>
-            Battle.net
-          </h2>
-        </button>
-        <button
-          className="group flex flex-col items-center gap-2 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
-          onClick={() => {
-            if (platforms.includes('Steam')) {
-              setPlatforms(platforms.filter((p) => p !== 'Steam'))
-              return
-            }
-            setPlatforms([...platforms, 'Steam'])
-          }}
-        >
-          <img
-            src={Steam}
-            alt="Steam Logo"
-            title="Steam"
-            width="64px"
-            height="64px"
-            className={clsx(
-              'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
-              platforms.includes('Steam')
-                ? 'grayscale-0 group-active:grayscale'
-                : 'group-active:grayscale-0'
-            )}
-            draggable={false}
-          />
-          <h2
-            className={clsx(
-              'flex items-center gap-1 text-center font-medium transition',
-              platforms.includes('Steam')
-                ? 'text-white group-active:text-zinc-400'
-                : 'text-zinc-400 group-active:text-white'
-            )}
-          >
-            <AnimatePresence mode="wait">
-              {platforms.includes('Steam') ? (
-                <motion.span
-                  initial={{ opacity: 0.5 }}
-                  animate={{ opacity: 1 }}
-                  key="checked"
-                >
-                  <CheckCircleIcon size={20} />
-                </motion.span>
-              ) : (
-                <motion.span
-                  initial={{ opacity: 0.5 }}
-                  animate={{ opacity: 1 }}
-                  key="unchecked"
-                >
-                  <CircleIcon size={20} />
-                </motion.span>
-              )}
-            </AnimatePresence>
-            Steam
-          </h2>
-        </button>
+          Continue
+        </MotionButton>
       </motion.div>
-      <motion.button
-        className="w-full select-none rounded-lg bg-zinc-50 px-4 py-3 font-medium capitalize text-black transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-200/70 focus-visible:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:!scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-        disabled={status !== 'idle'}
-        onClick={() => {
-          if (platforms.length === 0) {
-            toast.warning('You must select at least one platform.')
-            return
-          }
-          mutate(platforms)
-        }}
-        variants={moveInVariants}
-      >
-        Continue
-      </motion.button>
     </motion.div>
   )
 }

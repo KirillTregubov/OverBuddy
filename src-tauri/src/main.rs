@@ -36,6 +36,10 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
     let mut config = helpers::read_config(&handle)?;
     // println!("Launched with {:?}", config);
 
+    // return Err(Error::Custom(format!(
+    //     "Failed to restore backup of [[file]]"
+    // )));
+
     if config.is_setup {
         if config.battle_net.enabled {
             let battle_net_config = config.battle_net.config.clone().unwrap();
@@ -292,6 +296,10 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
 
                         if let Some(ref current_background) = current_background {
                             config.background.current = Some(current_background.clone());
+
+                            if let None = backgrounds::find_background_by_id(current_background) {
+                                config.background.is_outdated = true;
+                            }
                         }
                     }
                     None => (),
@@ -328,7 +336,6 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
 
         // Check if Steam config exists
         static CONFIG_FILE: &str = "localconfig.vdf";
-
         let steam_path = Path::new(&steam_install).parent().ok_or_else(|| {
             Error::Custom(
                 serde_json::to_string(&SetupError {
@@ -341,6 +348,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
             )
         })?;
 
+        // Fetch Steam userdata
         let userdata_path = steam_path.join("userdata");
         if userdata_path.exists() && userdata_path.is_dir() {
             match fs::read_dir(&userdata_path) {
@@ -349,7 +357,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
                         let config_path = entry.path().join("config");
                         let config_file_path = config_path.join(CONFIG_FILE);
                         if config_file_path.exists() && config_file_path.is_file() {
-                            let new_config = config::SteamLocalConfig {
+                            let new_config = config::SteamLocalconfig {
                                 id: entry.file_name().to_string_lossy().to_string(),
                                 file: config_file_path.to_string_lossy().to_string(),
                             };
@@ -374,7 +382,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
                 error_key: ErrorKey::SteamInstall,
                 message: format!(
-                    "Failed to read Steam userdata folder [[{}]] from your Steam installation.",
+                    "Failed to read Steam [[userdata]] folder, located at [[{}]].",
                     userdata_path.to_string_lossy().to_string()
                 ),
                 platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
@@ -384,7 +392,8 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
         if config.steam.configs.is_none() || config.steam.configs.as_ref().unwrap().is_empty() {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
                 error_key: ErrorKey::SteamAccount,
-                message: "Failed to find any accounts in your Steam userdata folder.".to_string(),
+                message: "Failed to find any accounts in your Steam [[userdata]] folder."
+                    .to_string(),
                 platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
             })?));
         }
@@ -394,6 +403,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
     }
 
     if config.battle_net.enabled == false && config.steam.enabled == false {
+        config.is_setup = false;
         return Err(Error::Custom(format!(
             "Failed to setup one of your requested platforms: [[{}]].",
             platforms.join("]], [[").replace("BattleNet", "Battle.net")
@@ -427,7 +437,7 @@ fn resolve_setup_error(
         }
         _ => {
             return Err(Error::Custom(format!(
-                "Encountered an incorrect setup resolution key. Please report this issue to the developer."
+                "Encountered incorrect setup resolution key [[{}]]. Please report this issue to the developer.", key
             )));
         }
     };
@@ -528,87 +538,91 @@ fn get_backgrounds() -> String {
 #[tauri::command]
 fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
     let mut config = helpers::read_config(&handle)?;
+    let mut battle_net_cleanup: Box<dyn FnOnce()> = Box::new(|| {});
 
-    // TODO: Steam support and fix this error
-    if config.battle_net.enabled == false {
-        return Err(Error::Custom(format!("Battle.net is not enabled.")));
-    }
+    if config.battle_net.enabled {
+        let battle_net_was_closed = helpers::close_battle_net();
+        let battle_net_config = config.battle_net.config.clone().unwrap();
+        let battle_net_install = config.battle_net.install.clone().unwrap();
 
-    let battle_net_was_closed = helpers::close_battle_net();
-    let battle_net_config = config.battle_net.config.clone().unwrap();
-    let battle_net_install = config.battle_net.install.clone().unwrap();
+        battle_net_cleanup = Box::new(move || {
+            if battle_net_was_closed {
+                // TODO: test error
+                println!("Battle.net was closed.");
+                Command::new(battle_net_install).spawn().ok();
+            }
+        });
 
-    let cleanup = || {
-        if battle_net_was_closed {
-            // TODO: test error
-            Command::new(battle_net_install).spawn().ok();
-        }
-    };
-
-    let mut file = match fs::OpenOptions::new()
-        .read(true)
-        .open(battle_net_config.clone())
-    {
-        Ok(file) => file,
-        Err(_) => {
-            cleanup();
-            return Err(Error::Custom(format!(
-                "Failed to open Battle.net.config file at {}",
-                battle_net_config
-            )));
-        }
-    };
-    let mut contents = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => {}
-        Err(_) => {
-            cleanup();
-            return Err(Error::Custom(format!(
-                "Failed to read Battle.net.config file at {}",
-                battle_net_config
-            )));
-        }
-    }
-
-    let mut json: serde_json::Value = match serde_json::from_str(&contents) {
-        Ok(json) => json,
-        Err(_) => {
-            cleanup();
-            return Err(Error::Custom(format!(
-                "Failed to parse Battle.net.config file at {}",
-                battle_net_config
-            )));
-        }
-    };
-
-    let launch_args = json["Games"]["prometheus"]["AdditionalLaunchArguments"].as_str();
-
-    let new_arg = format!("--lobbyMap={}", id);
-    let launch_args: String = match launch_args {
-        Some(arguments) => {
-            let filtered_args = arguments
-                .split_whitespace()
-                .filter(|&part| !part.starts_with("--lobbyMap"))
-                .collect::<Vec<&str>>()
-                .join(" ");
-
-            if !filtered_args.is_empty() {
-                format!("{} {}", new_arg, filtered_args)
-            } else {
-                new_arg
+        let mut file = match fs::OpenOptions::new()
+            .read(true)
+            .open(battle_net_config.clone())
+        {
+            Ok(file) => file,
+            Err(_) => {
+                battle_net_cleanup();
+                return Err(Error::Custom(format!(
+                    "Failed to open Battle.net.config file at {}",
+                    battle_net_config
+                )));
+            }
+        };
+        let mut contents = String::new();
+        match file.read_to_string(&mut contents) {
+            Ok(_) => {}
+            Err(_) => {
+                battle_net_cleanup();
+                return Err(Error::Custom(format!(
+                    "Failed to read Battle.net.config file at {}",
+                    battle_net_config
+                )));
             }
         }
-        None => new_arg,
-    };
 
-    json["Games"]["prometheus"]["AdditionalLaunchArguments"] = json!(launch_args);
-    helpers::safe_json_write(battle_net_config, &json)?;
+        let mut json: serde_json::Value = match serde_json::from_str(&contents) {
+            Ok(json) => json,
+            Err(_) => {
+                battle_net_cleanup();
+                return Err(Error::Custom(format!(
+                    "Failed to parse Battle.net.config file at {}",
+                    battle_net_config
+                )));
+            }
+        };
+
+        let launch_args = json["Games"]["prometheus"]["AdditionalLaunchArguments"].as_str();
+
+        let new_arg = format!("--lobbyMap={}", id);
+        let launch_args: String = match launch_args {
+            Some(arguments) => {
+                let filtered_args = arguments
+                    .split_whitespace()
+                    .filter(|&part| !part.starts_with("--lobbyMap"))
+                    .collect::<Vec<&str>>()
+                    .join(" ");
+
+                if !filtered_args.is_empty() {
+                    format!("{} {}", new_arg, filtered_args)
+                } else {
+                    new_arg
+                }
+            }
+            None => new_arg,
+        };
+
+        json["Games"]["prometheus"]["AdditionalLaunchArguments"] = json!(launch_args);
+        helpers::safe_json_write(battle_net_config, &json)?;
+    }
+
+    if config.steam.enabled {
+        return Err(Error::Custom(format!("Steam is not supported yet.")));
+    }
+
+    battle_net_cleanup();
 
     config.background.current = Some(id.to_string());
     config.background.is_outdated = false;
     helpers::write_config(&handle, &config)?;
 
-    cleanup();
     return Ok(serde_json::to_string(&config)?);
 }
 

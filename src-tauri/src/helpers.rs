@@ -289,103 +289,15 @@ pub fn get_steam_profiles(config: &Config) -> Result<Vec<SteamProfile>, Error> {
                         ) {
                             profiles.push(user_info);
                         } else {
-                            println!("User info not found");
+                            return Err(Error::Custom(format!(
+                                "Failed to read user info of Steam account [[{}]] from the config file at [[{}]].",
+                                steam_config.id, steam_config.file
+                            )));
                         }
-
-                        // if let Some(object) = extract_nested_object(
-                        //     &contents,
-                        //     "UserLocalConfigStore",
-                        //     "friends",
-                        //     steam_config.id.as_str(),
-                        // ) {
-                        //     // println!("Extracted object: {}", object);
-                        //     let vdf = Vdf::parse(&object)
-                        //         .map_err(|err| {
-                        //             Error::Custom(format!(
-                        //                 "Failed to parse config file at {}: {}",
-                        //                 steam_config.file, err
-                        //             ))
-                        //         })?
-                        //         .value;
-                        //     println!("here");
-                        //     println!("{:?}", vdf);
-                        // } else {
-                        //     println!("Object not found");
-                        // }
-
-                        // let mut reader = Reader::from(contents.as_str());
-                        // println!("reader created");
-
-                        // while let Some(event) = reader.event() {
-                        //     println!("event: {:?}", event);
-                        // }
-
-                        // let contents = String::from_utf8(contents).unwrap();
-                        // println!("contents: {}", contents);
-
-                        // let contents = r#"
-                        // "users"
-                        // {
-                        //     "12345678901234567"
-                        //     {
-                        //         "AccountName"        "ACCOUNT_NAME"
-                        //         "PersonaName"        "PERSONA_NAME"
-                        //         "RememberPassword"    "1"
-                        //         "MostRecent"        "1"
-                        //         "Timestamp"        "1234567890"
-                        //     }
-                        // }
-                        // "#
-                        // .to_string();
-
-                        // let vdf = Vdf::parse(&contents)
-                        //     .map_err(|err| {
-                        //         Error::Custom(format!(
-                        //             "Failed to parse config file at {}: {}",
-                        //             steam_config.file, err
-                        //         ))
-                        //     })?
-                        //     .value;
-                        // println!("here");
-                        // println!("{:?}", vdf);
-                        // let mut reader = from_str(&contents.to_ascii_lowercase()).unwrap();
-                        // let parsed = Table::load(&mut reader).unwrap();
-                        // println!("parsed: {:?}", parsed);
-                        // match Table::load(&mut reader) {
-                        //     Ok(parsed) => {
-                        //         // println!("parsed: {:?}", parsed);
-                        //     }
-                        //     Err(_) => {
-                        //         return Err(Error::Custom(format!(
-                        //             "Failed to parse config file at {}",
-                        //             steam_config.file
-                        //         )));
-                        //     }
-                        // }
-                        // let parsed = Table::load(&mut reader)
-                        //     .map_err(|_| Error::Custom("Failed to parse VDF file".to_string()))?;
                     }
-                    // match Vdf::parse(&contents) {
-                    //     Ok(vdf) => {
-                    //         // println!("{:?}", vdf.value);
-                    //         // if let Some(steam) = vdf.value.get("Steam") {
-                    //         //     if let Some(user_data) = steam.get("Users") {
-                    //         //         for (key, _value) in user_data {
-                    //         //             accounts.push(key.clone());
-                    //         //         }
-                    //         //     }
-                    //         // }
-                    //     }
-                    //     Err(err) => {
-                    //         return Err(Error::Custom(format!(
-                    //             "Failed to parse config file at {}: {}",
-                    //             steam_config.file, err
-                    //         )));
-                    //     }
-                    // },
                     Err(err) => {
                         return Err(Error::Custom(format!(
-                            "Failed to read config file at {}: {}",
+                            "Failed to read config file at [[{}]]. {}",
                             steam_config.file, err
                         )));
                     }

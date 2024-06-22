@@ -1,37 +1,21 @@
 import { useRouter, type ErrorComponentProps } from '@tanstack/react-router'
 import { invoke } from '@tauri-apps/api'
-import { motion } from 'framer-motion'
-import { useEffect } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useCallback, useEffect, useState } from 'react'
 
+import { FormattedError } from '@/components/Error'
 import {
   fadeInVariants,
   moveInVariants,
   staggerChildrenVariants
 } from '@/lib/animations'
 import { useResetMutation } from '@/lib/data'
-import { FormattedError } from '@/lib/errors'
-import { Button } from './Button'
+import { Button, MotionButton } from './Button'
 import { ReportButton } from './Reporter'
 import TracerImage from './TracerImage'
 
 export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter()
-  const {
-    status,
-    mutate,
-    reset: resetMutation
-  } = useResetMutation({
-    onSuccess: () => {
-      reset()
-      router.navigate({
-        to: '/',
-        replace: true
-      })
-    },
-    onSettled: () => {
-      resetMutation()
-    }
-  })
 
   useEffect(() => {
     invoke('mounted')
@@ -59,7 +43,10 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
         >
           Oops! Something went wrong.
         </motion.h1>
-        <motion.p variants={moveInVariants} className="text-balance">
+        <motion.p
+          variants={moveInVariants}
+          className="text-balance leading-relaxed"
+        >
           <FormattedError text={error.message} />
         </motion.p>
         <motion.div className="mt-4 flex gap-2" variants={moveInVariants}>
@@ -72,13 +59,63 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
           >
             Reload
           </Button>
-          <Button disabled={status !== 'idle'} onClick={() => mutate()}>
-            Reset to Defaults
-          </Button>
           <ReportButton error={error} />
+          <ResetButton reset={reset} />
         </motion.div>
       </motion.div>
       <TracerImage />
     </motion.main>
+  )
+}
+
+function ResetButton({ reset }: Omit<ErrorComponentProps, 'error'>) {
+  const router = useRouter()
+  const {
+    status,
+    mutate,
+    reset: resetMutation
+  } = useResetMutation({
+    onSuccess: () => {
+      reset()
+      router.navigate({
+        to: '/setup',
+        replace: true
+      })
+    },
+    onSettled: () => {
+      resetMutation()
+    }
+  })
+  const [isConfirming, setIsConfirming] = useState<
+    'idle' | 'confirm' | 'pending'
+  >('idle')
+
+  const handleClick = useCallback(() => {
+    if (isConfirming === 'idle') {
+      setIsConfirming('confirm')
+      return
+    } else if (isConfirming === 'confirm') {
+      setIsConfirming('pending')
+      mutate()
+      return
+    }
+  }, [isConfirming, mutate])
+
+  return (
+    <AnimatePresence mode="wait">
+      <MotionButton
+        disabled={isConfirming === 'pending' || status !== 'idle'}
+        destructive={isConfirming === 'confirm'}
+        onClick={handleClick}
+        key={isConfirming}
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ opacity: { duration: 0.15 } }}
+      >
+        {isConfirming === 'idle' && 'Reset Settings'}
+        {isConfirming === 'confirm' && 'Confirm Reset Settings?'}
+      </MotionButton>
+    </AnimatePresence>
   )
 }

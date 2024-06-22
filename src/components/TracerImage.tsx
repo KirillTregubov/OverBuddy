@@ -14,7 +14,6 @@ export default function TracerImage() {
       )}
       loading="eager"
       onLoad={() => setImageLoaded(true)}
-      draggable={false}
     />
   )
 }

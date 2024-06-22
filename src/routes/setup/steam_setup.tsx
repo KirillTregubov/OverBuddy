@@ -1,6 +1,7 @@
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 
+import { MotionButton } from '@/components/Button'
 import {
   fadeInVariants,
   moveInVariants,
@@ -42,13 +43,13 @@ function SteamSetup() {
 
   return (
     <motion.div
-      className="mx-auto flex h-full max-w-xl pb-8"
+      className="h-full w-full"
       variants={fadeInVariants}
       initial="hidden"
       animate="show"
     >
       <motion.div
-        className="flex select-none flex-col items-center justify-center gap-8"
+        className="flex h-full w-full select-none flex-col items-center justify-center gap-8"
         variants={staggerChildrenVariants}
       >
         <div className="flex flex-col items-center gap-2 text-center text-zinc-400">
@@ -60,7 +61,7 @@ function SteamSetup() {
           </motion.h1>
           <motion.p variants={moveInVariants}>
             The following Steam profiles have been detected. New logins will be
-            automatically detected, and can be scanned manually in the settings.
+            automatically detected, and can be manually scanned in the settings.
           </motion.p>
         </div>
         <motion.div className="flex gap-8" variants={moveInVariants}>
@@ -78,14 +79,15 @@ function SteamSetup() {
             </motion.div>
           ))}
         </motion.div>
-        <motion.button
-          className="w-full select-none rounded-lg bg-zinc-50 px-4 py-3 font-medium capitalize text-black transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-200/70 focus-visible:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:!scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+        <MotionButton
+          primary
+          className="w-full py-3"
           disabled={status !== 'idle'}
           onClick={() => mutate()}
           variants={moveInVariants}
         >
           Continue
-        </motion.button>
+        </MotionButton>
       </motion.div>
     </motion.div>
   )

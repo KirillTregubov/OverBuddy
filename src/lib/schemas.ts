@@ -35,3 +35,18 @@ export const LaunchConfig = z.object({
   })
 })
 export type LaunchConfig = z.infer<typeof LaunchConfig>
+
+export const Background = z.object({
+  id: z.string(),
+  image: z.string(),
+  name: z.string(),
+  description: z.string(),
+  tags: z.array(z.string())
+})
+export type Background = z.infer<typeof Background>
+
+export const BackgroundArray = z.array(Background)
+export type BackgroundArray = z.infer<typeof BackgroundArray>
+
+export const Settings = z.object({})
+export type Settings = z.infer<typeof Settings>

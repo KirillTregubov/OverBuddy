@@ -11,7 +11,12 @@ import {
   SetupPathResponse,
   handleError
 } from '@/lib/errors'
-import { LaunchConfig, SteamProfile, type Platform } from '@/lib/schemas'
+import {
+  BackgroundArray,
+  LaunchConfig,
+  SteamProfile,
+  type Platform
+} from '@/lib/schemas'
 import { queryClient } from '@/main'
 
 export const launchQueryOptions = queryOptions({
@@ -198,18 +203,6 @@ export const useSteamConfirmMutation = ({
     onSuccess
   })
 
-export const Background = z.object({
-  id: z.string(),
-  image: z.string(),
-  name: z.string(),
-  description: z.string(),
-  tags: z.array(z.string())
-})
-export type Background = z.infer<typeof Background>
-
-export const BackgroundArray = z.array(Background)
-export type BackgroundArray = z.infer<typeof BackgroundArray>
-
 export const backgroundsQueryOptions = queryOptions({
   queryKey: ['backgrounds'],
   queryFn: async () => {
@@ -283,9 +276,11 @@ export const useResetBackgroundMutation = ({
 
 export const useResetMutation = ({
   onSuccess,
+  onError,
   onSettled
 }: {
   onSuccess?: () => void
+  onError?: (error: Error) => void
   onSettled?: () => void
 } = {}) =>
   useMutation({
@@ -297,10 +292,26 @@ export const useResetMutation = ({
       }
       queryClient.setQueryData(['launch'], config.data)
     },
-    onError: (error) => handleError(error),
+    onError: (error) => {
+      handleError(error)
+      onError?.(error)
+    },
     onSuccess: () => {
       toast.success('Successfully reset to default settings.')
       onSuccess?.()
     },
     onSettled
   })
+
+export const settingsQueryOptions = queryOptions({
+  queryKey: ['settings'],
+  queryFn: async () => {
+    return {}
+    // const data = await invoke('get_settings')
+    // const settings = Settings.safeParse(JSON.parse(data as string))
+    // if (!settings.success) {
+    //   throw new Error(`Failed to get settings. ${settings.error.message}`)
+    // }
+    // return settings.data
+  }
+})

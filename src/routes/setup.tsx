@@ -1,5 +1,6 @@
 import { fadeInVariants } from '@/lib/animations'
 import { launchQueryOptions } from '@/lib/data'
+import { isDev } from '@/lib/dev'
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router' //
 import { motion } from 'framer-motion'
 
@@ -19,12 +20,12 @@ export const Route = createFileRoute('/setup')({
   component: Setup
 })
 
-const mode = import.meta.env.MODE === 'development' ? 'dev' : 'release'
+const mode = isDev() ? 'dev' : 'release'
 
 function Setup() {
   return (
     <motion.div
-      className="h-full w-full"
+      className="relative mx-auto h-full w-full max-w-xl pb-8"
       variants={fadeInVariants}
       initial="hidden"
       animate="show"
@@ -32,14 +33,18 @@ function Setup() {
       <Outlet />
       <motion.div
         className="absolute bottom-0 w-full select-none pb-3 text-center text-zinc-400"
-        initial={{ transform: 'scale(.9)' }}
+        initial={{ transform: 'scale(.95)' }}
         animate={{ transform: 'scale(1)' }}
-        transition={{ duration: 0.3 }}
+        transition={{ transform: { duration: 0.3 } }}
       >
-        <div className="m-auto max-w-2xl">
+        <div className="m-auto max-w-xl">
           <p>
             Made with ❤️ by <span className="font-bold">Kirill Tregubov</span>.
-            Version {import.meta.env.PACKAGE_VERSION} ({mode}).
+            Version{' '}
+            <span className="proportional-nums">
+              {import.meta.env.PACKAGE_VERSION}
+            </span>{' '}
+            ({mode}).
           </p>
           {/* <p>
             Blizzard Entertainment, Battle.net and Overwatch are trademarks or

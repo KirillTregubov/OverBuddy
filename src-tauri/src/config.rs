@@ -6,7 +6,7 @@ pub struct BattleNetConfig {
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
-pub struct SteamLocalConfig {
+pub struct SteamLocalconfig {
     pub id: String,
     pub file: String,
 }
@@ -23,7 +23,7 @@ pub struct SteamConfig {
     pub enabled: bool,
     pub setup: bool,
     pub install: Option<String>,
-    pub configs: Option<Vec<SteamLocalConfig>>,
+    pub configs: Option<Vec<SteamLocalconfig>>,
     pub profiles: Option<Vec<SteamProfile>>,
 }
 

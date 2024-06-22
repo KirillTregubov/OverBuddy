@@ -41,3 +41,27 @@
   opacity: 1;
   transform: translate3d(0, 0.2em, 0);
 }
+
+.toaster {
+  /* --width: unset !important;
+  width: 100%; */
+  display: flex;
+  /* align-items: center; */
+
+  &[data-x-position='center'] {
+    justify-content: center;
+  }
+
+  &[data-x-position='left'] {
+    justify-content: flex-start;
+  }
+
+  &[data-x-position='right'] {
+    justify-content: flex-end;
+  }
+}
+
+img {
+  user-select: none;
+  pointer-events: none;
+}

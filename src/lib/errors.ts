@@ -1,7 +1,6 @@
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-import Highlight from '@/components/Highlight'
 import { Platform } from '@/lib/schemas'
 
 /* ConfigErrors */
@@ -64,21 +63,7 @@ export function handleError(error: unknown) {
   // }
 }
 
-export function FormattedError({ text }: { text: string }) {
-  const regex = /\[\[(.*?)\]\]/g
-  const parts = []
-  let lastIdx = 0
-
-  text.replace(regex, (match, captured, offset) => {
-    parts.push(text.slice(lastIdx, offset))
-    parts.push(<Highlight key={offset}>{captured}</Highlight>)
-    lastIdx = offset + match.length
-    return ''
-  })
-
-  if (lastIdx < text.length) {
-    parts.push(text.slice(lastIdx))
-  }
-
-  return parts
+export function getReportURL(error: Error) {
+  const body = encodeURIComponent(`### Error\n\n\`\`\`\n${error.stack}\n\`\`\``)
+  return `https://github.com/KirillTregubov/OverBuddy/issues/new?body=${body}`
 }

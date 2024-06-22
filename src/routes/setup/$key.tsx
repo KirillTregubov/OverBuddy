@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 
 import { MotionButton } from '@/components/Button'
+import { FormattedError } from '@/components/Error'
 import Highlight from '@/components/Highlight'
 import TracerImage from '@/components/TracerImage'
 import {
@@ -13,12 +14,7 @@ import {
   staggerChildrenVariants
 } from '@/lib/animations'
 import { getSetupPath, useSetupErrorMutation } from '@/lib/data'
-import {
-  ConfigError,
-  ConfigErrors,
-  FormattedError,
-  handleError
-} from '@/lib/errors'
+import { ConfigError, ConfigErrors, handleError } from '@/lib/errors'
 import { type Platform } from '@/lib/schemas'
 
 export const Route = createFileRoute('/setup/$key')({
@@ -135,7 +131,7 @@ function ConfigureComponent() {
               <>
                 {' '}
                 Please ensure you have logged into an account on Steam. If you
-                have already done so, please select the{' '}
+                have already done so, please select the correct{' '}
                 <Highlight>steam.exe</Highlight> file, which is located in your
                 Steam installation directory (defaults to{' '}
                 <Highlight>{path}</Highlight>).

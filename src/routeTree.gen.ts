@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as SetupImport } from './routes/setup'
+import { Route as SettingsImport } from './routes/settings'
 import { Route as MenuImport } from './routes/menu'
 import { Route as IndexImport } from './routes/index'
 import { Route as SetupIndexImport } from './routes/setup/index'
@@ -23,6 +24,11 @@ import { Route as SetupKeyImport } from './routes/setup/$key'
 
 const SetupRoute = SetupImport.update({
   path: '/setup',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SettingsRoute = SettingsImport.update({
+  path: '/settings',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -74,6 +80,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MenuImport
       parentRoute: typeof rootRoute
     }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsImport
+      parentRoute: typeof rootRoute
+    }
     '/setup': {
       id: '/setup'
       path: '/setup'
@@ -117,6 +130,7 @@ declare module '@tanstack/react-router' {
 export const routeTree = rootRoute.addChildren({
   IndexRoute,
   MenuRoute,
+  SettingsRoute,
   SetupRoute: SetupRoute.addChildren({
     SetupKeyRoute,
     SetupSelectRoute,
@@ -135,6 +149,7 @@ export const routeTree = rootRoute.addChildren({
       "children": [
         "/",
         "/menu",
+        "/settings",
         "/setup"
       ]
     },
@@ -143,6 +158,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/menu": {
       "filePath": "menu.tsx"
+    },
+    "/settings": {
+      "filePath": "settings.tsx"
     },
     "/setup": {
       "filePath": "setup.tsx",

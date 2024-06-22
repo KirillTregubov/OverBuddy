@@ -6,42 +6,44 @@ pub fn extract_user_info(
     middle_key: &str,
     id: &str,
 ) -> Option<SteamProfile> {
-    if let Some(outer_start) = contents.find(&format!("\"{}\"", outer_key)) {
-        if let Some(middle_start) = contents[outer_start..].find(&format!("\"{}\"", middle_key)) {
-            if let Some(id_start) =
-                contents[outer_start + middle_start..].find(&format!("\"{}\"", id))
-            {
-                let object_start = outer_start + middle_start + id_start;
-                if let Some(open_brace_index) = contents[object_start..].find('{') {
-                    let object_start = object_start + open_brace_index;
-                    let mut open_braces = 1;
-                    let mut end_index = object_start;
-                    let mut in_quotes = false;
+    contents
+        .find(&format!("\"{}\"", outer_key))
+        .and_then(|outer_start| {
+            contents[outer_start..]
+                .find(&format!("\"{}\"", middle_key))
+                .and_then(|middle_start| {
+                    contents[outer_start + middle_start..]
+                        .find(&format!("\"{}\"", id))
+                        .and_then(|id_start| {
+                            let object_start = outer_start + middle_start + id_start;
+                            contents[object_start..]
+                                .find('{')
+                                .and_then(|open_brace_index| {
+                                    let object_start = object_start + open_brace_index;
+                                    let mut open_braces = 1;
+                                    let mut in_quotes = false;
 
-                    for (i, c) in contents[object_start + 1..].chars().enumerate() {
-                        match c {
-                            '{' if !in_quotes => open_braces += 1,
-                            '}' if !in_quotes => {
-                                open_braces -= 1;
-                                if open_braces == 0 {
-                                    end_index = object_start + i + 2;
-                                    break;
-                                }
-                            }
-                            '"' => in_quotes = !in_quotes,
-                            _ => {}
-                        }
-                    }
-
-                    if open_braces == 0 {
-                        let object_str = &contents[object_start..end_index];
-                        return Some(parse_user_info(object_str, id));
-                    }
-                }
-            }
-        }
-    }
-    None
+                                    for (i, c) in contents[object_start + 1..].chars().enumerate() {
+                                        match c {
+                                            '{' if !in_quotes => open_braces += 1,
+                                            '}' if !in_quotes => {
+                                                open_braces -= 1;
+                                                if open_braces == 0 {
+                                                    let end_index = object_start + i + 2;
+                                                    let object_str =
+                                                        &contents[object_start..end_index];
+                                                    return Some(parse_user_info(object_str, id));
+                                                }
+                                            }
+                                            '"' => in_quotes = !in_quotes,
+                                            _ => {}
+                                        }
+                                    }
+                                    None
+                                })
+                        })
+                })
+        })
 }
 
 fn parse_user_info(object_str: &str, id: &str) -> SteamProfile {
