@@ -1,5 +1,6 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
+
 import { fadeInVariants } from '@/lib/animations'
 import { launchQueryOptions } from '@/lib/data'
 import { isDev } from '@/lib/dev'

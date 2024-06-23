@@ -93,7 +93,8 @@ function Menu() {
       prevButtonRef.current.blur()
       prevButtonRef.current.ariaPressed = 'false'
       await prevButtonAnimation.start({ scale: 1 })
-    }
+    },
+    debounce: 100
   })
   useKeyPress({
     keys: ['ArrowRight', 'd'],
@@ -107,7 +108,8 @@ function Menu() {
       nextButtonRef.current?.blur()
       nextButtonRef.current.ariaPressed = 'false'
       await nextButtonAnimation.start({ scale: 1 })
-    }
+    },
+    debounce: 100
   })
 
   useEffect(() => {
