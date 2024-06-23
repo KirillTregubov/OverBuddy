@@ -108,6 +108,7 @@ function SetupSplash() {
                 <a
                   href={import.meta.env.REPOSITORY_URL}
                   target="_blank"
+                  rel="noreferrer"
                   className="rounded-sm underline underline-offset-2 transition hover:text-white focus-visible:text-white focus-visible:outline-none active:text-zinc-200"
                 >
                   open source

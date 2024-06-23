@@ -65,3 +65,11 @@ img {
   user-select: none;
   pointer-events: none;
 }
+
+button.highlight {
+  filter: drop-shadow(0px 0px 8px rgb(234 88 12 / 0.1));
+}
+
+button.highlight-base {
+  filter: drop-shadow(0px 0px 8px rgb(234 88 12 / 0));
+}

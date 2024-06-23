@@ -2,17 +2,23 @@ import * as fs from 'fs'
 import readlineSync from 'readline-sync'
 import * as semver from 'semver'
 
+interface PackageJson {
+  version: string
+}
+
 const packageJsonPath = './package.json'
 const cargoTomlPath = './src-tauri/Cargo.toml'
 const readmePath = './README.md'
 
 async function updateVersion(type: string) {
   // Read package.json and Cargo.toml
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
+  const packageJson = JSON.parse(
+    fs.readFileSync(packageJsonPath, 'utf8')
+  ) as PackageJson
   const cargoToml = fs.readFileSync(cargoTomlPath, 'utf8')
 
   // Get current version from package.json
-  let currentVersion = (packageJson as any).version
+  const currentVersion = packageJson.version
   console.log(`Current version: ${currentVersion}`)
 
   // Determine new version
@@ -40,7 +46,7 @@ async function updateVersion(type: string) {
   }
 
   // Update package.json
-  ;(packageJson as any).version = newVersion
+  packageJson.version = newVersion
   fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n')
 
   // Update Cargo.toml

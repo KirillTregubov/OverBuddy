@@ -1,3 +1,5 @@
+import gradients from 'tailwind-easing-gradients'
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
@@ -15,7 +17,7 @@ export default {
     }
   },
   plugins: [
-    require('tailwind-easing-gradients')({
+    gradients({
       gradients: {
         'menu-bottom': {
           color: ['rgba(9, 9, 11, 0)', 'rgba(9, 9, 11, 0.5)']

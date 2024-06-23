@@ -1,12 +1,13 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
+import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
+import { ArrowLeftIcon, LoaderPinwheel } from 'lucide-react'
+import { useCallback, useState } from 'react'
 
 import { MotionButton } from '@/components/Button'
 import { fadeInFastVariants, moveInLessVariants } from '@/lib/animations'
 import { settingsQueryOptions, useResetMutation } from '@/lib/data'
-import clsx from 'clsx'
-import { ArrowLeftIcon, LoaderPinwheel } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import useKeyPress from '@/lib/useKeyPress'
 
 export const Route = createFileRoute('/settings')({
   loader: ({ context: { queryClient } }) =>
@@ -15,20 +16,11 @@ export const Route = createFileRoute('/settings')({
 })
 
 function Settings() {
-  const router = useRouter()
-  const handleEscapePress = useCallback((event: KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      router.history.back()
-    }
-  }, [])
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleEscapePress)
-
-    return () => {
-      document.removeEventListener('keydown', handleEscapePress)
-    }
-  }, [handleEscapePress])
+  const { history } = useRouter()
+  useKeyPress({
+    key: 'Escape',
+    onPress: () => history.back()
+  })
 
   return (
     <motion.div
@@ -43,7 +35,7 @@ function Settings() {
       >
         <div>
           <button
-            onClick={() => router.history.back()}
+            onClick={() => history.back()}
             className="flex items-center gap-0.5 rounded-full pl-1 pr-2 font-medium text-zinc-400 transition-[box-shadow,color,background-color] hover:text-zinc-50 focus-visible:text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           >
             <ArrowLeftIcon size={20} />
@@ -102,7 +94,7 @@ function ResetButton() {
       mutate()
       return
     }
-  }, [isConfirming])
+  }, [isConfirming, mutate])
 
   return (
     <div className="flex gap-2">
