@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 
 import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
-import { MotionButton } from '@/components/Button'
+import { Button } from '@/components/Button'
 import {
   fadeInVariants,
   moveInVariants,
@@ -78,12 +78,12 @@ function SetupSelect() {
             className="text-2xl font-medium text-white"
             variants={moveInVariants}
           >
-            Select your Platform(s)
+            Connect your Platform(s)
           </motion.h1>
           <motion.p variants={moveInVariants}>
-            Select the platform(s) you use to play Overwatch™. This will allow
-            OverBuddy to automatically detect your installation(s) and configure
-            accordingly.
+            Select the platform(s) you use to play Overwatch™. Overbuddy will
+            automatically detect your installation(s) and any required
+            configurations.
           </motion.p>
           <motion.p variants={moveInVariants}>
             You can change this later in the settings.
@@ -91,7 +91,7 @@ function SetupSelect() {
         </div>
         <motion.div className="flex gap-8" variants={moveInVariants}>
           <button
-            className="group flex flex-col items-center gap-2 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+            className="group flex flex-col items-center gap-1 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
             onClick={() => {
               if (platforms.includes('BattleNet')) {
                 setPlatforms(platforms.filter((p) => p !== 'BattleNet'))
@@ -99,13 +99,14 @@ function SetupSelect() {
               }
               setPlatforms([...platforms, 'BattleNet'])
             }}
+            title="Connect Battle.net"
           >
             <img
               src={BattleNet}
               alt="Battle.net Logo"
               title="Battle.net"
-              width="64px"
-              height="64px"
+              width="72px"
+              height="72px"
               className={clsx(
                 'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
                 platforms.includes('BattleNet')
@@ -115,7 +116,7 @@ function SetupSelect() {
             />
             <h2
               className={clsx(
-                'flex items-center gap-1 text-center font-medium transition',
+                'flex items-center gap-1.5 text-center font-medium transition',
                 platforms.includes('BattleNet')
                   ? 'text-white group-active:text-zinc-400'
                   : 'text-zinc-400 group-active:text-white'
@@ -144,7 +145,7 @@ function SetupSelect() {
             </h2>
           </button>
           <button
-            className="group flex flex-col items-center gap-2 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+            className="group flex flex-col items-center gap-1 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
             onClick={() => {
               if (platforms.includes('Steam')) {
                 setPlatforms(platforms.filter((p) => p !== 'Steam'))
@@ -152,13 +153,14 @@ function SetupSelect() {
               }
               setPlatforms([...platforms, 'Steam'])
             }}
+            title="Connect Steam"
           >
             <img
               src={Steam}
               alt="Steam Logo"
               title="Steam"
-              width="64px"
-              height="64px"
+              width="72px"
+              height="72px"
               className={clsx(
                 'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
                 platforms.includes('Steam')
@@ -168,7 +170,7 @@ function SetupSelect() {
             />
             <h2
               className={clsx(
-                'flex items-center gap-1 text-center font-medium transition',
+                'flex items-center gap-1.5 text-center font-medium transition',
                 platforms.includes('Steam')
                   ? 'text-white group-active:text-zinc-400'
                   : 'text-zinc-400 group-active:text-white'
@@ -198,21 +200,22 @@ function SetupSelect() {
           </button>
         </motion.div>
         {/* TODO: retry button */}
-        <MotionButton
-          primary
-          className="w-full py-3"
-          disabled={status !== 'idle'}
-          onClick={() => {
-            if (platforms.length === 0) {
-              toast.warning('You must select at least one platform.')
-              return
-            }
-            mutate(platforms)
-          }}
-          variants={moveInVariants}
-        >
-          Continue
-        </MotionButton>
+        <motion.div className="w-full" variants={moveInVariants}>
+          <Button
+            primary
+            className="w-full py-3"
+            disabled={status !== 'idle'}
+            onClick={() => {
+              if (platforms.length === 0) {
+                toast.warning('You must select at least one platform.')
+                return
+              }
+              mutate(platforms)
+            }}
+          >
+            Continue
+          </Button>
+        </motion.div>
       </motion.div>
     </motion.div>
   )

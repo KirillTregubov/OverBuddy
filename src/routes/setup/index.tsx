@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import { BookLockIcon, GlobeIcon, SparklesIcon } from 'lucide-react'
 
 import logo from '@/assets/logo.svg'
-import { LinkButton } from '@/components/Button'
+import { ExternalLinkInline, LinkButton } from '@/components/Button'
 import {
   fadeInVariants,
   moveInVariants,
@@ -101,18 +101,13 @@ function SetupSplash() {
             </motion.div>
             <motion.div>
               <motion.h2 className="mb-1 flex items-center gap-2 text-lg font-medium text-white">
-                Free and Open Source
+                Free and Transparent
               </motion.h2>
               <motion.p>
                 OverBuddy is free to use and{' '}
-                <a
-                  href={import.meta.env.REPOSITORY_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-sm underline underline-offset-2 transition hover:text-white focus-visible:text-white focus-visible:outline-none active:text-zinc-200"
-                >
+                <ExternalLinkInline href={import.meta.env.REPOSITORY_URL}>
                   open source
-                </a>
+                </ExternalLinkInline>
                 . It operates independently and is not affiliated with Blizzard
                 Entertainment® or Valve®. You can undo the changes it makes at
                 any time by reverting to the default background.

@@ -2,6 +2,7 @@ import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 
 import { MotionButton } from '@/components/Button'
+import SteamProfileComponent from '@/components/SteamProfile'
 import {
   fadeInVariants,
   moveInVariants,
@@ -13,7 +14,6 @@ import {
   useSteamConfirmMutation
 } from '@/lib/data'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { HashIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/setup/steam_setup')({
   loader: ({ context: { queryClient } }) => {
@@ -30,7 +30,7 @@ export const Route = createFileRoute('/setup/steam_setup')({
 
 function SteamSetup() {
   const navigate = useNavigate()
-  const { data: accounts } = useSuspenseQuery(steamQueryOptions)
+  const { data: profiles } = useSuspenseQuery(steamQueryOptions)
   const { mutate, status } = useSteamConfirmMutation({
     onSuccess: () => {
       console.log('navigate')
@@ -57,7 +57,7 @@ function SteamSetup() {
             className="text-2xl font-medium text-white"
             variants={moveInVariants}
           >
-            Confirm Steam profile{accounts.length > 1 ? 's' : ''}
+            Confirm Steam profile{profiles.length > 1 ? 's' : ''}
           </motion.h1>
           <motion.p variants={moveInVariants}>
             The following Steam profiles have been detected. New logins will be
@@ -65,18 +65,8 @@ function SteamSetup() {
           </motion.p>
         </div>
         <motion.div className="flex gap-8" variants={moveInVariants}>
-          {accounts.map((account) => (
-            <motion.div key={account.id}>
-              <img
-                src={account.avatar}
-                alt={account.name}
-                className="mb-1 max-h-32 rounded"
-              />
-              <h2 className="font-medium text-white">{account.name}</h2>
-              <h3 className="inline-flex items-center text-sm text-zinc-400">
-                <HashIcon size={14} /> {account.id}
-              </h3>
-            </motion.div>
+          {profiles.map((profile) => (
+            <SteamProfileComponent key={profile.id} account={profile} large />
           ))}
         </motion.div>
         <MotionButton

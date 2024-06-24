@@ -1,5 +1,7 @@
 use crate::config::SteamProfile;
 
+const STEAM_AVATAR_URL: &str = "https://avatars.akamai.steamstatic.com";
+
 pub fn extract_user_info(
     contents: &str,
     outer_key: &str,
@@ -49,8 +51,9 @@ pub fn extract_user_info(
 fn parse_user_info(object_str: &str, id: &str) -> SteamProfile {
     let avatar = extract_value(object_str, "avatar");
     let name = extract_value(object_str, "name");
+    let formatted_avatar = avatar.map(|avatar| format!("{}/{}_full.jpg", STEAM_AVATAR_URL, avatar));
     SteamProfile {
-        avatar,
+        avatar: formatted_avatar,
         name,
         id: Some(id.to_string()),
     }

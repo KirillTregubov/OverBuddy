@@ -24,6 +24,9 @@ export default {
         },
         'menu-top': {
           color: ['transparent', 'rgb(24, 24, 27)']
+        },
+        settings: {
+          color: ['rgba(63, 63, 70, 0)', 'rgba(63, 63, 70, 1)'] // 'red'
         }
       },
       easing: 'ease-in-out'

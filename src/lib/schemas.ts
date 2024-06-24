@@ -11,7 +11,7 @@ const SteamConfig = z.object({
 export const SteamProfile = z.object({
   id: z.string(),
   name: z.string(),
-  avatar: z.string()
+  avatar: z.string().url()
 })
 export type SteamProfile = z.infer<typeof SteamProfile>
 
@@ -48,5 +48,8 @@ export type Background = z.infer<typeof Background>
 export const BackgroundArray = z.array(Background)
 export type BackgroundArray = z.infer<typeof BackgroundArray>
 
-export const Settings = z.object({})
+export const Settings = z.object({
+  platforms: z.array(Platform),
+  steamProfiles: z.array(SteamProfile).nullable()
+})
 export type Settings = z.infer<typeof Settings>

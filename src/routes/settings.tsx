@@ -1,13 +1,30 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeftIcon, LoaderPinwheel } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import {
+  CheckCircleIcon,
+  CircleIcon,
+  LoaderPinwheel,
+  XIcon
+} from 'lucide-react'
+import { useCallback, useRef, useState } from 'react'
 
-import { MotionButton } from '@/components/Button'
-import { fadeInFastVariants, moveInLessVariants } from '@/lib/animations'
-import { settingsQueryOptions, useResetMutation } from '@/lib/data'
+import BattleNet from '@/assets/BattleNet.svg'
+import Steam from '@/assets/Steam.svg'
+import { ExternalLinkInline, MotionButton } from '@/components/Button'
+import SteamProfileComponent from '@/components/SteamProfile'
+import {
+  fadeInFastVariants,
+  moveInLessVariants,
+  staggerChildrenVariants
+} from '@/lib/animations'
+import {
+  settingsQueryOptions,
+  useResetMutation,
+  useUpdateMutation
+} from '@/lib/data'
 import useKeyPress from '@/lib/useKeyPress'
+import { useSuspenseQuery } from '@tanstack/react-query'
 
 export const Route = createFileRoute('/settings')({
   loader: ({ context: { queryClient } }) =>
@@ -16,49 +33,253 @@ export const Route = createFileRoute('/settings')({
 })
 
 function Settings() {
+  const { data } = useSuspenseQuery(settingsQueryOptions)
   const { history } = useRouter()
-  useKeyPress({
+  const { pressed } = useKeyPress({
     key: 'Escape',
-    onPress: () => history.back()
+    onPress: () => history.back(),
+    mode: 'keyup'
   })
+  const { mutate } = useUpdateMutation()
+  const scrollContainer = useRef<HTMLDivElement>(null)
 
   return (
     <motion.div
-      className="relative flex h-full w-full select-none flex-col p-6"
+      className="flex w-full select-none flex-col p-6"
       variants={fadeInFastVariants}
       initial="hidden"
       animate="show"
     >
       <motion.div
-        className="flex h-full w-full flex-col gap-2"
-        variants={moveInLessVariants}
+        className="flex w-full flex-col gap-5"
+        variants={staggerChildrenVariants}
       >
-        <div>
+        <motion.div variants={moveInLessVariants}>
           <button
             onClick={() => history.back()}
-            className="flex items-center gap-0.5 rounded-full pl-1 pr-2 font-medium text-zinc-400 transition-[box-shadow,color,background-color] hover:text-zinc-50 focus-visible:text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="group flex items-center gap-0.5 rounded-full pl-1 pr-2 font-medium text-zinc-400 transition-[box-shadow,color,background-color,border-color,transform] will-change-transform hover:text-zinc-50 focus-visible:text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95"
           >
-            <ArrowLeftIcon size={20} />
+            <XIcon size={20} />
             Close
+            <span
+              className={clsx(
+                'm-0.5 ml-2 rounded border px-2.5 pb-px',
+                pressed
+                  ? 'border-zinc-400 bg-zinc-200 text-zinc-700'
+                  : 'border-zinc-700 bg-zinc-800'
+              )}
+            >
+              Esc
+            </span>
           </button>
-        </div>
-        <h1 className="text-2xl font-bold">Settings</h1>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-baseline gap-3 text-zinc-400">
-            <h2 className="text-xl font-bold text-white">Platforms</h2>
+        </motion.div>
+        <motion.h1 className="text-2xl font-bold" variants={moveInLessVariants}>
+          Settings
+        </motion.h1>
+
+        <motion.div
+          className="flex flex-col gap-1.5"
+          variants={moveInLessVariants}
+        >
+          <div className="flex items-baseline gap-2.5 text-zinc-400">
+            <h2 className="text-lg font-bold text-white">About</h2>
+            <p className="">About OverBuddy.</p>
+          </div>
+          <div className="flex flex-col gap-1.5 text-zinc-400">
+            <p>
+              OverBuddy allows you to change your Overwatch main menu
+              background. It is made with ❤️ by{' '}
+              <span className="font-bold">Kirill Tregubov</span> and is{' '}
+              <ExternalLinkInline href={import.meta.env.REPOSITORY_URL}>
+                open source
+              </ExternalLinkInline>
+              .
+            </p>
+            <p>
+              As with all software, OverBuddy is built on the shoulders of
+              giants. This app wouldn&apos;t be possible without the work of{' '}
+              <ExternalLinkInline href="https://gist.github.com/Toyz/30e6fd504c713511f67f1a607025b0bc">
+                Toyz
+              </ExternalLinkInline>{' '}
+              or{' '}
+              <ExternalLinkInline href="https://steamcommunity.com/sharedfiles/filedetails/?id=3099694051">
+                SkyBorik
+              </ExternalLinkInline>
+              .
+            </p>
+          </div>
+        </motion.div>
+        <motion.div
+          className="flex flex-col gap-1.5"
+          variants={moveInLessVariants}
+        >
+          <div className="flex items-baseline gap-2.5 text-zinc-400">
+            <h2 className="text-lg font-bold text-white">Platforms</h2>
             <p className="">Connected platform(s) you use to play Overwatch.</p>
           </div>
           {/* list battle.net and steam platforms, all steam users detected under it */}
           {/* button to scan steam users */}
-          <div className="h-32 w-full rounded-lg bg-zinc-700"></div>
-        </div>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-baseline gap-3 text-zinc-400">
-            <h2 className="text-xl font-bold text-white">Reset</h2>
+          <motion.div className="flex gap-6 rounded-lg bg-zinc-800 p-2 shadow-inner shadow-zinc-900">
+            <button
+              className="group flex flex-col items-center gap-1 p-3 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+              onClick={() => {
+                if (data.platforms.includes('BattleNet')) {
+                  // setPlatforms(data.platforms.filter((p) => p !== 'BattleNet'))
+                  return
+                }
+                // setPlatforms([...platforms, 'BattleNet'])
+              }}
+              title={`${data.platforms.includes('BattleNet') ? 'Disconnect' : 'Connect'} Battle.net`}
+            >
+              <img
+                src={BattleNet}
+                alt="Battle.net Logo"
+                title="Battle.net"
+                width="64px"
+                height="64px"
+                className={clsx(
+                  'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
+                  data.platforms.includes('BattleNet')
+                    ? 'grayscale-0 group-active:grayscale'
+                    : 'group-active:grayscale-0'
+                )}
+              />
+              <h2
+                className={clsx(
+                  'flex items-center gap-1.5 text-center font-medium transition',
+                  data.platforms.includes('BattleNet')
+                    ? 'text-white group-active:text-zinc-400'
+                    : 'text-zinc-400 group-active:text-white'
+                )}
+              >
+                <AnimatePresence mode="wait">
+                  {data.platforms.includes('BattleNet') ? (
+                    <motion.span
+                      initial={{ opacity: 0.5 }}
+                      animate={{ opacity: 1 }}
+                      key="checked"
+                    >
+                      <CheckCircleIcon size={20} />
+                    </motion.span>
+                  ) : (
+                    <motion.span
+                      initial={{ opacity: 0.5 }}
+                      animate={{ opacity: 1 }}
+                      key="unchecked"
+                    >
+                      <CircleIcon size={20} />
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+                Battle.net
+              </h2>
+            </button>
+            <div
+              className={clsx(
+                data.platforms.includes('Steam')
+                  ? 'relative -ml-3 flex min-w-0 items-center gap-6 overflow-hidden rounded-md bg-zinc-700 py-3 pl-6 shadow-inner shadow-zinc-800'
+                  : 'p-3'
+              )}
+            >
+              <button
+                className="group flex flex-col items-center gap-1 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+                onClick={() => {
+                  if (data.platforms.includes('Steam')) {
+                    // setPlatforms(platforms.filter((p) => p !== 'Steam'))
+                    return
+                  }
+                  // setPlatforms([...platforms, 'Steam'])
+                }}
+                title={`${data.platforms.includes('Steam') ? 'Disconnect' : 'Connect'} Steam`}
+              >
+                <img
+                  src={Steam}
+                  alt="Steam Logo"
+                  title="Steam"
+                  width="64px"
+                  height="64px"
+                  className={clsx(
+                    'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
+                    data.platforms.includes('Steam')
+                      ? 'grayscale-0 group-active:grayscale'
+                      : 'group-active:grayscale-0'
+                  )}
+                />
+                <h2
+                  className={clsx(
+                    'flex items-center gap-1.5 text-center font-medium transition',
+                    data.platforms.includes('Steam')
+                      ? 'text-white group-active:text-zinc-400'
+                      : 'text-zinc-400 group-active:text-white'
+                  )}
+                >
+                  <AnimatePresence mode="wait">
+                    {data.platforms.includes('Steam') ? (
+                      <motion.span
+                        initial={{ opacity: 0.5 }}
+                        animate={{ opacity: 1 }}
+                        key="checked"
+                      >
+                        <CheckCircleIcon size={20} />
+                      </motion.span>
+                    ) : (
+                      <motion.span
+                        initial={{ opacity: 0.5 }}
+                        animate={{ opacity: 1 }}
+                        key="unchecked"
+                      >
+                        <CircleIcon size={20} />
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                  Steam
+                </h2>
+              </button>
+              {data.platforms.includes('Steam') && (
+                <div
+                  className="scroller flex gap-6 overflow-x-auto py-2 after:pointer-events-none after:absolute after:bottom-5 after:right-0 after:z-10 after:h-[calc(100%-2rem)] after:w-8 after:content-[''] after:bg-easing-r-settings last:pr-5"
+                  ref={scrollContainer}
+                >
+                  {data.steamProfiles && data.steamProfiles.length > 0 ? (
+                    <>
+                      {data.steamProfiles.map((profile) => (
+                        <SteamProfileComponent
+                          key={profile.id}
+                          account={profile}
+                        />
+                      ))}
+                    </>
+                  ) : (
+                    <>No Steam Profiles</>
+                  )}
+                </div>
+              )}
+            </div>
+          </motion.div>
+          {/* <div className="h-64 w-full rounded-lg bg-zinc-700"></div> */}
+        </motion.div>
+        <motion.div
+          className="flex flex-col gap-1.5"
+          variants={moveInLessVariants}
+        >
+          <div className="flex items-baseline gap-2.5 text-zinc-400">
+            <h2 className="text-lg font-bold text-white">Update</h2>
+            <p className="">Check for updates.</p>
+          </div>
+          <MotionButton className="w-fit min-w-36" onClick={() => mutate()}>
+            Check for Updates
+          </MotionButton>
+        </motion.div>
+        <motion.div
+          className="flex flex-col gap-1.5"
+          variants={moveInLessVariants}
+        >
+          <div className="flex items-baseline gap-2.5 text-zinc-400">
+            <h2 className="text-lg font-bold text-white">Reset</h2>
             <p className="">Reset all settings to default.</p>
           </div>
           <ResetButton />
-        </div>
+        </motion.div>
       </motion.div>
     </motion.div>
   )
@@ -107,7 +328,7 @@ function ResetButton() {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ opacity: { duration: 0.15 } }}
+            transition={{ opacity: { duration: 0.15, ease: 'easeInOut' } }}
           >
             <span>Reset Settings</span>
           </MotionButton>
@@ -119,10 +340,10 @@ function ResetButton() {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ opacity: { duration: 0.15 } }}
+            transition={{ opacity: { duration: 0.15, ease: 'easeInOut' } }}
           >
             <MotionButton
-              key="cancel"
+              key="idle"
               className="w-fit min-w-36"
               onClick={() => setIsConfirming('idle')}
               disabled={isConfirming !== 'confirm'}
@@ -141,12 +362,12 @@ function ResetButton() {
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ opacity: { duration: 0.15 } }}
+                transition={{ opacity: { duration: 0.15, ease: 'easeOut' } }}
               >
                 <AnimatePresence mode="wait">
                   {isConfirming === 'confirm' && (
                     <span>
-                      Confirm Reset Settings? (This action cannot be undone)
+                      Confirm Reset Settings (This action cannot be undone)
                     </span>
                   )}
                   {isConfirming === 'pending' && (

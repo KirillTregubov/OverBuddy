@@ -16,7 +16,7 @@ function RootComponent() {
   }, [])
 
   return (
-    <div className="h-screen max-h-screen">
+    <div className="h-screen min-h-screen">
       <Outlet />
     </div>
   )

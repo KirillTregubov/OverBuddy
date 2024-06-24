@@ -309,18 +309,32 @@ function Menu() {
           <div className="absolute right-0 top-0 z-10 p-3">
             <MotionLink
               to="/settings"
-              className="block rounded-full border-2 border-zinc-800/80 bg-zinc-700/80 p-2 text-zinc-100 ring-zinc-100 backdrop-blur transition-[border-color,box-shadow] hover:border-zinc-100 focus-visible:border-zinc-100 focus-visible:outline-none focus-visible:ring-1 active:border-zinc-100 disabled:pointer-events-none"
-              initial={{ rotate: 30, scale: 1, opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              whileHover={{ rotate: 390, scale: 1.05 }}
-              whileFocus={{ rotate: 390, scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{
-                rotate: { duration: 1, ease: 'easeOut' },
-                duration: 0.05
+              className="block rounded-full border-2 border-zinc-800/80 bg-zinc-700/80 text-zinc-100 ring-zinc-100 backdrop-blur transition-[border-color,box-shadow] hover:border-zinc-100 focus-visible:border-zinc-100 focus-visible:outline-none focus-visible:ring-1 active:border-zinc-100 disabled:pointer-events-none"
+              variants={{
+                initial: { scale: 1 },
+                whileHover: { scale: 1.05 },
+                whileFocus: { scale: 1.05 },
+                whileTap: { scale: 0.95 }
               }}
+              initial="initial"
+              whileHover="whileHover"
+              whileFocus="whileFocus"
+              whileTap="whileTap"
+              transition={{ duration: 0.15, ease: 'easeInOut' }}
+              draggable={false}
             >
-              <MotionComponent as={SettingsIcon} size={24} />
+              <MotionComponent
+                as={SettingsIcon}
+                size={24}
+                variants={{
+                  initial: { rotate: 30 },
+                  whileHover: { rotate: 390 },
+                  whileFocus: { rotate: 390 }
+                }}
+                transition={{ duration: 1, ease: 'easeOut' }}
+                className="pointer-events-none box-content size-6 p-2"
+                aria-label="Settings"
+              />
             </MotionLink>
           </div>
         )}

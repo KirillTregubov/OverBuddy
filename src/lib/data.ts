@@ -14,10 +14,12 @@ import {
 import {
   BackgroundArray,
   LaunchConfig,
+  Settings,
   SteamProfile,
   type Platform
 } from '@/lib/schemas'
 import { queryClient } from '@/main'
+import { emit } from '@tauri-apps/api/event'
 
 export const launchQueryOptions = queryOptions({
   queryKey: ['launch'],
@@ -163,8 +165,6 @@ export const useSetupErrorMutation = ({
     onSuccess
   })
 
-const STEAM_AVATAR_URL = 'https://avatars.akamai.steamstatic.com'
-
 export const steamQueryOptions = queryOptions({
   queryKey: ['steam'],
   queryFn: async () => {
@@ -173,11 +173,8 @@ export const steamQueryOptions = queryOptions({
     if (!accounts.success) {
       throw new Error(`Failed to get Steam accounts. ${accounts.error.message}`)
     }
-    // replace the avatar string with a modified string
-    accounts.data.forEach((account) => {
-      account.avatar = `${STEAM_AVATAR_URL}/${account.avatar}_full.jpg`
-    })
 
+    console.log(accounts.data)
     return accounts.data as SteamProfile[]
   }
 })
@@ -189,7 +186,6 @@ export const useSteamConfirmMutation = ({
 } = {}) =>
   useMutation({
     mutationFn: async () => {
-      console.log('test')
       const data = (await invoke('confirm_steam_setup')) as string
       const config = LaunchConfig.safeParse(JSON.parse(data))
       if (!config.success) {
@@ -212,7 +208,7 @@ export const backgroundsQueryOptions = queryOptions({
       throw new Error(`Failed to get backgrounds. ${backgrounds.error.message}`)
     }
 
-    // preload images
+    // Preload images
     await Promise.allSettled(
       backgrounds.data.map(
         (background) =>
@@ -306,12 +302,65 @@ export const useResetMutation = ({
 export const settingsQueryOptions = queryOptions({
   queryKey: ['settings'],
   queryFn: async () => {
-    return {}
+    const data = JSON.stringify({
+      platforms: ['Steam'],
+      steamProfiles: [
+        {
+          id: '1121757682',
+          name: 'Aimless Russian',
+          avatar:
+            'https://avatars.akamai.steamstatic.com/141b0b20bef5f40f8e4c85f74e551d9b588bb334_full.jpg'
+        },
+        {
+          id: '171934192',
+          name: 'assist delivery',
+          avatar:
+            'https://avatars.akamai.steamstatic.com/0ebd2c813afc992309612b5973b0dfec761303d7_full.jpg'
+        },
+        {
+          id: '332752569',
+          name: 'Spectra',
+          avatar:
+            'https://avatars.akamai.steamstatic.com/a8091fa7e1c73cf1289ef49f74e105e0c0f5562f_full.jpg'
+        }
+        // ,
+        // {
+        //   id: '3327525691',
+        //   name: 'Spectra',
+        //   avatar:
+        //     'https://avatars.akamai.steamstatic.com/a8091fa7e1c73cf1289ef49f74e105e0c0f5562f_full.jpg'
+        // },
+        // {
+        //   id: '3327525693',
+        //   name: 'cq6WyuAOdyN8zHgdQxETtAHJrsqWmuns',
+        //   avatar:
+        //     'https://avatars.akamai.steamstatic.com/a8091fa7e1c73cf1289ef49f74e105e0c0f5562f_full.jpg'
+        // }
+      ]
+    })
     // const data = await invoke('get_settings')
-    // const settings = Settings.safeParse(JSON.parse(data as string))
-    // if (!settings.success) {
-    //   throw new Error(`Failed to get settings. ${settings.error.message}`)
-    // }
-    // return settings.data
+
+    const settings = Settings.safeParse(JSON.parse(data as string))
+    if (!settings.success) {
+      throw new Error(`Failed to get settings. ${settings.error.message}`)
+    }
+    return settings.data
   }
 })
+
+export const useUpdateMutation = ({
+  onSuccess
+}: {
+  onSuccess?: () => void
+} = {}) =>
+  useMutation({
+    mutationFn: async () => {
+      await emit('tauri://update')
+    },
+    onError: (error) => {
+      handleError(error)
+    },
+    onSuccess: () => {
+      onSuccess?.()
+    }
+  })
