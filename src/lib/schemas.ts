@@ -11,7 +11,7 @@ const SteamConfig = z.object({
 export const SteamProfile = z.object({
   id: z.string(),
   name: z.string(),
-  avatar: z.string().url()
+  avatar: z.string().url().nullable()
 })
 export type SteamProfile = z.infer<typeof SteamProfile>
 

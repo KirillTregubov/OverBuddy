@@ -5,7 +5,7 @@ pub struct BattleNetConfig {
     pub install: Option<String>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 pub struct SteamLocalconfig {
     pub id: String,
     pub file: String,

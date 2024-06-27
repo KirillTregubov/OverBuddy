@@ -1,3 +1,4 @@
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 
@@ -13,7 +14,6 @@ import {
   steamQueryOptions,
   useSteamConfirmMutation
 } from '@/lib/data'
-import { useSuspenseQuery } from '@tanstack/react-query'
 
 export const Route = createFileRoute('/setup/steam_setup')({
   loader: ({ context: { queryClient } }) => {

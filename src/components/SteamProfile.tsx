@@ -1,6 +1,8 @@
-import type { SteamProfile } from '@/lib/schemas'
 import clsx from 'clsx'
 import { HashIcon } from 'lucide-react'
+
+import placeholder from '@/assets/placeholder_small.svg'
+import type { SteamProfile } from '@/lib/schemas'
 
 export default function SteamProfileComponent({
   account,
@@ -12,8 +14,9 @@ export default function SteamProfileComponent({
   return (
     <div key={account.id} className={clsx(!large && 'flex shrink-0 gap-2.5')}>
       <img
-        src={account.avatar}
+        src={account.avatar || placeholder}
         alt={account.name}
+        onError={(e) => (e.currentTarget.src = placeholder)}
         className={clsx('rounded', large ? 'mb-1 max-h-32' : 'max-h-16')}
       />
       <div className="flex flex-col justify-center">
