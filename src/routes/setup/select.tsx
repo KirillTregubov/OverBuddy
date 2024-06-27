@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
-import { CheckCircleIcon, CircleIcon } from 'lucide-react'
+import { CheckCircleIcon, CircleIcon, LoaderPinwheel } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
@@ -62,7 +62,7 @@ function SetupSelect() {
 
   return (
     <motion.div
-      className="h-full w-full"
+      className="mx-auto h-full w-full max-w-xl"
       variants={fadeInVariants}
       initial="hidden"
       animate="show"
@@ -91,7 +91,7 @@ function SetupSelect() {
         </div>
         <motion.div className="flex gap-8" variants={moveInVariants}>
           <button
-            className="group flex flex-col items-center gap-1 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+            className="group flex flex-col items-center gap-1 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95 disabled:pointer-events-none"
             onClick={() => {
               if (platforms.includes('BattleNet')) {
                 setPlatforms(platforms.filter((p) => p !== 'BattleNet'))
@@ -100,6 +100,7 @@ function SetupSelect() {
               setPlatforms([...platforms, 'BattleNet'])
             }}
             title="Connect Battle.net"
+            disabled={status !== 'idle'}
           >
             <img
               src={BattleNet}
@@ -145,7 +146,7 @@ function SetupSelect() {
             </h2>
           </button>
           <button
-            className="group flex flex-col items-center gap-1 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+            className="group flex flex-col items-center gap-1 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95 disabled:pointer-events-none"
             onClick={() => {
               if (platforms.includes('Steam')) {
                 setPlatforms(platforms.filter((p) => p !== 'Steam'))
@@ -154,6 +155,7 @@ function SetupSelect() {
               setPlatforms([...platforms, 'Steam'])
             }}
             title="Connect Steam"
+            disabled={status !== 'idle'}
           >
             <img
               src={Steam}
@@ -203,7 +205,7 @@ function SetupSelect() {
         <motion.div className="w-full" variants={moveInVariants}>
           <Button
             primary
-            className="w-full py-3"
+            className="flex w-full items-center justify-center gap-2 py-3"
             disabled={status !== 'idle'}
             onClick={() => {
               if (platforms.length === 0) {
@@ -213,7 +215,29 @@ function SetupSelect() {
               mutate(platforms)
             }}
           >
-            Continue
+            <AnimatePresence mode="wait">
+              {status === 'idle' ? (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  key="idle"
+                >
+                  Continue
+                </motion.span>
+              ) : status === 'pending' || status === 'success' ? (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  key="pending"
+                >
+                  <LoaderPinwheel className="animate-spin" />
+                </motion.span>
+              ) : null}
+            </AnimatePresence>
           </Button>
         </motion.div>
       </motion.div>

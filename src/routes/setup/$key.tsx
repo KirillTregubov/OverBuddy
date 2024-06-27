@@ -75,7 +75,7 @@ function ConfigureComponent() {
 
   return (
     <motion.div
-      className="flex h-full w-full"
+      className="mx-auto flex h-full w-full max-w-xl"
       variants={fadeInVariants}
       initial="hidden"
       animate="show"

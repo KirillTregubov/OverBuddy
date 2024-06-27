@@ -254,6 +254,8 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
             })?));
         }
 
+        let mut battle_net_was_closed = false;
+
         // Check and create AdditionalLaunchArguments if it doesn't exist
         if let Some(game_config) = json
             .get_mut("Games")
@@ -265,16 +267,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
                     .unwrap()
                     .insert("AdditionalLaunchArguments".to_string(), json!(""));
 
-                let battle_net_was_closed = helpers::close_battle_net();
-
-                helpers::safe_json_write(battle_net_config, &json)?;
-
-                if battle_net_was_closed {
-                    // TODO: test error
-                    Command::new(config.battle_net.install.clone().unwrap())
-                        .spawn()
-                        .ok();
-                }
+                battle_net_was_closed = helpers::close_battle_net();
             } else {
                 let launch_args = json["Games"]["prometheus"]["AdditionalLaunchArguments"]
                     .as_str()
@@ -305,6 +298,39 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
                     None => (),
                 };
             }
+        }
+
+        // Check and create DefaultStartupScreen if it doesn't exist
+        if let Some(client_config) = json.get_mut("Client") {
+            if client_config.get("DefaultStartupScreen").is_none() {
+                client_config
+                    .as_object_mut()
+                    .unwrap()
+                    .insert("DefaultStartupScreen".to_string(), json!("1"));
+
+                battle_net_was_closed = helpers::close_battle_net();
+            } else {
+                let startup_screen = client_config["DefaultStartupScreen"]
+                    .as_str()
+                    .map(|s| s.to_string());
+
+                if startup_screen.is_none() || startup_screen.unwrap() == "0" {
+                    client_config
+                        .as_object_mut()
+                        .unwrap()
+                        .insert("DefaultStartupScreen".to_string(), json!("1"));
+
+                    battle_net_was_closed = helpers::close_battle_net();
+                }
+            }
+        }
+
+        if battle_net_was_closed {
+            helpers::safe_json_write(battle_net_config, &json)?;
+            // TODO: test error
+            Command::new(config.battle_net.install.clone().unwrap())
+                .spawn()
+                .ok();
         }
 
         // Enable Battle.net

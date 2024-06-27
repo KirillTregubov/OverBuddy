@@ -8,6 +8,7 @@ export default function Toaster() {
       richColors
       expand
       toastOptions={{
+        duration: 2000,
         classNames: {
           toast: 'select-none w-96',
           actionButton: 'font-semibold'

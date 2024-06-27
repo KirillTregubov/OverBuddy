@@ -286,11 +286,14 @@ const BACKGROUNDS: &[Background] = &[
         description: "Season 11 Mythic Skin",
         tags: &["Art"],
     },
+    Background {
+        id: "0x08000000000008BA",
+        image: "rose_gold_mercy.jpg",
+        name: "Rose Gold Mercy",
+        description: "Breast Cancer Charity Event (Season 11)",
+        tags: &["Collaboration"],
+    },
 ];
-
-// Map Codes found
-// 0x0800000000000871 - Rialto
-// 0x0800000000000807 - No Clue yet?
 
 pub fn get_backgrounds() -> &'static [Background] {
     &BACKGROUNDS

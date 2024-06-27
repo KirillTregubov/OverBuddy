@@ -43,7 +43,7 @@ function SteamSetup() {
 
   return (
     <motion.div
-      className="h-full w-full"
+      className="mx-auto h-full w-full max-w-xl"
       variants={fadeInVariants}
       initial="hidden"
       animate="show"

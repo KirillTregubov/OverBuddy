@@ -12,48 +12,15 @@ import {
   moveInVariants,
   staggerChildrenVariants
 } from '@/lib/animations'
-// import { useSetupMutation } from '@/lib/data'
-// import { ConfigError, ConfigErrors, handleError } from '@/lib/errors'
 
 export const Route = createFileRoute('/setup/')({
   component: SetupSplash
 })
 
 function SetupSplash() {
-  // const navigate = useNavigate()
-  // const { status, mutate, reset } = useSetupMutation({
-  //   onError: (error) => {
-  //     if (
-  //       error instanceof ConfigError &&
-  //       ConfigErrors.safeParse(error.error_key).success
-  //     ) {
-  //       navigate({
-  //         to: '/setup/$key',
-  //         params: {
-  //           key: error.error_key
-  //         },
-  //         search: {
-  //           action: error.error_action || 'finding',
-  //           platforms: error.platforms
-  //         },
-  //         replace: true
-  //       })
-  //       return
-  //     }
-  //     handleError(error)
-  //     reset()
-  //   },
-  //   onSuccess: () => {
-  //     navigate({
-  //       to: '/menu',
-  //       replace: true
-  //     })
-  //   }
-  // })
-
   return (
     <motion.div
-      className="h-full w-full"
+      className="mx-auto h-full w-full max-w-xl"
       variants={fadeInVariants}
       initial="hidden"
       animate="show"
@@ -144,13 +111,6 @@ function SetupSplash() {
           >
             Continue
           </LinkButton>
-          {/* <Button
-          primary
-          disabled={status !== 'idle'}
-          onClick={() => mutate(['BattleNet'])}
-        >
-          Continue
-        </Button> */}
         </motion.div>
       </motion.div>
     </motion.div>

@@ -27,7 +27,7 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
 
   return (
     <motion.main
-      className="flex h-screen w-screen overflow-hidden"
+      className="max-w-screen flex h-screen w-screen overflow-hidden"
       variants={fadeInVariants}
       initial="hidden"
       animate="show"

@@ -8,7 +8,13 @@ import {
   LoaderPinwheel,
   SettingsIcon
 } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState
+} from 'react'
 import { toast } from 'sonner'
 
 import placeholder from '@/assets/placeholder.svg'
@@ -21,6 +27,7 @@ import {
   useBackgroundMutation,
   useResetBackgroundMutation
 } from '@/lib/data'
+import type { Background } from '@/lib/schemas'
 import useKeyPress from '@/lib/useKeyPress'
 import { useDraggable } from 'react-use-draggable-scroll'
 
@@ -72,7 +79,9 @@ function Menu() {
     onSettled: () => reset()
   })
   const backgroundRefs = useRef<HTMLImageElement[]>([])
-  const [activeBackground, setActiveBackground] = useState(backgrounds[0])
+  const [activeBackground, setActiveBackground] = useState<Background | null>(
+    backgrounds.length > 0 ? backgrounds[0]! : null
+  )
   const draggableRef = useRef<HTMLDivElement>(
     null
   ) as React.MutableRefObject<HTMLDivElement>
@@ -89,8 +98,9 @@ function Menu() {
 
       prevButtonRef.current.ariaPressed = 'true'
       await prevButtonAnimation.start(buttonTapAnimation)
-      prevButtonRef.current.click()
-      prevButtonRef.current.blur()
+      prevButtonRef.current?.click()
+      prevButtonRef.current?.focus()
+      prevButtonRef.current?.blur()
       prevButtonRef.current.ariaPressed = 'false'
       await prevButtonAnimation.start({ scale: 1 })
     },
@@ -105,6 +115,7 @@ function Menu() {
       nextButtonRef.current.ariaPressed = 'true'
       await nextButtonAnimation.start(buttonTapAnimation)
       nextButtonRef.current?.click()
+      nextButtonRef.current?.focus()
       nextButtonRef.current?.blur()
       nextButtonRef.current.ariaPressed = 'false'
       await nextButtonAnimation.start({ scale: 1 })
@@ -121,7 +132,8 @@ function Menu() {
         action: {
           label: 'Reset to Default',
           onClick: () => resetBackground()
-        }
+        },
+        duration: 5000
       }
     )
   }, [config.background.is_outdated, resetBackground])
@@ -129,29 +141,37 @@ function Menu() {
   const handleSelect = useCallback(
     (index: number) => {
       const ref = backgroundRefs.current[index]
-      if (!ref || ref.id === activeBackground?.id) return
+      if (!ref || (activeBackground && ref.id === activeBackground?.id)) return
+      const background = backgrounds.at(index)
+      if (!background) return
 
-      setActiveBackground(backgrounds[index])
+      setActiveBackground(background)
       resetSetBackground()
-      if (ref) {
-        ref.scrollIntoView({
-          behavior: 'smooth',
-          inline: 'center'
-        })
-      }
+      ref.scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center'
+      })
     },
     [activeBackground, backgrounds, resetSetBackground]
   )
 
-  useEffect(() => {
-    if (config.background.current === null) return
+  useLayoutEffect(() => {
+    // if (backgrounds.length < 1) {
+    //   toast.error('No backgrounds found')
+    //   return
+    // }
 
+    if (backgrounds.length < 1 || config.background.current === null) return
+    // if (!activeBackground) setActiveBackground(backgrounds[0]!)
     const index = backgrounds.findIndex(
       (bg) => bg.id === config.background.current
     )
     if (index === -1) return
+    // if (!activeBackground) setActiveBackground(backgrounds[0]!)
+
     handleSelect(index)
-  }, [config.background, backgrounds, handleSelect])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config.background, backgrounds])
 
   const handleNavigate = useCallback(
     (direction: 'prev' | 'next') => {
@@ -170,7 +190,8 @@ function Menu() {
 
       handleSelect(newIndex)
     },
-    [activeBackground, backgrounds, handleSelect]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeBackground, backgrounds]
   )
 
   return (
@@ -182,7 +203,7 @@ function Menu() {
     >
       <div className="relative">
         <div
-          className="scrollbar-hide -mx-1 flex h-48 flex-shrink-0 cursor-grab items-center gap-3 overflow-x-auto px-12 before:pointer-events-none before:absolute before:-left-1 before:z-10 before:h-full before:w-6 before:content-[''] before:bg-easing-l-menu-top after:pointer-events-none after:absolute after:-right-1 after:z-10 after:h-full after:w-6 after:content-[''] after:bg-easing-r-menu-top"
+          className="scrollbar-hide -mx-1 flex h-48 flex-shrink-0 cursor-grab items-center gap-3 overflow-x-auto px-12 before:pointer-events-none before:absolute before:-left-1 before:z-10 before:h-full before:w-6 before:content-[''] before:bg-easing-l-menu-top after:pointer-events-none after:absolute after:-right-1 after:z-10 after:h-full after:w-6 after:content-[''] after:bg-easing-r-menu-top first:pl-12 last:pr-12"
           // scroll-smooth
           {...events}
           ref={draggableRef}
@@ -248,7 +269,7 @@ function Menu() {
         >
           <motion.button
             ref={prevButtonRef}
-            className="pointer-events-auto rounded-full bg-zinc-800/70 p-1 backdrop-blur transition-colors hover:bg-zinc-700/70 focus-visible:bg-zinc-700/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:bg-zinc-700/70 aria-pressed:bg-zinc-700/70"
+            className="pointer-events-auto rounded-full bg-zinc-800/70 p-1 backdrop-blur transition-colors hover:bg-zinc-700/70 focus-visible:bg-zinc-700/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:bg-zinc-600/70 aria-pressed:bg-zinc-600/70"
             onClick={() => handleNavigate('prev')}
             animate={prevButtonAnimation}
             initial={{ scale: 1 }}
@@ -268,7 +289,7 @@ function Menu() {
         >
           <motion.button
             ref={nextButtonRef}
-            className="pointer-events-auto rounded-full bg-zinc-800/70 p-1 backdrop-blur transition-colors hover:bg-zinc-700/70 focus-visible:bg-zinc-700/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:bg-zinc-700/70 aria-pressed:bg-zinc-700/70"
+            className="pointer-events-auto rounded-full bg-zinc-800/70 p-1 backdrop-blur transition-colors hover:bg-zinc-700/70 focus-visible:bg-zinc-700/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:bg-zinc-600/70 aria-pressed:bg-zinc-600/70"
             onClick={() => handleNavigate('next')}
             initial={{ scale: 1 }}
             whileHover={{ scale: 1.1 }}
@@ -294,9 +315,9 @@ function Menu() {
                 <motion.p
                   key={activeBackground.name + '-' + tag}
                   className="select-none rounded-md border border-zinc-800/80 bg-zinc-700/80 px-2 py-1 font-medium text-zinc-100 backdrop-blur will-change-transform"
-                  initial={{ opacity: 0, transform: 'translateY(-8px)' }}
+                  initial={{ opacity: 0, transform: 'translateY(-4px)' }}
                   animate={{ opacity: 1, transform: 'translateY(0px)' }}
-                  exit={{ opacity: 0, transform: 'translateY(-8px)' }}
+                  exit={{ opacity: 0, transform: 'translateY(-4px)' }}
                   transition={{ duration: 0.15, ease: 'easeInOut' }}
                 >
                   {tag}
@@ -309,7 +330,7 @@ function Menu() {
           <div className="absolute right-0 top-0 z-10 p-3">
             <MotionLink
               to="/settings"
-              className="block rounded-full border-2 border-zinc-800/80 bg-zinc-700/80 text-zinc-100 ring-zinc-100 backdrop-blur transition-[border-color,box-shadow] hover:border-zinc-100 focus-visible:border-zinc-100 focus-visible:outline-none focus-visible:ring-1 active:border-zinc-100 disabled:pointer-events-none"
+              className="block rounded-full border-2 border-zinc-800/80 bg-zinc-700/80 text-zinc-100 ring-zinc-100 backdrop-blur transition-[border-color,box-shadow] hover:border-zinc-100 focus-visible:border-zinc-100 focus-visible:outline-none focus-visible:ring-1 active:border-zinc-100"
               variants={{
                 initial: { scale: 1 },
                 whileHover: { scale: 1.05 },
@@ -338,20 +359,23 @@ function Menu() {
             </MotionLink>
           </div>
         )}
-        <img
-          alt="Selected Wallpaper"
-          className="z-0 h-full w-full rounded-lg object-cover shadow-lg"
-          src={
-            activeBackground
-              ? `/backgrounds/${activeBackground.image}`
-              : placeholder
-          }
-          onError={onImageError}
-          onDragStart={(e) => e.preventDefault()}
-        />
-        <div className="absolute bottom-0 z-10 flex w-full items-center gap-5 rounded-b-lg bg-zinc-950/50 p-4 pt-0 before:absolute before:-top-8 before:left-0 before:h-8 before:w-full before:content-[''] before:bg-easing-b-menu-bottom">
-          <AnimatePresence mode="wait" initial={false}>
-            {activeBackground !== undefined && (
+        {activeBackground && (
+          <img
+            alt="Selected Wallpaper"
+            className="z-0 h-full w-full rounded-lg object-cover shadow-lg"
+            src={`/backgrounds/${activeBackground.image}`}
+            onError={onImageError}
+            onDragStart={(e) => e.preventDefault()}
+          />
+        )}
+        {activeBackground && (
+          <motion.div
+            className="absolute bottom-0 z-10 flex w-full items-center gap-5 rounded-b-lg bg-zinc-950/50 p-4 pt-0 before:absolute before:-top-8 before:left-0 before:h-8 before:w-full before:content-[''] before:bg-easing-b-menu-bottom"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.15, ease: 'easeInOut' }}
+          >
+            <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={`${activeBackground.id}-description`}
                 className="mr-auto flex select-none flex-col"
@@ -362,57 +386,59 @@ function Menu() {
                 <h1 className="text-2xl font-bold">{activeBackground.name}</h1>
                 <p className="text-lg">{activeBackground.description}</p>
               </motion.div>
-            )}
-          </AnimatePresence>
-          {(config.background.is_outdated ||
-            config.background.current !== null) && (
-            <button
-              className={clsx(
-                'relative h-14 w-48 select-none text-center text-lg font-medium uppercase tracking-wider transition-[color,transform] will-change-transform hover:text-zinc-300 focus-visible:text-zinc-300 focus-visible:outline-none active:scale-95 disabled:pointer-events-none',
-                resetStatus === 'idle' &&
-                  'underline-fade-in after:bottom-4 after:left-3 after:right-3 after:w-[calc(100%-1.5rem)] after:bg-zinc-300'
-              )}
-              onClick={() => {
-                if (resetStatus === 'pending') return
-                resetBackground()
-              }}
-              disabled={resetStatus !== 'idle'}
-            >
-              <AnimatePresence mode="wait">
-                {resetStatus === 'pending' || resetStatus === 'success' ? (
-                  <motion.span
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                    key="pending"
-                  >
-                    <LoaderPinwheel className="mx-auto animate-spin" />
-                  </motion.span>
-                ) : (
-                  <motion.span
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                    key="idle"
-                  >
-                    Reset to Default
-                  </motion.span>
+            </AnimatePresence>
+
+            {(config.background.is_outdated ||
+              config.background.current !== null) && (
+              <button
+                className={clsx(
+                  'relative h-14 w-48 select-none text-center text-lg font-medium uppercase tracking-wider transition-[color,transform] will-change-transform hover:text-zinc-300 focus-visible:text-zinc-300 focus-visible:outline-none active:scale-95 disabled:pointer-events-none',
+                  resetStatus === 'idle' &&
+                    'underline-fade-in after:bottom-4 after:left-3 after:right-3 after:w-[calc(100%-1.5rem)] after:bg-zinc-300'
                 )}
-              </AnimatePresence>
-            </button>
-          )}
-          {/* <button className="group rounded-full border-2 border-orange-900/50 bg-orange-950 p-3.5 text-orange-100 shadow-md ring-white transition-[border-color,transform,fill] will-change-transform hover:scale-105 hover:border-white focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 active:scale-95 active:border-orange-200 active:ring-orange-200">
+                onClick={() => resetBackground()}
+                disabled={resetStatus !== 'idle'}
+              >
+                <AnimatePresence mode="wait">
+                  {resetStatus === 'pending' || resetStatus === 'success' ? (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      key="pending"
+                    >
+                      <LoaderPinwheel className="mx-auto animate-spin" />
+                    </motion.span>
+                  ) : (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      key="idle"
+                    >
+                      Reset to Default
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </button>
+            )}
+            {/* <button className="group rounded-full border-2 border-orange-900/50 bg-orange-950 p-3.5 text-orange-100 shadow-md ring-white transition-[border-color,transform,fill] will-change-transform hover:scale-105 hover:border-white focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 active:scale-95 active:border-orange-200 active:ring-orange-200">
             <HeartIcon
               size={24}
               className="fill-transparent transition-colors group-hover:fill-current group-focus-visible:fill-current group-active:fill-orange-200 group-active:stroke-orange-200"
             />
           </button> */}
-          {activeBackground !== undefined && (
             <button
-              className="h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-white transition-[border-color,transform,border-radius,box-shadow] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-orange-50 focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:pointer-events-none"
-              onClick={() => setBackground({ id: activeBackground.id })}
+              className={clsx(
+                'h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-white transition-[border-color,transform,border-radius,box-shadow] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-orange-50 focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:pointer-events-none',
+                setStatus === 'pending' && 'cursor-wait'
+              )}
+              onClick={() => {
+                if (setStatus === 'pending') return
+                setBackground({ id: activeBackground.id })
+              }}
               disabled={
                 config.background.current === activeBackground.id ||
                 setStatus === 'success'
@@ -460,8 +486,8 @@ function Menu() {
                 )}
               </AnimatePresence>
             </button>
-          )}
-        </div>
+          </motion.div>
+        )}
       </motion.div>
     </motion.div>
   )

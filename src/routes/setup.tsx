@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 
 import { fadeInVariants } from '@/lib/animations'
 import { launchQueryOptions } from '@/lib/data'
-import { isDev } from '@/lib/dev'
 
 export const Route = createFileRoute('/setup')({
   beforeLoad: async ({ context: { queryClient } }) => {
@@ -21,12 +20,12 @@ export const Route = createFileRoute('/setup')({
   component: Setup
 })
 
-const mode = isDev() ? 'dev' : 'release'
+const mode = 'release' // isDev() ? 'dev' : 'release'
 
 function Setup() {
   return (
     <motion.div
-      className="relative mx-auto h-full w-full max-w-xl pb-8"
+      className="relative h-full w-full pb-8"
       variants={fadeInVariants}
       initial="hidden"
       animate="show"
