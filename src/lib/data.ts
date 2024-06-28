@@ -12,6 +12,7 @@ import {
   handleError
 } from '@/lib/errors'
 import {
+  Background,
   BackgroundArray,
   LaunchConfig,
   Settings,
@@ -173,9 +174,7 @@ export const steamQueryOptions = queryOptions({
     if (!accounts.success) {
       throw new Error(`Failed to get Steam accounts. ${accounts.error.message}`)
     }
-
-    console.log(accounts.data)
-    return accounts.data as SteamProfile[]
+    return accounts.data satisfies SteamProfile[]
   }
 })
 
@@ -224,6 +223,40 @@ export const backgroundsQueryOptions = queryOptions({
     return backgrounds.data
   }
 })
+
+export const activeBackgroundQueryOptions = queryOptions({
+  queryKey: ['active_background'],
+  queryFn: async () => {
+    await queryClient.ensureQueryData(backgroundsQueryOptions)
+    await queryClient.ensureQueryData(launchQueryOptions)
+
+    const backgrounds = queryClient.getQueryData(
+      backgroundsQueryOptions.queryKey
+    )!
+    const defaultBackground = backgrounds[0]
+    const current = queryClient.getQueryData(launchQueryOptions.queryKey)!
+      .background.current
+    if (current !== null) {
+      const index = backgrounds.findIndex((bg) => bg.id === current)
+      if (index === -1) return defaultBackground
+      return backgrounds[index]
+    }
+
+    return defaultBackground
+  },
+  staleTime: Infinity
+})
+
+export const useActiveBackgroundMutation = () =>
+  useMutation({
+    mutationFn: async (background: Background) => {
+      queryClient.setQueryData(
+        activeBackgroundQueryOptions.queryKey,
+        background
+      )
+      return
+    }
+  })
 
 export const useBackgroundMutation = ({
   onError

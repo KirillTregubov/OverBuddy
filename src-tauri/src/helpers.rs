@@ -167,6 +167,29 @@ pub fn get_file_name_from_path(path: &str) -> Option<&str> {
     Path::new(path).file_name().and_then(|name| name.to_str())
 }
 
+// Background helpers
+
+// Update launch arguments
+pub fn get_launch_args(launch_args: Option<&str>, id: &str) -> String {
+    let new_arg = format!("--lobbyMap={}", id);
+    match launch_args {
+        Some(arguments) => {
+            let filtered_args = arguments
+                .split_whitespace()
+                .filter(|&part| !part.starts_with("--lobbyMap"))
+                .collect::<Vec<&str>>()
+                .join(" ");
+
+            if !filtered_args.is_empty() {
+                format!("{} {}", filtered_args, new_arg)
+            } else {
+                new_arg
+            }
+        }
+        None => new_arg,
+    }
+}
+
 // Battle.net helpers
 
 pub fn close_battle_net() -> bool {
@@ -426,8 +449,11 @@ fn extract_name_history(object_str: &str) -> Option<String> {
 // TODO: refactor
 const TEMPLATE: &str = "--lobbyMap=0x0800000000001197";
 
-pub fn set_steam_launch_options(contents: &str, config_file: &str) -> Result<String, Error> {
-    let mut new_contents = contents.to_string();
+pub fn set_steam_launch_options(
+    local_config: &str,
+    config_filename: &str,
+) -> Result<String, Error> {
+    let mut new_contents = local_config.to_string();
 
     if let Some(user_start) = new_contents.find("\"UserLocalConfigStore\"") {
         let software_pos = new_contents[user_start..].find("\"Software\"");
@@ -479,13 +505,13 @@ pub fn set_steam_launch_options(contents: &str, config_file: &str) -> Result<Str
             new_contents.replace_range(value_start..value_start + value_end, TEMPLATE);
         }
 
-        let backup_path = format!("{}.backup", config_file);
+        let backup_path = format!("{}.backup", config_filename);
         match fs::File::create(&backup_path) {
             Ok(_) => {}
             Err(_) => {
                 return Err(Error::Custom(format!(
                     "Failed to create backup of [[{}]]",
-                    get_file_name_from_path(&config_file).unwrap_or("unknown")
+                    get_file_name_from_path(&config_filename).unwrap_or("unknown")
                 )));
             }
         }

@@ -33,7 +33,6 @@ function SteamSetup() {
   const { data: profiles } = useSuspenseQuery(steamQueryOptions)
   const { mutate, status } = useSteamConfirmMutation({
     onSuccess: () => {
-      console.log('navigate')
       navigate({
         to: '/menu',
         replace: true

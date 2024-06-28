@@ -614,26 +614,10 @@ fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
             }
         };
 
-        // Update launch arguments
         let launch_args = json["Games"]["prometheus"]["AdditionalLaunchArguments"].as_str();
-        let new_arg = format!("--lobbyMap={}", id);
-        let launch_args: String = match launch_args {
-            Some(arguments) => {
-                let filtered_args = arguments
-                    .split_whitespace()
-                    .filter(|&part| !part.starts_with("--lobbyMap"))
-                    .collect::<Vec<&str>>()
-                    .join(" ");
+        let new_launch_args = helpers::get_launch_args(launch_args, id);
 
-                if !filtered_args.is_empty() {
-                    format!("{} {}", filtered_args, new_arg)
-                } else {
-                    new_arg
-                }
-            }
-            None => new_arg,
-        };
-        json["Games"]["prometheus"]["AdditionalLaunchArguments"] = json!(launch_args);
+        json["Games"]["prometheus"]["AdditionalLaunchArguments"] = json!(new_launch_args);
         helpers::safe_json_write(battle_net_config, &json)?;
     }
     battle_net_cleanup();
@@ -670,8 +654,8 @@ fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
                     )));
                 }
             };
-            let mut contents = String::new();
-            match file.read_to_string(&mut contents) {
+            let mut local_config = String::new();
+            match file.read_to_string(&mut local_config) {
                 Ok(_) => {}
                 Err(_) => {
                     steam_cleanup();
@@ -684,7 +668,8 @@ fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
 
             println!("here {}", steam_config.id);
             if steam_config.id == "332752569" {
-                let val = helpers::set_steam_launch_options(&contents, steam_config.file.as_str())?;
+                let val =
+                    helpers::set_steam_launch_options(&local_config, steam_config.file.as_str())?;
                 println!("aaa {}", val);
             }
         }

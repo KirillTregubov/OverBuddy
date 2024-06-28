@@ -148,7 +148,7 @@ const BACKGROUNDS: &[Background] = &[
         image: "zero_hour_owl.jpg",
         name: "Overwatch League Zero Hour",
         description: "Overwatch League Promo (Season 4)",
-        tags: &["Esports"],
+        tags: &["Overwatch League"],
     },
     // Background {
     //     id: "0x0800000000001133",
@@ -211,7 +211,7 @@ const BACKGROUNDS: &[Background] = &[
         image: "overwatch_world_cup.jpg",
         name: "Overwatch World Cup",
         description: "Overwatch World Cup 2023 (Season 7)",
-        tags: &["Esports"],
+        tags: &["World Cup"],
     },
     // Background {
     //     id: "0x0800000000001173",

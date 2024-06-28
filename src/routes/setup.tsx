@@ -13,7 +13,6 @@ export const Route = createFileRoute('/setup')({
       })
 
     if (is_setup && (!steam.enabled || steam.setup)) {
-      console.log('redirected with', steam)
       throw redirect({ to: '/menu' })
     }
   },
