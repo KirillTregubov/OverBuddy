@@ -85,44 +85,53 @@ function Menu() {
   const settingsButtonRef = useRef<HTMLLinkElement>(null)
   const settingsButtonAnimation = useAnimation()
 
-  // useKeyPress({
-  //   keys: ['ArrowLeft', 'a'],
-  //   onPress: async (event) => {
-  //     event.preventDefault()
-  //     event.stopPropagation()
-  //     if (!prevButtonRef.current) return
+  const onLeftPress = useCallback(
+    async (event: KeyboardEvent) => {
+      event.preventDefault()
+      event.stopPropagation()
+      if (!prevButtonRef.current) return
 
-  //     prevButtonRef.current?.blur()
-  //     prevButtonRef.current.ariaPressed = 'true'
-  //     await prevButtonAnimation.start(buttonTapAnimation)
-  //     prevButtonRef.current?.click()
-  //     prevButtonRef.current?.focus()
-  //     prevButtonRef.current?.blur()
-  //     prevButtonRef.current.ariaPressed = 'false'
-  //     await prevButtonAnimation.start({ scale: 1 })
-  //   },
-  //   debounce: 150,
-  //   capture: true
-  // })
-  // useKeyPress({
-  //   keys: ['ArrowRight', 'd'],
-  //   onPress: async (event) => {
-  //     event.preventDefault()
-  //     event.stopPropagation()
-  //     if (!nextButtonRef.current) return
+      prevButtonRef.current?.blur()
+      prevButtonRef.current.ariaPressed = 'true'
+      await prevButtonAnimation.start(buttonTapAnimation)
+      prevButtonRef.current?.click()
+      prevButtonRef.current?.focus()
+      prevButtonRef.current?.blur()
+      prevButtonRef.current.ariaPressed = 'false'
+      await prevButtonAnimation.start({ scale: 1 })
+    },
+    [prevButtonRef, prevButtonAnimation]
+  )
+  useKeyPress({
+    keys: ['ArrowLeft', 'a'],
+    onPress: onLeftPress,
+    debounce: 200,
+    capture: true
+  })
 
-  //     nextButtonRef.current?.blur()
-  //     nextButtonRef.current.ariaPressed = 'true'
-  //     await nextButtonAnimation.start(buttonTapAnimation)
-  //     nextButtonRef.current?.click()
-  //     nextButtonRef.current?.focus()
-  //     nextButtonRef.current?.blur()
-  //     nextButtonRef.current.ariaPressed = 'false'
-  //     await nextButtonAnimation.start({ scale: 1 })
-  //   },
-  //   debounce: 150,
-  //   capture: true
-  // })
+  const onRightPress = useCallback(
+    async (event: KeyboardEvent) => {
+      event.preventDefault()
+      event.stopPropagation()
+      if (!nextButtonRef.current) return
+
+      nextButtonRef.current?.blur()
+      nextButtonRef.current.ariaPressed = 'true'
+      await nextButtonAnimation.start(buttonTapAnimation)
+      nextButtonRef.current?.click()
+      nextButtonRef.current?.focus()
+      nextButtonRef.current?.blur()
+      nextButtonRef.current.ariaPressed = 'false'
+      await nextButtonAnimation.start({ scale: 1 })
+    },
+    [nextButtonRef, nextButtonAnimation]
+  )
+  useKeyPress({
+    keys: ['ArrowRight', 'd'],
+    onPress: onRightPress,
+    debounce: 200,
+    capture: true
+  })
 
   const onEscapePress = useCallback(
     async (event: KeyboardEvent) => {
