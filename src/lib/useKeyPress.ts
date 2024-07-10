@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MutableRefObject
+} from 'react'
 
 type Key =
   | { key: string; keys?: undefined }
@@ -9,6 +15,7 @@ type useKeyPressProps = {
   onPressEnd?: (event: KeyboardEvent) => void
   debounce?: number
   capture?: boolean
+  sharedTimer?: MutableRefObject<number>
 } & Key
 
 export default function useKeyPress({
@@ -17,7 +24,8 @@ export default function useKeyPress({
   onPress,
   onPressEnd,
   debounce = 0,
-  capture = false
+  capture = false,
+  sharedTimer = undefined
 }: useKeyPressProps) {
   const lastPressTimeRef = useRef<number>(0)
   const lastReleaseTimeRef = useRef<number>(0)
@@ -33,48 +41,44 @@ export default function useKeyPress({
 
   const handleKeyPress = useCallback(
     (event: KeyboardEvent) => {
+      if (event.repeat) return
       const currentTime = Date.now()
-      if (currentTime - lastPressTimeRef.current < debounce) {
+      if (!!sharedTimer && currentTime - sharedTimer.current < debounce) return
+      else if (currentTime - lastPressTimeRef.current < debounce) return
+
+      if (key !== undefined && event.key !== key) {
+        return
+      } else if (keys !== undefined && !keys.includes(event.key)) {
         return
       }
-      if (event.repeat) return
-      lastPressTimeRef.current = currentTime
 
-      if (key !== undefined) {
-        if (event.key === key) {
-          setPressed(true)
-          onPress?.(event)
-        }
-      } else if (keys !== undefined) {
-        if (keys.includes(event.key)) {
-          setPressed(true)
-          onPress?.(event)
-        }
+      lastPressTimeRef.current = currentTime
+      if (!!sharedTimer) {
+        sharedTimer.current = currentTime
       }
+      setPressed(true)
+      onPress?.(event)
     },
     [key, keys, onPress, debounce]
   )
 
   const handleKeyRelease = useCallback(
     (event: KeyboardEvent) => {
+      if (event.repeat) return
       const currentTime = Date.now()
       if (currentTime - lastReleaseTimeRef.current < debounce) {
         return
       }
-      if (event.repeat) return
-      lastReleaseTimeRef.current = currentTime
 
-      if (key !== undefined) {
-        if (event.key === key) {
-          setPressed(false)
-          onPressEnd?.(event)
-        }
-      } else if (keys !== undefined) {
-        if (keys.includes(event.key)) {
-          setPressed(false)
-          onPressEnd?.(event)
-        }
+      if (key !== undefined && event.key !== key) {
+        return
+      } else if (keys !== undefined && !keys.includes(event.key)) {
+        return
       }
+
+      lastReleaseTimeRef.current = currentTime
+      setPressed(false)
+      onPressEnd?.(event)
     },
     [key, keys, onPressEnd, debounce]
   )

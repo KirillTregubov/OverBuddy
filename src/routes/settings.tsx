@@ -33,14 +33,14 @@ export const Route = createFileRoute('/settings')({
 })
 
 function Settings() {
-  const { data } = useSuspenseQuery(settingsQueryOptions)
   const router = useRouter()
+  const { data } = useSuspenseQuery(settingsQueryOptions)
+  const { mutate } = useUpdateMutation()
+  const scrollContainer = useRef<HTMLDivElement>(null)
 
   const onEscapePress = useCallback(
     async (event: KeyboardEvent) => {
       event.preventDefault()
-      // event.stopPropagation()
-
       await new Promise((resolve) => setTimeout(resolve, 100))
       router.navigate({
         to: '/menu',
@@ -49,13 +49,10 @@ function Settings() {
     },
     [router]
   )
-
   const { pressed } = useKeyPress({
     key: 'Escape',
     onPress: onEscapePress
   })
-  const { mutate } = useUpdateMutation()
-  const scrollContainer = useRef<HTMLDivElement>(null)
 
   return (
     <motion.div

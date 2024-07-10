@@ -85,10 +85,10 @@ function Menu() {
   const settingsButtonRef = useRef<HTMLLinkElement>(null)
   const settingsButtonAnimation = useAnimation()
 
+  const sharedTimerRef = useRef<number>(0)
   const onLeftPress = useCallback(
     async (event: KeyboardEvent) => {
       event.preventDefault()
-      event.stopPropagation()
       if (!prevButtonRef.current) return
 
       prevButtonRef.current?.blur()
@@ -105,14 +105,14 @@ function Menu() {
   useKeyPress({
     keys: ['ArrowLeft', 'a'],
     onPress: onLeftPress,
-    debounce: 200,
+    debounce: 100,
+    sharedTimer: sharedTimerRef,
     capture: true
   })
 
   const onRightPress = useCallback(
     async (event: KeyboardEvent) => {
       event.preventDefault()
-      event.stopPropagation()
       if (!nextButtonRef.current) return
 
       nextButtonRef.current?.blur()
@@ -129,7 +129,8 @@ function Menu() {
   useKeyPress({
     keys: ['ArrowRight', 'd'],
     onPress: onRightPress,
-    debounce: 200,
+    debounce: 100,
+    sharedTimer: sharedTimerRef,
     capture: true
   })
 
@@ -228,7 +229,7 @@ function Menu() {
               key={background.id}
               onClick={() => handleSelect(index)}
               className={clsx(
-                'aspect-video w-fit shadow-lg ring-offset-transparent transition-[width,height,box-shadow] will-change-transform focus:outline-none',
+                'aspect-video w-fit select-none shadow-lg ring-offset-transparent transition-[width,height,box-shadow,filter] will-change-transform [backface-visibility:hidden] focus:outline-none',
                 activeBackground?.id === background.id
                   ? 'highlight h-36 rounded-xl shadow-orange-600/15'
                   : 'highlight-base h-28 rounded-lg shadow-orange-600/10 hover:shadow-orange-600/15'
@@ -261,12 +262,10 @@ function Menu() {
                 src={`/backgrounds/${background.image}`}
                 ref={(el) => (backgroundRefs.current[index] = el!)}
                 onError={onImageError}
-                // draggable={false}
-                // onDragStart={(e) => e.preventDefault()}
               />
               <div
                 className={clsx(
-                  'pointer-events-none absolute bottom-0 left-0 right-0 transform-gpu select-none truncate text-ellipsis bg-gradient-to-t from-zinc-950/50 to-transparent p-1 text-center font-bold text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] transition-[font-size,border-radius] will-change-transform',
+                  'pointer-events-none absolute bottom-0 left-0 right-0 select-none truncate text-ellipsis bg-gradient-to-t from-zinc-950/50 to-transparent p-1 text-center font-bold text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] transition-[font-size,border-radius]',
                   activeBackground?.id === background.id
                     ? 'rounded-b-xl text-sm'
                     : 'rounded-b-lg py-1.5 text-xs'
@@ -319,7 +318,7 @@ function Menu() {
         </motion.div>
       </div>
       <motion.div
-        className="relative flex h-full min-h-0 w-full flex-1 justify-center"
+        className="relative flex h-full min-h-0 w-full flex-1 select-none justify-center"
         initial={{ transform: 'scale(.95)' }}
         whileInView={{ transform: 'scale(1)' }}
         transition={{ duration: 0.3 }}
@@ -329,24 +328,22 @@ function Menu() {
             className="absolute left-0 top-0 z-10 flex h-fit w-fit gap-2 p-3 text-sm"
             key={activeBackground.id}
           >
-            <AnimatePresence mode="wait" initial={false}>
-              {activeBackground.tags.map((tag) => (
-                <motion.p
-                  key={
-                    activeBackground.tags.join('-') +
-                    activeBackground.name +
-                    tag
-                  }
-                  className="select-none rounded-md border border-zinc-800/80 bg-zinc-700/80 px-2 py-1 font-medium text-zinc-100 backdrop-blur will-change-transform"
-                  initial={{ opacity: 0, transform: 'translateY(-4px)' }}
-                  animate={{ opacity: 1, transform: 'translateY(0px)' }}
-                  exit={{ opacity: 0, transform: 'translateY(-4px)' }}
-                  transition={{ duration: 0.15, ease: 'easeInOut' }}
-                >
-                  {tag}
-                </motion.p>
-              ))}
-            </AnimatePresence>
+            {activeBackground.tags.map((tag) => (
+              <motion.p
+                key={tag}
+                className="select-none rounded-md border border-zinc-800/80 bg-zinc-700/80 px-2 py-1 font-medium text-zinc-100 backdrop-blur"
+                initial={{ opacity: 0, transform: 'translateY(-4px)' }}
+                animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                exit={{ opacity: 0, transform: 'translateY(-4px)' }}
+                transition={{
+                  duration: 0.15,
+                  ease: 'easeInOut',
+                  transform: { duration: 0.25 }
+                }}
+              >
+                {tag}
+              </motion.p>
+            ))}
           </div>
         )}
         {/* NOTE: hideme if required */}
