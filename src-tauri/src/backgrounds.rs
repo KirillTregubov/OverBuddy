@@ -293,6 +293,13 @@ const BACKGROUNDS: &[Background] = &[
         description: "Breast Cancer Charity Event (Season 11)",
         tags: &["Collaboration"],
     },
+    Background {
+        id: "0x0800000000001243",
+        image: "transformers.jpg",
+        name: "Optimus Prime Reinhardt",
+        description: "Transformers Event (Season 11)",
+        tags: &["Art"],
+    },
 ];
 
 pub fn get_backgrounds() -> &'static [Background] {

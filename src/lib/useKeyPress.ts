@@ -8,21 +8,28 @@ type useKeyPressProps = {
   onPress: (event: KeyboardEvent) => void
   onPressEnd?: (event: KeyboardEvent) => void
   debounce?: number
-  mode?: 'keydown' | 'keyup'
   capture?: boolean
 } & Key
 
 export default function useKeyPress({
   key = undefined,
   keys = undefined,
-  mode = 'keydown',
   onPress,
   onPressEnd,
   debounce = 0,
   capture = false
 }: useKeyPressProps) {
   const lastPressTimeRef = useRef<number>(0)
+  const lastReleaseTimeRef = useRef<number>(0)
   const [pressed, setPressed] = useState(false)
+  const preventDefault = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === key || keys?.includes(event.key)) {
+        event.preventDefault()
+      }
+    },
+    [key, keys]
+  )
 
   const handleKeyPress = useCallback(
     (event: KeyboardEvent) => {
@@ -36,45 +43,40 @@ export default function useKeyPress({
       if (key !== undefined) {
         if (event.key === key) {
           setPressed(true)
-          if (mode === 'keydown') onPress(event)
+          onPress?.(event)
         }
       } else if (keys !== undefined) {
         if (keys.includes(event.key)) {
           setPressed(true)
-          if (mode === 'keydown') onPress(event)
+          onPress?.(event)
         }
       }
     },
-    [key, keys, mode, onPress, debounce]
+    [key, keys, onPress, debounce]
   )
 
   const handleKeyRelease = useCallback(
     (event: KeyboardEvent) => {
+      const currentTime = Date.now()
+      if (currentTime - lastReleaseTimeRef.current < debounce) {
+        return
+      }
       if (event.repeat) return
+      lastReleaseTimeRef.current = currentTime
+
       if (key !== undefined) {
         if (event.key === key) {
           setPressed(false)
-          if (mode === 'keyup') onPress(event)
-          if (onPressEnd) onPressEnd(event)
+          onPressEnd?.(event)
         }
       } else if (keys !== undefined) {
         if (keys.includes(event.key)) {
           setPressed(false)
-          if (mode === 'keyup') onPress(event)
-          if (onPressEnd) onPressEnd(event)
+          onPressEnd?.(event)
         }
       }
     },
-    [key, keys, mode, onPress, onPressEnd]
-  )
-
-  const preventDefault = useCallback(
-    (event: KeyboardEvent) => {
-      if (event.key === key || keys?.includes(event.key)) {
-        event.preventDefault()
-      }
-    },
-    [key, keys]
+    [key, keys, onPressEnd, debounce]
   )
 
   useEffect(() => {
@@ -86,8 +88,8 @@ export default function useKeyPress({
     }
 
     return () => {
-      document.removeEventListener('keydown', handleKeyPress)
-      document.removeEventListener('keyup', handleKeyRelease)
+      document.removeEventListener('keydown', handleKeyPress, { capture: true })
+      document.removeEventListener('keyup', handleKeyRelease, { capture: true })
 
       if (capture) {
         document.body.removeEventListener('keydown', preventDefault)
