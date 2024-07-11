@@ -65,16 +65,16 @@ function Settings() {
         <motion.div variants={moveInLessVariants} className="-ml-2">
           <button
             onClick={() => router.navigate({ to: '/menu', replace: true })}
-            className="group flex items-center gap-0.5 rounded-full px-1.5 font-medium text-zinc-400 transition-[box-shadow,color,background-color,border-color,transform] will-change-transform hover:text-zinc-50 focus-visible:text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95"
+            className="group flex items-center gap-0.5 rounded-full px-1.5 font-medium text-zinc-400 transition-[box-shadow,color,background-color,border-color,transform] duration-100 will-change-transform hover:text-zinc-50 focus-visible:text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95"
           >
             <XIcon size={20} />
             Close
             <span
               className={clsx(
-                'm-0.5 ml-2 rounded border px-2.5 pb-px transition-[background-color,border-color,transform] duration-150 will-change-transform',
+                'm-0.5 ml-2 rounded border px-2.5 pb-px transition-[background-color,border-color,transform,box-shadow] duration-150 will-change-transform',
                 pressed
-                  ? 'scale-95 border-zinc-400 bg-zinc-200 text-zinc-700'
-                  : 'border-zinc-700 bg-zinc-800'
+                  ? 'translate-y-0.5 scale-95 border-zinc-400 bg-zinc-200 text-zinc-700 shadow-[0_0_0_1px_var(--tw-shadow-color)] shadow-zinc-400/60'
+                  : 'border-zinc-700 bg-zinc-800 shadow-[0_0.125rem_0_1px_var(--tw-shadow-color)] shadow-zinc-700/60'
               )}
             >
               Esc

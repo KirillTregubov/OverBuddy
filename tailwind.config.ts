@@ -26,7 +26,7 @@ export default {
           color: ['transparent', 'rgb(24, 24, 27)']
         },
         settings: {
-          color: ['rgba(63, 63, 70, 0)', 'rgba(63, 63, 70, 1)'] // 'red'
+          color: ['rgba(63, 63, 70, 0)', 'rgba(63, 63, 70, 1)']
         }
       },
       easing: 'ease-in-out'

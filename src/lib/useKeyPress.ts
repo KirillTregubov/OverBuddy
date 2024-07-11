@@ -16,6 +16,7 @@ type useKeyPressProps = {
   debounce?: number
   capture?: boolean
   sharedTimer?: MutableRefObject<number>
+  avoidModifiers?: boolean
 } & Key
 
 export default function useKeyPress({
@@ -25,7 +26,8 @@ export default function useKeyPress({
   onPressEnd,
   debounce = 0,
   capture = false,
-  sharedTimer = undefined
+  sharedTimer = undefined,
+  avoidModifiers = false
 }: useKeyPressProps) {
   const lastPressTimeRef = useRef<number>(0)
   const lastReleaseTimeRef = useRef<number>(0)
@@ -33,10 +35,15 @@ export default function useKeyPress({
   const preventDefault = useCallback(
     (event: KeyboardEvent) => {
       if (event.key === key || keys?.includes(event.key)) {
+        if (
+          avoidModifiers &&
+          (event.ctrlKey || event.altKey || event.shiftKey || event.metaKey)
+        )
+          return
         event.preventDefault()
       }
     },
-    [key, keys]
+    [key, keys, avoidModifiers]
   )
 
   const handleKeyPress = useCallback(
@@ -51,15 +58,20 @@ export default function useKeyPress({
       } else if (keys !== undefined && !keys.includes(event.key)) {
         return
       }
+      if (
+        avoidModifiers &&
+        (event.ctrlKey || event.altKey || event.shiftKey || event.metaKey)
+      )
+        return
 
       lastPressTimeRef.current = currentTime
-      if (!!sharedTimer) {
+      if (sharedTimer) {
         sharedTimer.current = currentTime
       }
       setPressed(true)
       onPress?.(event)
     },
-    [key, keys, onPress, debounce]
+    [key, keys, avoidModifiers, debounce, onPress, sharedTimer]
   )
 
   const handleKeyRelease = useCallback(
@@ -84,7 +96,7 @@ export default function useKeyPress({
   )
 
   useEffect(() => {
-    document.addEventListener('keydown', handleKeyPress, { capture: true })
+    document.addEventListener('keydown', handleKeyPress)
     document.addEventListener('keyup', handleKeyRelease, { capture: true })
     if (capture) {
       document.body.addEventListener('keydown', preventDefault)

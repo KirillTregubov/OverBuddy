@@ -26,7 +26,7 @@ import {
 import useKeyPress from '@/lib/useKeyPress'
 
 const buttonTapAnimation = {
-  scale: 0.95
+  scale: 0.9
 }
 
 export const Route = createFileRoute('/menu')({
@@ -72,7 +72,7 @@ function Menu() {
     onSuccess: () => resetSetBackground(),
     onSettled: () => reset()
   })
-  const backgroundRefs = useRef<HTMLImageElement[]>([])
+  const backgroundRefs = useRef<HTMLButtonElement[]>([])
   const { data: activeBackground } = useSuspenseQuery(
     activeBackgroundQueryOptions
   )
@@ -107,6 +107,7 @@ function Menu() {
     onPress: onLeftPress,
     debounce: 100,
     sharedTimer: sharedTimerRef,
+    avoidModifiers: true,
     capture: true
   })
 
@@ -131,6 +132,7 @@ function Menu() {
     onPress: onRightPress,
     debounce: 100,
     sharedTimer: sharedTimerRef,
+    avoidModifiers: true,
     capture: true
   })
 
@@ -192,6 +194,7 @@ function Menu() {
       behavior: 'smooth',
       inline: 'center'
     })
+    ref.focus()
   }, [activeBackground, backgrounds])
 
   const handleNavigate = useCallback(
@@ -228,8 +231,9 @@ function Menu() {
             <motion.button
               key={background.id}
               onClick={() => handleSelect(index)}
+              aria-label={`${background.name} Background`}
               className={clsx(
-                'aspect-video w-fit select-none shadow-lg ring-offset-transparent transition-[width,height,box-shadow,filter] will-change-transform [backface-visibility:hidden] focus:outline-none',
+                'aspect-video w-fit select-none shadow-lg ring-offset-transparent transition-[width,height,box-shadow,filter] focus:outline-none',
                 activeBackground?.id === background.id
                   ? 'highlight h-36 rounded-xl shadow-orange-600/15'
                   : 'highlight-base h-28 rounded-lg shadow-orange-600/10 hover:shadow-orange-600/15'
@@ -249,6 +253,7 @@ function Menu() {
               }}
               transition={{ duration: 0.3 }}
               tabIndex={-1}
+              ref={(el) => (backgroundRefs.current[index] = el!)}
             >
               <img
                 id={background.id}
@@ -260,12 +265,12 @@ function Menu() {
                     : 'rounded-lg'
                 )}
                 src={`/backgrounds/${background.image}`}
-                ref={(el) => (backgroundRefs.current[index] = el!)}
                 onError={onImageError}
+                aria-hidden
               />
               <div
                 className={clsx(
-                  'pointer-events-none absolute bottom-0 left-0 right-0 select-none truncate text-ellipsis bg-gradient-to-t from-zinc-950/50 to-transparent p-1 text-center font-bold text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] transition-[font-size,border-radius]',
+                  'pointer-events-none absolute bottom-0 left-0 right-0 select-none truncate text-ellipsis bg-gradient-to-t from-zinc-950/50 to-transparent p-1 text-center font-bold text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] transition-[font-size,border-radius] duration-200 will-change-transform',
                   activeBackground?.id === background.id
                     ? 'rounded-b-xl text-sm'
                     : 'rounded-b-lg py-1.5 text-xs'
@@ -292,6 +297,7 @@ function Menu() {
             whileFocus={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.15 }}
+            aria-label="Previous Background"
           >
             <ChevronLeft size={24} className="text-white" />
           </motion.button>
@@ -312,6 +318,7 @@ function Menu() {
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.15 }}
             animate={nextButtonAnimation}
+            aria-label="Next Background"
           >
             <ChevronRight size={24} className="text-white" />
           </motion.button>
@@ -323,87 +330,78 @@ function Menu() {
         whileInView={{ transform: 'scale(1)' }}
         transition={{ duration: 0.3 }}
       >
-        {activeBackground && (
-          <div
-            className="absolute left-0 top-0 z-10 flex h-fit w-fit gap-2 p-3 text-sm"
-            key={activeBackground.id}
-          >
-            {activeBackground.tags.map((tag) => (
-              <motion.p
-                key={tag}
-                className="select-none rounded-md border border-zinc-800/80 bg-zinc-700/80 px-2 py-1 font-medium text-zinc-100 backdrop-blur"
-                initial={{ opacity: 0, transform: 'translateY(-4px)' }}
-                animate={{ opacity: 1, transform: 'translateY(0px)' }}
-                exit={{ opacity: 0, transform: 'translateY(-4px)' }}
-                transition={{
-                  duration: 0.15,
-                  ease: 'easeInOut',
-                  transform: { duration: 0.25 }
-                }}
-              >
-                {tag}
-              </motion.p>
-            ))}
-          </div>
-        )}
-        {/* NOTE: hideme if required */}
-        <div className="absolute right-0 top-0 z-10 p-3">
-          <MotionLink
-            ref={settingsButtonRef}
-            to="/settings"
-            replace
-            className="block rounded-full border-2 border-zinc-800/80 bg-zinc-700/80 text-zinc-100 ring-zinc-100 backdrop-blur transition-colors hover:border-zinc-100 focus-visible:border-zinc-100 focus-visible:outline-none focus-visible:ring-1 active:border-zinc-100 active:bg-zinc-600/70 aria-pressed:border-zinc-100 aria-pressed:bg-zinc-600/70"
-            variants={{
-              initial: { scale: 1 },
-              whileHover: { scale: 1.05 },
-              whileFocus: { scale: 1.05 },
-              whileTap: { scale: 0.95 }
-            }}
-            initial="initial"
-            whileHover="whileHover"
-            whileFocus="whileFocus"
-            whileTap="whileTap"
-            transition={{ duration: 0.15, ease: 'easeInOut' }}
-            draggable={false}
-            animate={settingsButtonAnimation}
-          >
-            <motion.div
-              variants={{
-                initial: { rotate: 30 },
-                whileHover: { rotate: 390 },
-                whileFocus: { rotate: 390 },
-                whileTap: { rotate: 390 }
-              }}
-              transition={{ rotate: { duration: 0.75, ease: 'easeOut' } }}
+        <div className="absolute left-0 right-0 top-0 z-10 flex gap-4 p-4">
+          {activeBackground && (
+            <div
+              className="scrollbar-hide flex h-fit w-fit flex-wrap gap-2 text-sm"
+              key={activeBackground.id}
             >
-              <SettingsIcon
-                size={24}
-                className="box-content size-6 p-2"
-                aria-label="Settings"
-              />
-            </motion.div>
-          </MotionLink>
+              {activeBackground.tags.map((tag) => (
+                <motion.p
+                  key={tag}
+                  className="flex-shrink-0 rounded-md border border-zinc-800/80 bg-zinc-700/80 px-2 py-1 font-medium text-zinc-100 backdrop-blur"
+                  initial={{ opacity: 0, transform: 'translateY(-4px)' }}
+                  animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                  exit={{ opacity: 0, transform: 'translateY(-4px)' }}
+                  transition={{
+                    duration: 0.15,
+                    ease: 'easeInOut',
+                    transform: { duration: 0.25 }
+                  }}
+                  aria-label={`Selected background tagged as ${tag}`}
+                >
+                  {tag}
+                </motion.p>
+              ))}
+            </div>
+          )}
+          {/* NOTE: hideme if required */}
+          <div className="ml-auto w-fit">
+            <MotionLink
+              ref={settingsButtonRef}
+              to="/settings"
+              replace
+              aria-label="Open Settings"
+              role="button"
+              className="block rounded-full border-2 border-zinc-800/80 bg-zinc-700/80 text-zinc-100 ring-zinc-100 backdrop-blur transition-colors hover:border-zinc-100 focus-visible:border-zinc-100 focus-visible:outline-none focus-visible:ring-1 active:border-zinc-100 active:bg-zinc-600/70 aria-pressed:border-zinc-100 aria-pressed:bg-zinc-600/70"
+              variants={{
+                initial: { scale: 1 },
+                whileHover: { scale: 1.05 },
+                whileFocus: { scale: 1.05 },
+                whileTap: { scale: 0.95 }
+              }}
+              initial="initial"
+              whileHover="whileHover"
+              whileFocus="whileFocus"
+              whileTap="whileTap"
+              transition={{ duration: 0.15, ease: 'easeInOut' }}
+              draggable={false}
+              animate={settingsButtonAnimation}
+            >
+              <motion.div
+                variants={{
+                  initial: { rotate: 30 },
+                  whileHover: { rotate: 390 },
+                  whileFocus: { rotate: 390 },
+                  whileTap: { rotate: 390 }
+                }}
+                transition={{ rotate: { duration: 0.75, ease: 'easeOut' } }}
+              >
+                <SettingsIcon
+                  size={24}
+                  className="box-content size-6 p-2"
+                  aria-hidden
+                />
+              </motion.div>
+            </MotionLink>
+          </div>
         </div>
         {activeBackground && (
-          <img
-            alt="Selected Wallpaper"
-            className="pointer-events-none z-0 h-full w-full select-none rounded-lg object-cover shadow-lg"
-            src={`/backgrounds/${activeBackground.image}`}
-            onError={onImageError}
-            draggable={false}
-          />
-        )}
-        {activeBackground && (
-          <motion.div
-            className="absolute bottom-0 z-10 flex w-full items-center gap-5 rounded-b-lg bg-zinc-950/50 p-4 pt-0 before:absolute before:-top-8 before:left-0 before:h-8 before:w-full before:content-[''] before:bg-easing-b-menu-bottom"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.15, ease: 'easeInOut' }}
-          >
+          <div className="absolute bottom-0 z-10 flex w-full items-center gap-5 rounded-b-lg bg-zinc-950/50 p-4 pt-0 before:absolute before:-top-8 before:left-0 before:h-8 before:w-full before:content-[''] before:bg-easing-b-menu-bottom">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={`${activeBackground.id}-description`}
-                className="mr-auto flex select-none flex-col"
+                className="mr-auto flex flex-col"
                 initial={{ opacity: 0, transform: 'translateY(8px)' }}
                 animate={{ opacity: 1, transform: 'translateY(0px)' }}
                 transition={{ duration: 0.15, ease: 'easeInOut' }}
@@ -457,7 +455,7 @@ function Menu() {
           </button> */}
             <button
               className={clsx(
-                'h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-white transition-[border-color,transform,border-radius,box-shadow] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-orange-50 focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:pointer-events-none',
+                'h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-white transition-[border-color,transform,border-radius,box-shadow] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-orange-50 focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:!scale-100 disabled:!border-orange-800/40',
                 setStatus === 'pending' && 'cursor-wait'
               )}
               onClick={() => {
@@ -467,12 +465,6 @@ function Menu() {
               disabled={
                 config.background.current === activeBackground.id ||
                 setStatus === 'success'
-              }
-              // key={`${activeBackground.id}-set`}
-              key={
-                config.background.current === activeBackground.id
-                  ? 'current'
-                  : 'not-current'
               }
             >
               <AnimatePresence mode="wait">
@@ -511,7 +503,16 @@ function Menu() {
                 )}
               </AnimatePresence>
             </button>
-          </motion.div>
+          </div>
+        )}
+        {activeBackground && (
+          <img
+            alt={`${activeBackground.name} Background`}
+            className="pointer-events-none z-0 h-full w-full select-none rounded-lg object-cover shadow-lg"
+            src={`/backgrounds/${activeBackground.image}`}
+            onError={onImageError}
+            draggable={false}
+          />
         )}
       </motion.div>
     </motion.div>
