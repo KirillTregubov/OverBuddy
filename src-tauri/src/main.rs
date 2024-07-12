@@ -784,19 +784,25 @@ struct SettingsData {
 fn get_settings_data(handle: AppHandle) -> Result<String, Error> {
     let mut config = helpers::read_config(&handle)?;
 
-    config.steam.profiles = Some(helpers::get_steam_profiles(&config)?);
-    helpers::write_config(&handle, &config)?;
+    if config.steam.enabled && config.steam.setup {
+        config.steam.profiles = Some(helpers::get_steam_profiles(&config)?);
+        helpers::write_config(&handle, &config)?;
+    } else {
+        config.steam.profiles = None;
+    }
 
     let mut platforms = vec![];
+    let mut steam_profiles = None;
     if config.steam.enabled {
         platforms.push("Steam".to_string());
+        steam_profiles = config.steam.profiles;
     }
     if config.battle_net.enabled {
         platforms.push("BattleNet".to_string());
     }
     let settings = SettingsData {
         platforms,
-        steam_profiles: config.steam.profiles,
+        steam_profiles,
     };
     return Ok(serde_json::to_string(&settings)?);
 }

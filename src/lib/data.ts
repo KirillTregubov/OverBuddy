@@ -26,11 +26,16 @@ const updateLaunchConfig = async (
   config: LaunchConfig,
   setLaunchQuery = true
 ) => {
-  const platforms = [
-    config.steam.enabled && 'Steam',
-    config.battle_net.enabled && 'BattleNet'
+  const settingsData = {} as SettingsData
+  settingsData.platforms = [
+    config.steam.enabled && ('Steam' as const),
+    config.battle_net.enabled && ('BattleNet' as const)
   ].filter(Boolean)
-  queryClient.setQueryData(['settings'], { platforms })
+  if (config.steam.enabled && config.steam.setup) {
+    settingsData.steam_profiles = config.steam.profiles
+  }
+  queryClient.setQueryData(['settings'], settingsData)
+  queryClient.invalidateQueries({ queryKey: ['settings'] })
 
   if (setLaunchQuery) {
     queryClient.setQueryData(['launch'], config)
@@ -110,6 +115,7 @@ export const useSetupMutation = ({
   isInitialized?: boolean
   onError?: (error: Error | ConfigError) => void
   onSuccess?: (data: SetupResponse) => void
+  throwOnError?: boolean
 } = {}) =>
   useMutation({
     mutationFn: setupMutation,
@@ -349,7 +355,6 @@ export const useResetMutation = ({
       if (!config.success) {
         throw new Error(`Failed to reset.`)
       }
-      console.log(config.data)
       updateLaunchConfig(config.data)
     },
     onError: (error) => {
@@ -366,7 +371,8 @@ export const useResetMutation = ({
 export const settingsQueryOptions = queryOptions({
   queryKey: ['settings'],
   queryFn: async () => {
-    // await new Promise((resolve) => setTimeout(resolve, 1000))
+    console.log('start')
+    await new Promise((resolve) => setTimeout(resolve, 1000))
     const data = await invoke('get_settings_data')
     // const tempData = JSON.stringify({
     //   platforms: ['Steam'],
@@ -411,25 +417,6 @@ export const settingsQueryOptions = queryOptions({
     return settings.data
   }
 })
-
-export const useChangePlatformMutation = ({
-  onSuccess
-}: {
-  onSuccess?: (data: LaunchConfig) => void
-} = {}) =>
-  useMutation({
-    mutationFn: async (platform: Platform) => {
-      const data = (await invoke('change_platform', { platform })) as string
-      const config = LaunchConfig.safeParse(JSON.parse(data))
-      if (!config.success) {
-        throw new Error(`Failed to change platform. ${config.error.message}`)
-      }
-      updateLaunchConfig(config.data)
-      return config.data
-    },
-    onError: (error) => handleError(error),
-    onSuccess: (data) => onSuccess?.(data)
-  })
 
 export const useUpdateMutation = ({
   onSuccess

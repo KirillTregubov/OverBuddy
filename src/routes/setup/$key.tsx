@@ -67,9 +67,10 @@ function ConfigureComponent() {
           },
           replace: true
         })
-        handleError(error)
-        reset()
       }
+
+      handleError(error)
+      reset()
     }
   })
 

@@ -16,11 +16,12 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.51.1",
-    "@tanstack/react-router": "^1.44.2",
+    "@tanstack/react-query-devtools": "^5.51.1",
+    "@tanstack/react-router": "^1.44.5",
     "@tauri-apps/api": "^1.6.0",
     "clsx": "^2.1.1",
-    "framer-motion": "^11.3.0",
-    "lucide-react": "^0.407.0",
+    "framer-motion": "^11.3.2",
+    "lucide-react": "^0.408.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "sonner": "^1.5.0",
@@ -29,9 +30,9 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@eslint/compat": "^1.1.0",
+    "@eslint/compat": "^1.1.1",
     "@eslint/js": "^9.6.0",
-    "@tanstack/router-vite-plugin": "^1.44.2",
+    "@tanstack/router-vite-plugin": "^1.44.3",
     "@tauri-apps/cli": "^1.6.0",
     "@total-typescript/ts-reset": "^0.5.1",
     "@types/eslint__js": "^8.42.3",

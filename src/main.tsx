@@ -7,12 +7,14 @@ import ErrorComponent from '@/components/ErrorComponent'
 import Toaster from '@/components/Toaster'
 import { routeTree } from '@/routeTree.gen'
 import '@/styles.css'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: false,
-      refetchOnWindowFocus: false
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false
     },
     mutations: {
       throwOnError: true
@@ -43,6 +45,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
     <Toaster />
   </React.StrictMode>

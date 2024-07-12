@@ -8,7 +8,7 @@ import {
   LoaderPinwheel,
   XIcon
 } from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 
 import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
@@ -40,13 +40,17 @@ export const Route = createFileRoute('/settings')({
 
 function Settings() {
   const router = useRouter()
-  const { data } = useSuspenseQuery(settingsQueryOptions)
-  const { status, mutate } = useSetupMutation({
+  const { data, isFetching } = useSuspenseQuery(settingsQueryOptions)
+  const { mutate } = useSetupMutation({
     onError: (error) => {
       if (error instanceof SetupError) {
-        toast.warning('Disconnecting from all platforms reset your settings.', {
-          duration: 5000
-        })
+        console.log(data)
+        toast.warning(
+          'All platforms were disconnected. You have been returned to the setup page. Please note that your applied background remains unchanged.',
+          {
+            duration: 5000
+          }
+        )
         router.navigate({
           to: '/setup',
           replace: true
@@ -71,21 +75,18 @@ function Settings() {
       }
     },
     onSuccess: (data) => {
-      console.log('success')
-      // TODO: work in progress (not updating profiles after steam setup)
       if (data.config.steam.enabled && !data.config.steam.setup) {
-        // router.navigate({
-        //   to: '/setup/steam_setup',
-        //   replace: true
-        // })
-        console.log('navigate')
+        router.navigate({
+          to: '/setup/steam_setup',
+          replace: true
+        })
         return
       }
     }
   })
-  console.log(status)
+
+  console.log(isFetching)
   const { mutate: checkForUpdates } = useUpdateMutation()
-  const scrollContainer = useRef<HTMLDivElement>(null)
 
   const onEscapePress = useCallback(
     async (event: KeyboardEvent) => {
@@ -296,9 +297,13 @@ function Settings() {
                 </button>
                 {data.platforms.includes('Steam') &&
                   (data.steam_profiles ? (
-                    <div
+                    <motion.div
                       className="scroller mr-2 flex gap-6 overflow-x-auto py-2 after:pointer-events-none after:absolute after:right-2 after:top-4 after:z-10 after:h-[calc(100%-2.5rem)] after:w-6 after:content-[''] after:bg-easing-r-settings last:pr-4"
-                      ref={scrollContainer}
+                      // initial={{ width: 0 }}
+                      // animate={{ width: '100%' }}
+                      // transition={{
+                      //   width: { duration: 0.15, ease: 'easeInOut' }
+                      // }}
                     >
                       {data.steam_profiles.length > 0 ? (
                         <>
@@ -312,9 +317,9 @@ function Settings() {
                       ) : (
                         <>No Steam Profiles</>
                       )}
-                    </div>
+                    </motion.div>
                   ) : (
-                    <div></div>
+                    <div />
                   ))}
               </div>
             </motion.div>
