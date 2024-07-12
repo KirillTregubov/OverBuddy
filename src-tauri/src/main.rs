@@ -146,7 +146,7 @@ struct SetupError {
 }
 
 #[tauri::command]
-fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
+fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Result<String, Error> {
     let mut config = helpers::read_config(&handle)?;
 
     if platforms.contains(&"BattleNet") {
@@ -162,6 +162,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
                 }
             }
         }
+
         if config.battle_net.install.is_none() {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
                 error_key: ErrorKey::BattleNetInstall,
@@ -250,7 +251,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
         {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
                 error_key: ErrorKey::NoOverwatch,
-                message: "You do not have Overwatch installed on Battle.net.".to_string(),
+                message: "Unable to find an Overwatch installation on Battle.net.".to_string(),
                 platforms: None,
             })?));
         }
@@ -335,6 +336,8 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
 
         // Enable Battle.net
         config.battle_net.enabled = true;
+    } else {
+        config.battle_net.enabled = false;
     }
 
     if platforms.contains(&"Steam") {
@@ -424,18 +427,24 @@ fn setup(handle: AppHandle, platforms: Vec<&str>) -> Result<String, Error> {
 
         // Enable Steam
         config.steam.enabled = true;
+    } else {
+        config.steam.enabled = false;
+        config.steam.setup = false;
     }
 
     // Check if no platforms were enabled
     if config.battle_net.enabled == false && config.steam.enabled == false {
         config.is_setup = false;
-        return Err(Error::Custom(format!(
-            "Failed to setup one of your requested platforms: [[{}]].",
-            platforms.join("]], [[").replace("BattleNet", "Battle.net")
-        )));
+        if !is_initialized {
+            return Err(Error::Custom(format!(
+                "Failed to setup one of your requested platforms: [[{}]].",
+                platforms.join("]], [[").replace("BattleNet", "Battle.net")
+            )));
+        }
+    } else {
+        config.is_setup = true;
     }
 
-    config.is_setup = true;
     helpers::write_config(&handle, &config)?;
     return Ok(serde_json::to_string(&config)?);
 }
@@ -467,7 +476,7 @@ fn resolve_setup_error(
     };
 
     helpers::write_config(&handle, &config)?;
-    return Ok(setup(handle, platforms)?);
+    return Ok(setup(handle, platforms, false)?);
 }
 
 #[tauri::command]
@@ -765,6 +774,60 @@ fn reset_background(handle: AppHandle) -> Result<String, Error> {
     return Ok(serde_json::to_string(&config)?);
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
+struct SettingsData {
+    platforms: Vec<String>,
+    steam_profiles: Option<Vec<config::SteamProfile>>,
+}
+
+#[tauri::command]
+fn get_settings_data(handle: AppHandle) -> Result<String, Error> {
+    let mut config = helpers::read_config(&handle)?;
+
+    config.steam.profiles = Some(helpers::get_steam_profiles(&config)?);
+    helpers::write_config(&handle, &config)?;
+
+    let mut platforms = vec![];
+    if config.steam.enabled {
+        platforms.push("Steam".to_string());
+    }
+    if config.battle_net.enabled {
+        platforms.push("BattleNet".to_string());
+    }
+    let settings = SettingsData {
+        platforms,
+        steam_profiles: config.steam.profiles,
+    };
+    return Ok(serde_json::to_string(&settings)?);
+}
+
+// #[tauri::command]
+// fn change_platform(handle: AppHandle, platform: &str) -> Result<String, Error> {
+//     let mut config = helpers::read_config(&handle)?;
+//     match platform {
+//         "BattleNet" => {
+//             config.battle_net.enabled = !config.battle_net.enabled;
+//         }
+//         "Steam" => {
+//             println!("Steam toggle")
+//             // config.steam.enabled = true;
+//             // config.battle_net.enabled = false;
+//         }
+//         _ => {
+//             return Err(Error::Custom(format!(
+//                 "Encountered an incorrect platform. Please report this issue to the developer."
+//             )));
+//         }
+//     }
+
+//     if config.battle_net.enabled == false && config.steam.enabled == false {
+//         config.is_setup = false;
+//     }
+
+//     helpers::write_config(&handle, &config)?;
+//     return Ok(serde_json::to_string(&config)?);
+// }
+
 #[tauri::command]
 fn reset(handle: AppHandle) -> Result<String, Error> {
     let config = config::get_default_config();
@@ -800,6 +863,8 @@ fn main() {
             get_backgrounds,
             set_background,
             reset_background,
+            get_settings_data,
+            // change_platform,
             reset
         ])
         .run(tauri::generate_context!())

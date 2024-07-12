@@ -1,4 +1,5 @@
 import { buttonClasses } from '@/lib/button'
+import linkFix from '@/lib/linkFix'
 import { cn } from '@/lib/utils'
 import { Link, type LinkProps } from '@tanstack/react-router'
 import { motion, type HTMLMotionProps } from 'framer-motion'
@@ -41,6 +42,7 @@ export function LinkButton({
 }: RouterLinkProps & ButtonProps) {
   return (
     <Link
+      {...linkFix}
       {...props}
       className={buttonClasses(className, { primary, destructive })}
       draggable={false}

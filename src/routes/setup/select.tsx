@@ -212,7 +212,7 @@ function SetupSelect() {
                 toast.warning('You must select at least one platform.')
                 return
               }
-              mutate(platforms)
+              mutate({ platforms })
             }}
           >
             <AnimatePresence mode="wait">

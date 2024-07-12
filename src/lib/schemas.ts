@@ -48,8 +48,8 @@ export type Background = z.infer<typeof Background>
 export const BackgroundArray = z.array(Background)
 export type BackgroundArray = z.infer<typeof BackgroundArray>
 
-export const Settings = z.object({
+export const SettingsData = z.object({
   platforms: z.array(Platform),
-  steamProfiles: z.array(SteamProfile).nullable()
+  steam_profiles: z.array(SteamProfile).nullable()
 })
-export type Settings = z.infer<typeof Settings>
+export type SettingsData = z.infer<typeof SettingsData>

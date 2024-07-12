@@ -13,6 +13,8 @@ import { useCallback, useRef, useState } from 'react'
 import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
 import { ExternalLinkInline, MotionButton } from '@/components/Button'
+import KeyboardButton from '@/components/KeyboardButton'
+import Loading from '@/components/Loading'
 import SteamProfileComponent from '@/components/SteamProfile'
 import {
   fadeInFastVariants,
@@ -22,20 +24,67 @@ import {
 import {
   settingsQueryOptions,
   useResetMutation,
+  useSetupMutation,
   useUpdateMutation
 } from '@/lib/data'
+import { ConfigError, ConfigErrors, SetupError } from '@/lib/errors'
 import useKeyPress from '@/lib/useKeyPress'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/settings')({
   loader: ({ context: { queryClient } }) =>
     queryClient.ensureQueryData(settingsQueryOptions),
-  component: Settings
+  component: Settings,
+  pendingComponent: Loading
 })
 
 function Settings() {
   const router = useRouter()
   const { data } = useSuspenseQuery(settingsQueryOptions)
-  const { mutate } = useUpdateMutation()
+  const { status, mutate } = useSetupMutation({
+    onError: (error) => {
+      if (error instanceof SetupError) {
+        toast.warning('Disconnecting from all platforms reset your settings.', {
+          duration: 5000
+        })
+        router.navigate({
+          to: '/setup',
+          replace: true
+        })
+        return
+      } else if (
+        error instanceof ConfigError &&
+        ConfigErrors.safeParse(error.error_key).success
+      ) {
+        router.navigate({
+          to: '/setup/$key',
+          params: {
+            key: error.error_key
+          },
+          search: {
+            message: error.message,
+            platforms: error.platforms
+          },
+          replace: true
+        })
+        return
+      }
+    },
+    onSuccess: (data) => {
+      console.log('success')
+      // TODO: work in progress (not updating profiles after steam setup)
+      if (data.config.steam.enabled && !data.config.steam.setup) {
+        // router.navigate({
+        //   to: '/setup/steam_setup',
+        //   replace: true
+        // })
+        console.log('navigate')
+        return
+      }
+    }
+  })
+  console.log(status)
+  const { mutate: checkForUpdates } = useUpdateMutation()
   const scrollContainer = useRef<HTMLDivElement>(null)
 
   const onEscapePress = useCallback(
@@ -69,16 +118,9 @@ function Settings() {
           >
             <XIcon size={20} />
             Close
-            <span
-              className={clsx(
-                'm-0.5 ml-2 rounded border px-2.5 pb-px transition-[background-color,border-color,transform,box-shadow] duration-150 will-change-transform',
-                pressed
-                  ? 'translate-y-0.5 scale-95 border-zinc-400 bg-zinc-200 text-zinc-700 shadow-[0_0_0_1px_var(--tw-shadow-color)] shadow-zinc-400/60'
-                  : 'border-zinc-700 bg-zinc-800 shadow-[0_0.125rem_0_1px_var(--tw-shadow-color)] shadow-zinc-700/60'
-              )}
-            >
+            <KeyboardButton isPressed={pressed} className="ml-2">
               Esc
-            </span>
+            </KeyboardButton>
           </button>
         </motion.div>
         <motion.div className="mb-5 mt-3" variants={moveInLessVariants}>
@@ -134,11 +176,14 @@ function Settings() {
               <button
                 className="group flex flex-col items-center gap-1 p-3 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
                 onClick={() => {
-                  if (data.platforms.includes('BattleNet')) {
-                    // setPlatforms(data.platforms.filter((p) => p !== 'BattleNet'))
-                    return
-                  }
-                  // setPlatforms([...platforms, 'BattleNet'])
+                  const newPlatforms = data.platforms.includes('BattleNet')
+                    ? data.platforms.filter((p) => p !== 'BattleNet')
+                    : data.platforms.concat('BattleNet')
+
+                  mutate({
+                    platforms: newPlatforms,
+                    isInitialized: true
+                  })
                 }}
                 title={`${data.platforms.includes('BattleNet') ? 'Disconnect' : 'Connect'} Battle.net`}
               >
@@ -157,7 +202,7 @@ function Settings() {
                 />
                 <h2
                   className={clsx(
-                    'flex items-center gap-1.5 text-center font-medium transition',
+                    'flex min-w-[6rem] items-center gap-1.5 text-center font-medium transition',
                     data.platforms.includes('BattleNet')
                       ? 'text-white group-active:text-zinc-400'
                       : 'text-zinc-400 group-active:text-white'
@@ -193,13 +238,16 @@ function Settings() {
                 )}
               >
                 <button
-                  className="group flex flex-col items-center gap-1 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+                  className="group flex flex-col items-center justify-center gap-1 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
                   onClick={() => {
-                    if (data.platforms.includes('Steam')) {
-                      // setPlatforms(platforms.filter((p) => p !== 'Steam'))
-                      return
-                    }
-                    // setPlatforms([...platforms, 'Steam'])
+                    const newPlatforms = data.platforms.includes('Steam')
+                      ? data.platforms.filter((p) => p !== 'Steam')
+                      : data.platforms.concat('Steam')
+
+                    mutate({
+                      platforms: newPlatforms,
+                      isInitialized: true
+                    })
                   }}
                   title={`${data.platforms.includes('Steam') ? 'Disconnect' : 'Connect'} Steam`}
                 >
@@ -218,7 +266,7 @@ function Settings() {
                   />
                   <h2
                     className={clsx(
-                      'flex items-center gap-1.5 text-center font-medium transition',
+                      'flex min-w-[4.5rem] items-center gap-1.5 text-center font-medium transition',
                       data.platforms.includes('Steam')
                         ? 'text-white group-active:text-zinc-400'
                         : 'text-zinc-400 group-active:text-white'
@@ -246,25 +294,28 @@ function Settings() {
                     Steam
                   </h2>
                 </button>
-                {data.platforms.includes('Steam') && (
-                  <div
-                    className="scroller flex gap-6 overflow-x-auto py-2 after:pointer-events-none after:absolute after:bottom-5 after:right-0 after:z-10 after:h-[calc(100%-2rem)] after:w-8 after:content-[''] after:bg-easing-r-settings last:pr-5"
-                    ref={scrollContainer}
-                  >
-                    {data.steamProfiles && data.steamProfiles.length > 0 ? (
-                      <>
-                        {data.steamProfiles.map((profile) => (
-                          <SteamProfileComponent
-                            key={profile.id}
-                            account={profile}
-                          />
-                        ))}
-                      </>
-                    ) : (
-                      <>No Steam Profiles</>
-                    )}
-                  </div>
-                )}
+                {data.platforms.includes('Steam') &&
+                  (data.steam_profiles ? (
+                    <div
+                      className="scroller mr-2 flex gap-6 overflow-x-auto py-2 after:pointer-events-none after:absolute after:right-2 after:top-4 after:z-10 after:h-[calc(100%-2.5rem)] after:w-6 after:content-[''] after:bg-easing-r-settings last:pr-4"
+                      ref={scrollContainer}
+                    >
+                      {data.steam_profiles.length > 0 ? (
+                        <>
+                          {data.steam_profiles.map((profile) => (
+                            <SteamProfileComponent
+                              key={profile.id}
+                              account={profile}
+                            />
+                          ))}
+                        </>
+                      ) : (
+                        <>No Steam Profiles</>
+                      )}
+                    </div>
+                  ) : (
+                    <div></div>
+                  ))}
               </div>
             </motion.div>
             {/* <div className="h-64 w-full rounded-lg bg-zinc-700"></div> */}
@@ -274,10 +325,46 @@ function Settings() {
             variants={moveInLessVariants}
           >
             <div className="flex items-baseline gap-2.5 text-zinc-400">
+              <h2 className="text-lg font-bold text-white">Keybinds</h2>
+              <p className="">Available keyboard controls.</p>
+            </div>
+            <div className="flex flex-col gap-1.5 text-zinc-400">
+              <div className="flex items-baseline gap-4">
+                <div className="flex items-baseline gap-2">
+                  <KeyboardButton>Esc</KeyboardButton>
+                </div>
+                <p>Open/Close Settings</p>
+              </div>
+              <div className="flex items-baseline gap-4">
+                <div className="flex items-baseline gap-2">
+                  <KeyboardButton>A</KeyboardButton>
+                  or
+                  <KeyboardButton>←</KeyboardButton>
+                </div>
+                <p>Select Previous Background</p>
+              </div>
+              <div className="flex items-baseline gap-4">
+                <div className="flex items-baseline gap-2">
+                  <KeyboardButton>D</KeyboardButton>
+                  or
+                  <KeyboardButton>→</KeyboardButton>
+                </div>
+                <p>Select Next Background</p>
+              </div>
+            </div>
+          </motion.div>
+          <motion.div
+            className="flex flex-col gap-1.5"
+            variants={moveInLessVariants}
+          >
+            <div className="flex items-baseline gap-2.5 text-zinc-400">
               <h2 className="text-lg font-bold text-white">Update</h2>
               <p className="">Check for updates.</p>
             </div>
-            <MotionButton className="w-fit min-w-36" onClick={() => mutate()}>
+            <MotionButton
+              className="w-fit min-w-36"
+              onClick={() => checkForUpdates()}
+            >
               Check for Updates
             </MotionButton>
           </motion.div>
@@ -391,48 +478,6 @@ function ResetButton() {
           </motion.div>
         )}
       </AnimatePresence>
-      {/* <AnimatePresence mode="wait">
-        {isConfirming === 'idle' && (
-          <MotionButton
-            key="button"
-            className="w-fit min-w-40"
-            onClick={() => setIsConfirming('confirm')}
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ opacity: { duration: 0.15 } }}
-          >
-            Reset Settings
-          </MotionButton>
-        )}
-        {isConfirming === 'confirm' && (
-          <>
-            <MotionButton
-              key="button"
-              className="w-fit min-w-40"
-              onClick={() => setIsConfirming('idle')}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              Cancel
-            </MotionButton>
-            <MotionButton
-              key="confirm"
-              destructive
-              className="w-fit px-6"
-              onClick={() => setIsConfirming('pending')}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              Confirm Reset Settings? (This action cannot be undone)
-            </MotionButton>
-          </>
-        )}
-      </AnimatePresence> */}
     </div>
   )
 }

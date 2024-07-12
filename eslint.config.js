@@ -20,12 +20,15 @@ export default [
     plugins: {
       'react-refresh': reactRefresh,
       'react-hooks': fixupPluginRules(eslintPluginReactHooks)
-    }
-  },
-  {
+    },
     rules: {
       'react-refresh/only-export-components': 'warn',
       ...eslintPluginReactHooks.configs.recommended.rules
+    },
+    settings: {
+      react: {
+        version: 'detect'
+      }
     }
   }
 ]

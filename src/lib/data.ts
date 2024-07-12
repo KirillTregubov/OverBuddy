@@ -15,12 +15,27 @@ import {
   Background,
   BackgroundArray,
   LaunchConfig,
-  Settings,
+  SettingsData,
   SteamProfile,
   type Platform
 } from '@/lib/schemas'
 import { queryClient } from '@/main'
 import { emit } from '@tauri-apps/api/event'
+
+const updateLaunchConfig = async (
+  config: LaunchConfig,
+  setLaunchQuery = true
+) => {
+  const platforms = [
+    config.steam.enabled && 'Steam',
+    config.battle_net.enabled && 'BattleNet'
+  ].filter(Boolean)
+  queryClient.setQueryData(['settings'], { platforms })
+
+  if (setLaunchQuery) {
+    queryClient.setQueryData(['launch'], config)
+  }
+}
 
 export const launchQueryOptions = queryOptions({
   queryKey: ['launch'],
@@ -33,6 +48,9 @@ export const launchQueryOptions = queryOptions({
     if (!config.success) {
       throw new Error(config.error.message)
     }
+
+    updateLaunchConfig(config.data, false)
+
     return config.data
   },
   staleTime: Infinity
@@ -43,34 +61,45 @@ type SetupResponse = {
   config: LaunchConfig
 }
 
-const setupMutation = async (platforms: Platform[]): Promise<SetupResponse> => {
-  const data = await invoke('setup', { platforms }).catch((error) => {
-    if (typeof error !== 'string') throw error
+const setupMutation = async ({
+  platforms,
+  isInitialized = false
+}: {
+  platforms: Platform[]
+  isInitialized?: boolean
+}): Promise<SetupResponse> => {
+  const data = await invoke('setup', { platforms, isInitialized }).catch(
+    (error) => {
+      if (typeof error !== 'string') throw error
 
-    let parsed
-    try {
-      parsed = JSON.parse(error as string)
-    } catch (_) {
-      throw new Error(error)
+      let parsed
+      try {
+        parsed = JSON.parse(error as string)
+      } catch (_) {
+        throw new Error(error)
+      }
+
+      const configError = ConfigErrorSchema.safeParse(parsed)
+      if (configError.success) {
+        throw new ConfigError(configError.data)
+      }
+
+      throw new Error(
+        `Failed to setup. Received: [[${JSON.stringify(parsed)}]], Error: [[${configError.error.message}]]`
+      )
     }
-
-    const configError = ConfigErrorSchema.safeParse(parsed)
-    if (configError.success) {
-      throw new ConfigError(configError.data)
-    }
-
-    throw new Error(configError.error.message)
-  })
+  )
 
   const config = LaunchConfig.safeParse(JSON.parse(data as string))
   if (!config.success) {
     throw new Error(config.error.message)
   }
+  updateLaunchConfig(config.data)
+
   if (!config.data.is_setup) {
     throw new SetupError()
   }
 
-  queryClient.setQueryData(['launch'], config.data)
   return { platforms, config: config.data }
 }
 
@@ -78,6 +107,7 @@ export const useSetupMutation = ({
   onError,
   onSuccess
 }: {
+  isInitialized?: boolean
   onError?: (error: Error | ConfigError) => void
   onSuccess?: (data: SetupResponse) => void
 } = {}) =>
@@ -127,7 +157,7 @@ export const useSetupErrorMutation = ({
       platforms: Platform[]
     }) => {
       if (!path && key === 'SteamAccount') {
-        return setupMutation(platforms)
+        return setupMutation({ platforms })
       } else if (!path) {
         throw new Error(`Invalid path for key ${key}`)
       }
@@ -159,7 +189,7 @@ export const useSetupErrorMutation = ({
         throw new Error(`Failed to setup. ${config.error.message}`)
       }
 
-      queryClient.setQueryData(['launch'], config.data)
+      updateLaunchConfig(config.data)
       return { platforms, config: config.data }
     },
     onError,
@@ -192,7 +222,7 @@ export const useSteamConfirmMutation = ({
           `Failed to save background change. ${config.error.message}`
         )
       }
-      queryClient.setQueryData(['launch'], config.data)
+      updateLaunchConfig(config.data)
     },
     onError: (error) => handleError(error),
     onSuccess
@@ -272,7 +302,7 @@ export const useBackgroundMutation = ({
           `Failed to save background change. ${config.error.message}`
         )
       }
-      queryClient.setQueryData(['launch'], config.data)
+      updateLaunchConfig(config.data)
     },
     onError: (error) => {
       onError?.(error)
@@ -293,7 +323,7 @@ export const useResetBackgroundMutation = ({
       if (!config.success) {
         throw new Error(`Failed to reset background. ${config.error.message}`)
       }
-      queryClient.setQueryData(['launch'], config.data)
+      updateLaunchConfig(config.data)
     },
     onError: (error) => handleError(error),
     onSuccess: () => {
@@ -319,7 +349,8 @@ export const useResetMutation = ({
       if (!config.success) {
         throw new Error(`Failed to reset.`)
       }
-      queryClient.setQueryData(['launch'], config.data)
+      console.log(config.data)
+      updateLaunchConfig(config.data)
     },
     onError: (error) => {
       handleError(error)
@@ -335,51 +366,70 @@ export const useResetMutation = ({
 export const settingsQueryOptions = queryOptions({
   queryKey: ['settings'],
   queryFn: async () => {
-    const data = JSON.stringify({
-      platforms: ['Steam'],
-      steamProfiles: [
-        {
-          id: '1121757682',
-          name: 'Aimless Russian',
-          avatar:
-            'https://avatars.akamai.steamstatic.com/141b0b20bef5f40f8e4c85f74e551d9b588bb334_full.jpg'
-        },
-        {
-          id: '171934192',
-          name: 'assist delivery',
-          avatar:
-            'https://avatars.akamai.steamstatic.com/0ebd2c813afc992309612b5973b0dfec761303d7_full.jpg'
-        },
-        {
-          id: '332752569',
-          name: 'Spectra',
-          avatar:
-            'https://avatars.akamai.steamstatic.com/a8091fa7e1c73cf1289ef49f74e105e0c0f5562f_full.jpg'
-        }
-        // ,
-        // {
-        //   id: '3327525691',
-        //   name: 'Spectra',
-        //   avatar:
-        //     'https://avatars.akamai.steamstatic.com/a8091fa7e1c73cf1289ef49f74e105e0c0f5562f_full.jpg'
-        // },
-        // {
-        //   id: '3327525693',
-        //   name: 'cq6WyuAOdyN8zHgdQxETtAHJrsqWmuns',
-        //   avatar:
-        //     'https://avatars.akamai.steamstatic.com/a8091fa7e1c73cf1289ef49f74e105e0c0f5562f_full.jpg'
-        // }
-      ]
-    })
-    // const data = await invoke('get_settings')
+    // await new Promise((resolve) => setTimeout(resolve, 1000))
+    const data = await invoke('get_settings_data')
+    // const tempData = JSON.stringify({
+    //   platforms: ['Steam'],
+    //   steam_profiles: [
+    //     {
+    //       id: '1121757682',
+    //       name: 'Aimless Russian',
+    //       avatar:
+    //         'https://avatars.akamai.steamstatic.com/141b0b20bef5f40f8e4c85f74e551d9b588bb334_full.jpg'
+    //     },
+    //     {
+    //       id: '171934192',
+    //       name: 'assist delivery',
+    //       avatar:
+    //         'https://avatars.akamai.steamstatic.com/0ebd2c813afc992309612b5973b0dfec761303d7_full.jpg'
+    //     },
+    //     {
+    //       id: '332752569',
+    //       name: 'Spectra',
+    //       avatar:
+    //         'https://avatars.akamai.steamstatic.com/a8091fa7e1c73cf1289ef49f74e105e0c0f5562f_full.jpg'
+    //     },
+    //     {
+    //       id: '3327525691',
+    //       name: 'Spectra',
+    //       avatar:
+    //         'https://avatars.akamai.steamstatic.com/a8091fa7e1c73cf1289ef49f74e105e0c0f5562f_full.jpg'
+    //     },
+    //     {
+    //       id: '3327525693',
+    //       name: 'cq6WyuAOdyN8zHgdQxETtAHJrsqWmuns',
+    //       avatar:
+    //         'https://avatars.akamai.steamstatic.com/a8091fa7e1c73cf1289ef49f74e105e0c0f5562f_full.jpg'
+    //     }
+    //   ]
+    // })
 
-    const settings = Settings.safeParse(JSON.parse(data as string))
+    const settings = SettingsData.safeParse(JSON.parse(data as string))
     if (!settings.success) {
       throw new Error(`Failed to get settings. ${settings.error.message}`)
     }
     return settings.data
   }
 })
+
+export const useChangePlatformMutation = ({
+  onSuccess
+}: {
+  onSuccess?: (data: LaunchConfig) => void
+} = {}) =>
+  useMutation({
+    mutationFn: async (platform: Platform) => {
+      const data = (await invoke('change_platform', { platform })) as string
+      const config = LaunchConfig.safeParse(JSON.parse(data))
+      if (!config.success) {
+        throw new Error(`Failed to change platform. ${config.error.message}`)
+      }
+      updateLaunchConfig(config.data)
+      return config.data
+    },
+    onError: (error) => handleError(error),
+    onSuccess: (data) => onSuccess?.(data)
+  })
 
 export const useUpdateMutation = ({
   onSuccess
@@ -393,7 +443,5 @@ export const useUpdateMutation = ({
     onError: (error) => {
       handleError(error)
     },
-    onSuccess: () => {
-      onSuccess?.()
-    }
+    onSuccess: () => onSuccess?.()
   })

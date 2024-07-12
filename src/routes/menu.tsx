@@ -23,6 +23,7 @@ import {
   useBackgroundMutation,
   useResetBackgroundMutation
 } from '@/lib/data'
+import linkFix from '@/lib/linkFix'
 import useKeyPress from '@/lib/useKeyPress'
 
 const buttonTapAnimation = {
@@ -161,7 +162,7 @@ function Menu() {
     toast.error(
       'Your background is outdated. This may result in a black screen in game.',
       {
-        id: 'reset-background',
+        // id: 'reset-background',
         action: {
           label: 'Reset to Default',
           onClick: () => resetBackground()
@@ -377,6 +378,7 @@ function Menu() {
               transition={{ duration: 0.15, ease: 'easeInOut' }}
               draggable={false}
               animate={settingsButtonAnimation}
+              {...linkFix}
             >
               <motion.div
                 variants={{
@@ -466,8 +468,9 @@ function Menu() {
                 config.background.current === activeBackground.id ||
                 setStatus === 'success'
               }
+              key={activeBackground.id}
             >
-              <AnimatePresence mode="wait">
+              <AnimatePresence mode="wait" initial={false}>
                 {config.background.current === activeBackground.id ||
                 setStatus === 'success' ? (
                   <motion.span

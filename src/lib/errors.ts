@@ -37,7 +37,7 @@ export class ConfigError extends Error {
 /* SetupError Class */
 export class SetupError extends Error {
   constructor() {
-    super('Failed to setup!')
+    super('Encountered an error during setup.')
   }
 }
 

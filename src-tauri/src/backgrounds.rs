@@ -277,7 +277,7 @@ const BACKGROUNDS: &[Background] = &[
         image: "porsche.jpg",
         name: "Porsche D.Va",
         description: "Porsche Event (Season 10)",
-        tags: &["Art"],
+        tags: &["Collaboration", "Art"],
     },
     Background {
         id: "0x080000000000123F",
@@ -291,14 +291,28 @@ const BACKGROUNDS: &[Background] = &[
         image: "rose_gold_mercy.jpg",
         name: "Rose Gold Mercy",
         description: "Breast Cancer Charity Event (Season 11)",
-        tags: &["Collaboration"],
+        tags: &["Charity"],
     },
     Background {
         id: "0x0800000000001243",
         image: "transformers.jpg",
         name: "Optimus Prime Reinhardt",
         description: "Transformers Event (Season 11)",
-        tags: &["Art"],
+        tags: &["Collaboration", "Art"],
+    },
+    Background {
+        id: "0x0800000000001249",
+        image: "summer_games_2024.jpg",
+        name: "Lifeguard Lifeweaver & Kiriko",
+        description: "Summer Games 2024 (Season 11)",
+        tags: &[],
+    },
+    Background {
+        id: "0x080000000000124A",
+        image: "reinhardt_bound_demon_mythic.jpg",
+        name: "Reinhardt Bound Demon",
+        description: "Reinhardt Mythic Weapon (Season 11)",
+        tags: &[],
     },
 ];
 

@@ -96,7 +96,7 @@ export default function useKeyPress({
   )
 
   useEffect(() => {
-    document.addEventListener('keydown', handleKeyPress)
+    document.addEventListener('keydown', handleKeyPress, { capture: true })
     document.addEventListener('keyup', handleKeyRelease, { capture: true })
     if (capture) {
       document.body.addEventListener('keydown', preventDefault)
