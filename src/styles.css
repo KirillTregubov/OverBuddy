@@ -77,18 +77,29 @@ button.highlight-base {
   --scrollbar-width-legacy: 8px;
 }
 
+body.scroller {
+  --scrollbar-width-legacy: 11px;
+}
+
 @supports selector(::-webkit-scrollbar) {
   .scroller::-webkit-scrollbar-thumb {
     border: 2px solid var(--scrollbar-color-track);
     border-radius: 999px;
-    background: var(--scrollbar-color-thumb);
+    background-color: var(--scrollbar-color-thumb);
   }
   .scroller::-webkit-scrollbar-track {
     border-radius: 999px;
-    background: var(--scrollbar-color-track);
+    background-color: var(--scrollbar-color-track);
   }
   .scroller::-webkit-scrollbar {
     max-width: var(--scrollbar-width-legacy);
     max-height: var(--scrollbar-width-legacy);
+  }
+
+  body.scroller::-webkit-scrollbar-thumb {
+    border-left: 3px solid var(--scrollbar-color-track);
+  }
+  body.scroller::-webkit-scrollbar-track {
+    border-radius: 0;
   }
 }
