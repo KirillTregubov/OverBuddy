@@ -59,8 +59,9 @@ function SteamSetup() {
             Confirm Steam profile{profiles.length > 1 ? 's' : ''}
           </motion.h1>
           <motion.p variants={moveInVariants}>
-            The following Steam profiles have been detected. New logins will be
-            automatically detected, and can be manually scanned in the settings.
+            The following Steam profile{profiles.length > 1 ? 's' : ''} have
+            been detected. New accounts will be automatically detected, and can
+            be scanned in the settings page.
           </motion.p>
         </div>
         <motion.div className="flex gap-8" variants={moveInVariants}>

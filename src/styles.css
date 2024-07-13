@@ -72,9 +72,30 @@ button.highlight-base {
 }
 
 .scroller {
-  --scrollbar-color-thumb: theme('colors.zinc.600');
-  --scrollbar-color-track: theme('colors.zinc.800');
+  /* --scrollbar-color-thumb: theme('colors.zinc.600');
+  --scrollbar-color-track: theme('colors.zinc.800'); */
   --scrollbar-width-legacy: 8px;
+
+  transition:
+    --scrollbar-color-thumb 0.15s ease-in-out,
+    --scrollbar-color-track 0.15s ease-in-out;
+}
+
+@property --scrollbar-color-thumb {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: theme('colors.zinc.600');
+}
+
+@property --scrollbar-color-track {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: theme('colors.zinc.800');
+}
+
+.scroller-hidden {
+  --scrollbar-color-thumb: transparent;
+  --scrollbar-color-track: transparent;
 }
 
 body.scroller {
@@ -94,6 +115,11 @@ body.scroller {
   .scroller::-webkit-scrollbar {
     max-width: var(--scrollbar-width-legacy);
     max-height: var(--scrollbar-width-legacy);
+  }
+
+  .scroller-settings::-webkit-scrollbar-track {
+    margin-left: -0.0625rem;
+    margin-right: 0.6875rem;
   }
 
   body.scroller::-webkit-scrollbar-thumb {

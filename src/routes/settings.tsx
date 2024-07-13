@@ -8,7 +8,7 @@ import {
   LoaderPinwheel,
   XIcon
 } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
@@ -28,8 +28,68 @@ import {
   useUpdateMutation
 } from '@/lib/data'
 import { ConfigError, ConfigErrors, SetupError } from '@/lib/errors'
+import type { SteamProfile } from '@/lib/schemas'
+import { useIsOverflow } from '@/lib/useIsOverflow'
 import useKeyPress from '@/lib/useKeyPress'
 import { toast } from 'sonner'
+
+function SteamProfileList({
+  steam_profiles,
+  isFetching
+}: {
+  steam_profiles: SteamProfile[]
+  isFetching: boolean
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const isOverflow = useIsOverflow(ref)
+
+  return (
+    <motion.div
+      ref={ref}
+      key="steam_profiles"
+      className={clsx(
+        'scroller scroller-settings z-10 -mb-2 -mr-3 flex cursor-auto gap-6 overflow-x-scroll py-2 last:pr-3',
+        isOverflow ? '' : 'scroller-hidden'
+      )}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15, ease: 'easeInOut' }}
+    >
+      {steam_profiles.length > 0 ? (
+        <>
+          {steam_profiles.map((profile) => (
+            <SteamProfileComponent key={profile.id} account={profile} />
+          ))}
+        </>
+      ) : (
+        <>No Steam Profiles</>
+      )}
+      <AnimatePresence mode="wait">
+        {isFetching && (
+          <motion.div
+            key="fetching"
+            aria-live="polite"
+            className="right absolute right-2 top-1 z-30 flex animate-pulse items-center gap-1 text-sm text-zinc-400"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              opacity: { duration: 0.15, ease: 'easeInOut' }
+            }}
+          >
+            <LoaderPinwheel size="1em" className="animate-spin" />
+            Updating...
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <div
+        className="pointer-events-none absolute bottom-6 right-0 top-6 z-20 block w-4 bg-easing-r-settings"
+        aria-hidden
+      />
+    </motion.div>
+  )
+}
 
 export const Route = createFileRoute('/settings')({
   loader: ({ context: { queryClient } }) =>
@@ -76,10 +136,10 @@ function Settings() {
     },
     onSuccess: (data) => {
       if (data.config.steam.enabled && !data.config.steam.setup) {
-        router.navigate({
-          to: '/setup/steam_setup',
-          replace: true
-        })
+        // router.navigate({
+        //   to: '/setup/steam_setup',
+        //   replace: true
+        // })
         return
       }
     }
@@ -171,9 +231,8 @@ function Settings() {
                 Connected platform(s) you use to play Overwatch.
               </p>
             </div>
-            {/* list battle.net and steam platforms, all steam users detected under it */}
             {/* button to scan steam users */}
-            <motion.div className="flex gap-6 rounded-lg bg-zinc-800 p-2 shadow-inner shadow-zinc-900">
+            <motion.div className="flex gap-6 rounded-lg bg-zinc-800 p-3 pr-6 shadow-inner shadow-zinc-900">
               <button
                 className="group flex flex-col items-center gap-1 p-3 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
                 onClick={() => {
@@ -233,13 +292,18 @@ function Settings() {
               </button>
               <div
                 className={clsx(
+                  "relative z-10 box-content flex min-w-0 items-center justify-center gap-6 p-3 transition-[background-color,box-shadow] before:pointer-events-none before:absolute before:-left-3 before:-right-3 before:top-0 before:h-full before:rounded-md before:bg-zinc-700 before:transition-opacity before:content-['']",
                   data.platforms.includes('Steam')
-                    ? 'relative -ml-3 flex min-w-0 items-center gap-6 overflow-hidden rounded-md bg-zinc-700 py-3 pl-6 shadow-inner shadow-zinc-800'
-                    : 'p-3'
+                    ? 'before:opacity-100' //'bg-zinc-700 shadow-inner shadow-zinc-800'
+                    : // -ml-3 py-3 pl-6
+                      'before:opacity-0' // p-3
                 )}
+                style={{
+                  transition: 'width 0s ease 0.15s'
+                }}
               >
                 <button
-                  className="group flex flex-col items-center justify-center gap-1 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+                  className="group flex flex-col items-center justify-center gap-1 bg-transparent outline-none transition-[background-color,transform] duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
                   onClick={() => {
                     const newPlatforms = data.platforms.includes('Steam')
                       ? data.platforms.filter((p) => p !== 'Steam')
@@ -295,32 +359,15 @@ function Settings() {
                     Steam
                   </h2>
                 </button>
-                {data.platforms.includes('Steam') &&
-                  (data.steam_profiles ? (
-                    <motion.div
-                      className="scroller mr-2 flex gap-6 overflow-x-auto py-2 after:pointer-events-none after:absolute after:right-2 after:top-4 after:z-10 after:h-[calc(100%-2.5rem)] after:w-6 after:content-[''] after:bg-easing-r-settings last:pr-4"
-                      // initial={{ width: 0 }}
-                      // animate={{ width: '100%' }}
-                      // transition={{
-                      //   width: { duration: 0.15, ease: 'easeInOut' }
-                      // }}
-                    >
-                      {data.steam_profiles.length > 0 ? (
-                        <>
-                          {data.steam_profiles.map((profile) => (
-                            <SteamProfileComponent
-                              key={profile.id}
-                              account={profile}
-                            />
-                          ))}
-                        </>
-                      ) : (
-                        <>No Steam Profiles</>
-                      )}
-                    </motion.div>
-                  ) : (
-                    <div />
-                  ))}
+                <AnimatePresence mode="wait">
+                  {data.platforms.includes('Steam') &&
+                    (data.steam_profiles ? (
+                      <SteamProfileList
+                        steam_profiles={data.steam_profiles}
+                        isFetching={isFetching}
+                      />
+                    ) : null)}
+                </AnimatePresence>
               </div>
             </motion.div>
             {/* <div className="h-64 w-full rounded-lg bg-zinc-700"></div> */}
