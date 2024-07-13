@@ -51,9 +51,14 @@ function SteamProfileList({
         'scroller scroller-settings z-10 -mb-2 -mr-3 flex cursor-auto gap-6 overflow-x-scroll py-2 last:pr-3',
         isOverflow ? '' : 'scroller-hidden'
       )}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      variants={{
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 }
+      }}
+      initial="initial"
+      animate="animate"
+      exit="exit"
       transition={{ duration: 0.15, ease: 'easeInOut' }}
     >
       {steam_profiles.length > 0 ? (
@@ -61,6 +66,15 @@ function SteamProfileList({
           {steam_profiles.map((profile) => (
             <SteamProfileComponent key={profile.id} account={profile} />
           ))}
+          <motion.div
+            className="pointer-events-none absolute bottom-6 right-0 top-6 z-20 block w-4 bg-easing-r-settings"
+            aria-hidden
+            variants={{
+              initial: { opacity: 0 },
+              animate: { opacity: 1 },
+              exit: { opacity: 0 }
+            }}
+          />
         </>
       ) : (
         <>No Steam Profiles</>
@@ -70,7 +84,7 @@ function SteamProfileList({
           <motion.div
             key="fetching"
             aria-live="polite"
-            className="right absolute right-2 top-1 z-30 flex animate-pulse items-center gap-1 text-sm text-zinc-400"
+            className="right absolute -right-1 top-1 z-30 flex animate-pulse items-center gap-1 text-sm text-zinc-400"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -83,10 +97,6 @@ function SteamProfileList({
           </motion.div>
         )}
       </AnimatePresence>
-      <div
-        className="pointer-events-none absolute bottom-6 right-0 top-6 z-20 block w-4 bg-easing-r-settings"
-        aria-hidden
-      />
     </motion.div>
   )
 }
@@ -232,9 +242,9 @@ function Settings() {
               </p>
             </div>
             {/* button to scan steam users */}
-            <motion.div className="flex gap-6 rounded-lg bg-zinc-800 p-3 pr-6 shadow-inner shadow-zinc-900">
+            <motion.div className="flex gap-6 rounded-lg bg-zinc-800 p-2 pr-6 shadow-inner shadow-zinc-900">
               <button
-                className="group flex flex-col items-center gap-1 p-3 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+                className="group flex flex-col items-center gap-2 p-3 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
                 onClick={() => {
                   const newPlatforms = data.platforms.includes('BattleNet')
                     ? data.platforms.filter((p) => p !== 'BattleNet')
@@ -262,7 +272,7 @@ function Settings() {
                 />
                 <h2
                   className={clsx(
-                    'flex min-w-[6rem] items-center gap-1.5 text-center font-medium transition',
+                    'flex min-w-[6rem] items-center gap-1.5 text-center font-medium leading-none transition',
                     data.platforms.includes('BattleNet')
                       ? 'text-white group-active:text-zinc-400'
                       : 'text-zinc-400 group-active:text-white'
@@ -292,18 +302,17 @@ function Settings() {
               </button>
               <div
                 className={clsx(
-                  "relative z-10 box-content flex min-w-0 items-center justify-center gap-6 p-3 transition-[background-color,box-shadow] before:pointer-events-none before:absolute before:-left-3 before:-right-3 before:top-0 before:h-full before:rounded-md before:bg-zinc-700 before:transition-opacity before:content-['']",
+                  "relative z-10 flex min-w-0 items-center justify-center gap-6 p-3 transition-[background-color,box-shadow] before:pointer-events-none before:absolute before:-left-3 before:-right-3 before:top-0 before:h-full before:rounded-md before:bg-zinc-700 before:shadow-inner before:shadow-zinc-800 before:transition-opacity before:content-['']",
                   data.platforms.includes('Steam')
-                    ? 'before:opacity-100' //'bg-zinc-700 shadow-inner shadow-zinc-800'
-                    : // -ml-3 py-3 pl-6
-                      'before:opacity-0' // p-3
+                    ? 'before:opacity-100'
+                    : 'before:opacity-0'
                 )}
                 style={{
                   transition: 'width 0s ease 0.15s'
                 }}
               >
                 <button
-                  className="group flex flex-col items-center justify-center gap-1 bg-transparent outline-none transition-[background-color,transform] duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+                  className="group -m-3 flex flex-col items-center justify-center gap-2 p-3 outline-none transition-[background-color,transform] duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
                   onClick={() => {
                     const newPlatforms = data.platforms.includes('Steam')
                       ? data.platforms.filter((p) => p !== 'Steam')
@@ -331,7 +340,7 @@ function Settings() {
                   />
                   <h2
                     className={clsx(
-                      'flex min-w-[4.5rem] items-center gap-1.5 text-center font-medium transition',
+                      'flex min-w-[4.5rem] items-center gap-1.5 text-center font-medium leading-none transition',
                       data.platforms.includes('Steam')
                         ? 'text-white group-active:text-zinc-400'
                         : 'text-zinc-400 group-active:text-white'
