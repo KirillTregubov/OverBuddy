@@ -333,7 +333,7 @@ export const useResetBackgroundMutation = ({
     },
     onError: (error) => handleError(error),
     onSuccess: () => {
-      toast.success('Successfully reset to default background.')
+      toast.success('Successfully reverted to the default background.')
       onSuccess?.()
     },
     onSettled

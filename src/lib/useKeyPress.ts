@@ -48,7 +48,11 @@ export default function useKeyPress({
 
   const handleKeyPress = useCallback(
     (event: KeyboardEvent) => {
-      if (event.repeat) return
+      if (
+        event.repeat ||
+        document.querySelector('[data-ignore-global-shortcut]') !== null
+      )
+        return
       const currentTime = Date.now()
       if (!!sharedTimer && currentTime - sharedTimer.current < debounce) return
       else if (currentTime - lastPressTimeRef.current < debounce) return
@@ -76,7 +80,11 @@ export default function useKeyPress({
 
   const handleKeyRelease = useCallback(
     (event: KeyboardEvent) => {
-      if (event.repeat) return
+      if (
+        event.repeat ||
+        document.querySelector('[data-ignore-global-shortcut]') !== null
+      )
+        return
       const currentTime = Date.now()
       if (currentTime - lastReleaseTimeRef.current < debounce) {
         return

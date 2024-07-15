@@ -164,7 +164,7 @@ function Menu() {
       {
         // id: 'reset-background',
         action: {
-          label: 'Reset to Default',
+          label: 'Revert to Default',
           onClick: () => resetBackground()
         },
         duration: 5000
@@ -190,12 +190,20 @@ function Menu() {
     const index = backgrounds.findIndex((bg) => bg.id === activeBackground.id)
     const ref = backgroundRefs.current[index]
 
-    if (!ref) return
-    ref.scrollIntoView({
-      behavior: 'smooth',
-      inline: 'center'
-    })
-    ref.focus()
+    const handleResize = () => {
+      if (!ref) return
+      ref.scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center'
+      })
+      console.log('resize')
+    }
+
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
   }, [activeBackground, backgrounds])
 
   const handleNavigate = useCallback(
@@ -419,7 +427,7 @@ function Menu() {
                 className={clsx(
                   'relative h-14 w-48 select-none text-center text-lg font-medium uppercase tracking-wider transition-[color,transform] will-change-transform hover:text-zinc-300 focus-visible:text-zinc-300 focus-visible:outline-none active:scale-95 disabled:pointer-events-none',
                   resetStatus === 'idle' &&
-                    'underline-fade-in after:bottom-4 after:left-3 after:right-3 after:w-[calc(100%-1.5rem)] after:bg-zinc-300'
+                    'underline-fade-in after:bottom-4 after:left-1.5 after:right-1.5 after:w-[calc(100%-0.75rem)] after:bg-zinc-300'
                 )}
                 onClick={() => resetBackground()}
                 disabled={resetStatus !== 'idle'}
@@ -443,7 +451,7 @@ function Menu() {
                       transition={{ duration: 0.15 }}
                       key="idle"
                     >
-                      Reset to Default
+                      Revert to Default
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -508,7 +516,7 @@ function Menu() {
             </button>
           </div>
         )}
-        {activeBackground && (
+        {activeBackground ? (
           <img
             alt={`${activeBackground.name} Background`}
             className="pointer-events-none z-0 h-full w-full select-none rounded-lg object-cover shadow-lg"
@@ -516,6 +524,8 @@ function Menu() {
             onError={onImageError}
             draggable={false}
           />
+        ) : (
+          <div className="">hello</div>
         )}
       </motion.div>
     </motion.div>

@@ -1,4 +1,5 @@
 import gradients from 'tailwind-easing-gradients'
+import twAnimate from 'tailwindcss-animate'
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -17,6 +18,7 @@ export default {
     }
   },
   plugins: [
+    twAnimate,
     gradients({
       gradients: {
         'menu-bottom': {

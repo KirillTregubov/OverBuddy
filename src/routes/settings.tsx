@@ -9,9 +9,21 @@ import {
   XIcon
 } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
+import { toast } from 'sonner'
 
 import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from '@/components/AlertDialog'
 import { ExternalLinkInline, MotionButton } from '@/components/Button'
 import KeyboardButton from '@/components/KeyboardButton'
 import Loading from '@/components/Loading'
@@ -31,7 +43,6 @@ import { ConfigError, ConfigErrors, SetupError } from '@/lib/errors'
 import type { SteamProfile } from '@/lib/schemas'
 import { useIsOverflow } from '@/lib/useIsOverflow'
 import useKeyPress from '@/lib/useKeyPress'
-import { toast } from 'sonner'
 
 function SteamProfileList({
   steam_profiles,
@@ -116,7 +127,7 @@ function Settings() {
       if (error instanceof SetupError) {
         console.log(data)
         toast.warning(
-          'All platforms were disconnected. You have been returned to the setup page. Please note that your applied background remains unchanged.',
+          'All platforms were disconnected. You have been returned to the setup page.',
           {
             duration: 5000
           }
@@ -146,16 +157,14 @@ function Settings() {
     },
     onSuccess: (data) => {
       if (data.config.steam.enabled && !data.config.steam.setup) {
-        // router.navigate({
-        //   to: '/setup/steam_setup',
-        //   replace: true
-        // })
+        router.navigate({
+          to: '/setup/steam_setup',
+          replace: true
+        })
         return
       }
     }
   })
-
-  console.log(isFetching)
   const { mutate: checkForUpdates } = useUpdateMutation()
 
   const onEscapePress = useCallback(
@@ -176,20 +185,20 @@ function Settings() {
 
   return (
     <motion.div
-      className="flex w-full select-none flex-col p-6"
+      className="flex w-full select-none flex-col px-6 py-4"
       variants={fadeInFastVariants}
       initial="hidden"
       animate="show"
     >
       <motion.div className="w-full" variants={staggerChildrenVariants}>
-        <motion.div variants={moveInLessVariants} className="-ml-2">
+        <motion.div variants={moveInLessVariants} className="-ml-2.5">
           <button
             onClick={() => router.navigate({ to: '/menu', replace: true })}
             className="group flex items-center gap-0.5 rounded-full px-1.5 font-medium text-zinc-400 transition-[box-shadow,color,background-color,border-color,transform] duration-100 will-change-transform hover:text-zinc-50 focus-visible:text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95"
           >
             <XIcon size={20} />
-            Close
-            <KeyboardButton isPressed={pressed} className="ml-2">
+            <span className="mb-px">Close</span>
+            <KeyboardButton isPressed={pressed} className="ml-1.5 mr-1">
               Esc
             </KeyboardButton>
           </button>
@@ -241,113 +250,79 @@ function Settings() {
                 Connected platform(s) you use to play Overwatch.
               </p>
             </div>
-            {/* button to scan steam users */}
             <motion.div className="flex gap-6 rounded-lg bg-zinc-800 p-2 pr-6 shadow-inner shadow-zinc-900">
-              <button
-                className="group flex flex-col items-center gap-2 p-3 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
-                onClick={() => {
-                  const newPlatforms = data.platforms.includes('BattleNet')
-                    ? data.platforms.filter((p) => p !== 'BattleNet')
-                    : data.platforms.concat('BattleNet')
+              <AlertDialog>
+                <AlertDialogContent data-ignore-global-shortcut>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Disconnect Battle.net?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      You will no longer be able to change the background used
+                      when launching Overwatch through Battle.net.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        const newPlatforms = data.platforms.includes(
+                          'BattleNet'
+                        )
+                          ? data.platforms.filter((p) => p !== 'BattleNet')
+                          : data.platforms.concat('BattleNet')
 
-                  mutate({
-                    platforms: newPlatforms,
-                    isInitialized: true
-                  })
-                }}
-                title={`${data.platforms.includes('BattleNet') ? 'Disconnect' : 'Connect'} Battle.net`}
-              >
-                <img
-                  src={BattleNet}
-                  alt="Battle.net Logo"
-                  title="Battle.net"
-                  width="64px"
-                  height="64px"
-                  className={clsx(
-                    'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
-                    data.platforms.includes('BattleNet')
-                      ? 'grayscale-0 group-active:grayscale'
-                      : 'group-active:grayscale-0'
-                  )}
-                />
-                <h2
-                  className={clsx(
-                    'flex min-w-[6rem] items-center gap-1.5 text-center font-medium leading-none transition',
-                    data.platforms.includes('BattleNet')
-                      ? 'text-white group-active:text-zinc-400'
-                      : 'text-zinc-400 group-active:text-white'
-                  )}
-                >
-                  <AnimatePresence mode="wait">
-                    {data.platforms.includes('BattleNet') ? (
-                      <motion.span
-                        initial={{ opacity: 0.5 }}
-                        animate={{ opacity: 1 }}
-                        key="checked"
-                      >
-                        <CheckCircleIcon size={20} />
-                      </motion.span>
-                    ) : (
-                      <motion.span
-                        initial={{ opacity: 0.5 }}
-                        animate={{ opacity: 1 }}
-                        key="unchecked"
-                      >
-                        <CircleIcon size={20} />
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                  Battle.net
-                </h2>
-              </button>
-              <div
-                className={clsx(
-                  "relative z-10 flex min-w-0 items-center justify-center gap-6 p-3 transition-[background-color,box-shadow] before:pointer-events-none before:absolute before:-left-3 before:-right-3 before:top-0 before:h-full before:rounded-md before:bg-zinc-700 before:shadow-inner before:shadow-zinc-800 before:transition-opacity before:content-['']",
-                  data.platforms.includes('Steam')
-                    ? 'before:opacity-100'
-                    : 'before:opacity-0'
-                )}
-                style={{
-                  transition: 'width 0s ease 0.15s'
-                }}
-              >
-                <button
-                  className="group -m-3 flex flex-col items-center justify-center gap-2 p-3 outline-none transition-[background-color,transform] duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
-                  onClick={() => {
-                    const newPlatforms = data.platforms.includes('Steam')
-                      ? data.platforms.filter((p) => p !== 'Steam')
-                      : data.platforms.concat('Steam')
+                        mutate({
+                          platforms: newPlatforms,
+                          isInitialized: true
+                        })
+                      }}
+                    >
+                      Disconnect Battle.net
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+                <AlertDialogTrigger
+                  className="group flex flex-col items-center gap-2 p-3 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+                  onClick={(event) => {
+                    if (data.platforms.includes('BattleNet')) {
+                      return
+                    } else {
+                      event.preventDefault()
+                    }
+
+                    const newPlatforms = data.platforms.includes('BattleNet')
+                      ? data.platforms.filter((p) => p !== 'BattleNet')
+                      : data.platforms.concat('BattleNet')
 
                     mutate({
                       platforms: newPlatforms,
                       isInitialized: true
                     })
                   }}
-                  title={`${data.platforms.includes('Steam') ? 'Disconnect' : 'Connect'} Steam`}
+                  title={`${data.platforms.includes('BattleNet') ? 'Disconnect' : 'Connect'} Battle.net`}
                 >
                   <img
-                    src={Steam}
-                    alt="Steam Logo"
-                    title="Steam"
+                    src={BattleNet}
+                    alt="Battle.net Logo"
+                    title="Battle.net"
                     width="64px"
                     height="64px"
                     className={clsx(
                       'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
-                      data.platforms.includes('Steam')
+                      data.platforms.includes('BattleNet')
                         ? 'grayscale-0 group-active:grayscale'
                         : 'group-active:grayscale-0'
                     )}
                   />
                   <h2
                     className={clsx(
-                      'flex min-w-[4.5rem] items-center gap-1.5 text-center font-medium leading-none transition',
-                      data.platforms.includes('Steam')
+                      'flex min-w-[6rem] items-center gap-1.5 text-center font-medium leading-none transition',
+                      data.platforms.includes('BattleNet')
                         ? 'text-white group-active:text-zinc-400'
                         : 'text-zinc-400 group-active:text-white'
                     )}
                   >
                     <AnimatePresence mode="wait">
-                      {data.platforms.includes('Steam') ? (
+                      {data.platforms.includes('BattleNet') ? (
                         <motion.span
                           initial={{ opacity: 0.5 }}
                           animate={{ opacity: 1 }}
@@ -365,19 +340,122 @@ function Settings() {
                         </motion.span>
                       )}
                     </AnimatePresence>
-                    Steam
+                    Battle.net
                   </h2>
-                </button>
-                <AnimatePresence mode="wait">
-                  {data.platforms.includes('Steam') &&
-                    (data.steam_profiles ? (
-                      <SteamProfileList
-                        steam_profiles={data.steam_profiles}
-                        isFetching={isFetching}
-                      />
-                    ) : null)}
-                </AnimatePresence>
-              </div>
+                </AlertDialogTrigger>
+              </AlertDialog>
+              <AlertDialog>
+                <AlertDialogContent data-ignore-global-shortcut>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Disconnect Steam?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      You will no longer be able to change the background used
+                      when launching Overwatch through Steam.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        const newPlatforms = data.platforms.includes('Steam')
+                          ? data.platforms.filter((p) => p !== 'Steam')
+                          : data.platforms.concat('Steam')
+
+                        mutate({
+                          platforms: newPlatforms,
+                          isInitialized: true
+                        })
+                      }}
+                    >
+                      Disconnect Battle.net
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+                <div
+                  className={clsx(
+                    "relative z-10 flex min-w-0 items-center justify-center gap-6 p-3 transition-[background-color,box-shadow] before:pointer-events-none before:absolute before:-left-3 before:-right-3 before:top-0 before:h-full before:rounded-md before:bg-zinc-700 before:shadow-inner before:shadow-zinc-800 before:transition-opacity before:delay-100 before:content-['']",
+                    data.platforms.includes('Steam')
+                      ? 'before:opacity-100'
+                      : 'before:opacity-0'
+                  )}
+                  style={{
+                    transition: 'width 0s ease 0.15s'
+                  }}
+                >
+                  <AlertDialogTrigger
+                    className="group -m-3 flex flex-col items-center justify-center gap-2 p-3 outline-none transition-[background-color,transform] duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+                    onClick={(event) => {
+                      if (data.platforms.includes('Steam')) {
+                        return
+                      } else {
+                        event.preventDefault()
+                      }
+
+                      const newPlatforms = data.platforms.includes('Steam')
+                        ? data.platforms.filter((p) => p !== 'Steam')
+                        : data.platforms.concat('Steam')
+
+                      mutate({
+                        platforms: newPlatforms,
+                        isInitialized: true
+                      })
+                    }}
+                    title={`${data.platforms.includes('Steam') ? 'Disconnect' : 'Connect'} Steam`}
+                  >
+                    <img
+                      src={Steam}
+                      alt="Steam Logo"
+                      title="Steam"
+                      width="64px"
+                      height="64px"
+                      className={clsx(
+                        'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
+                        data.platforms.includes('Steam')
+                          ? 'grayscale-0 group-active:grayscale'
+                          : 'group-active:grayscale-0'
+                      )}
+                    />
+                    <h2
+                      className={clsx(
+                        'flex min-w-[4.5rem] items-center gap-1.5 text-center font-medium leading-none transition',
+                        data.platforms.includes('Steam')
+                          ? 'text-white group-active:text-zinc-400'
+                          : 'text-zinc-400 group-active:text-white'
+                      )}
+                    >
+                      <AnimatePresence mode="wait">
+                        {data.platforms.includes('Steam') ? (
+                          <motion.span
+                            initial={{ opacity: 0.5 }}
+                            animate={{ opacity: 1 }}
+                            key="checked"
+                          >
+                            <CheckCircleIcon size={20} />
+                          </motion.span>
+                        ) : (
+                          <motion.span
+                            initial={{ opacity: 0.5 }}
+                            animate={{ opacity: 1 }}
+                            key="unchecked"
+                          >
+                            <CircleIcon size={20} />
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                      Steam
+                    </h2>
+                  </AlertDialogTrigger>
+                  <AnimatePresence mode="wait">
+                    {data.platforms.includes('Steam') &&
+                      data.steam_profiles && (
+                        <SteamProfileList
+                          steam_profiles={data.steam_profiles}
+                          isFetching={isFetching}
+                        />
+                      )}
+                  </AnimatePresence>
+                </div>
+              </AlertDialog>
             </motion.div>
             {/* <div className="h-64 w-full rounded-lg bg-zinc-700"></div> */}
           </motion.div>
@@ -435,7 +513,7 @@ function Settings() {
           >
             <div className="flex items-baseline gap-2.5 text-zinc-400">
               <h2 className="text-lg font-bold text-white">Reset</h2>
-              <p className="">Reset all settings to default.</p>
+              <p className="">Reset all settings to their defaults.</p>
             </div>
             <ResetButton />
           </motion.div>

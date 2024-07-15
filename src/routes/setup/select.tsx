@@ -68,7 +68,7 @@ function SetupSelect() {
       animate="show"
     >
       <motion.div
-        className="flex h-full w-full select-none flex-col items-center justify-center gap-8"
+        className="flex h-full w-full select-none flex-col items-center justify-center gap-5"
         variants={staggerChildrenVariants}
         initial="hidden"
         animate="show"
@@ -81,17 +81,16 @@ function SetupSelect() {
             Connect your Platform(s)
           </motion.h1>
           <motion.p variants={moveInVariants}>
-            Select the platform(s) you use to play Overwatch™. Overbuddy will
-            automatically detect your installation(s) and any required
-            configurations.
+            Select the platform(s) you use to play Overwatch™. OverBuddy will
+            automatically detect installations and required configurations.
           </motion.p>
           <motion.p variants={moveInVariants}>
             You can change this later in the settings.
           </motion.p>
         </div>
-        <motion.div className="flex gap-8" variants={moveInVariants}>
+        <motion.div className="flex gap-4" variants={moveInVariants}>
           <button
-            className="group flex flex-col items-center gap-1 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95 disabled:pointer-events-none"
+            className="group flex flex-col items-center gap-2 p-3 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95 disabled:pointer-events-none"
             onClick={() => {
               if (platforms.includes('BattleNet')) {
                 setPlatforms(platforms.filter((p) => p !== 'BattleNet'))
@@ -117,7 +116,7 @@ function SetupSelect() {
             />
             <h2
               className={clsx(
-                'flex items-center gap-1.5 text-center font-medium transition',
+                'flex items-center gap-1.5 text-center font-medium leading-none transition will-change-transform',
                 platforms.includes('BattleNet')
                   ? 'text-white group-active:text-zinc-400'
                   : 'text-zinc-400 group-active:text-white'
@@ -146,7 +145,7 @@ function SetupSelect() {
             </h2>
           </button>
           <button
-            className="group flex flex-col items-center gap-1 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95 disabled:pointer-events-none"
+            className="group flex flex-col items-center gap-2 p-3 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95 disabled:pointer-events-none"
             onClick={() => {
               if (platforms.includes('Steam')) {
                 setPlatforms(platforms.filter((p) => p !== 'Steam'))
@@ -172,7 +171,7 @@ function SetupSelect() {
             />
             <h2
               className={clsx(
-                'flex items-center gap-1.5 text-center font-medium transition',
+                'flex items-center gap-1.5 text-center font-medium leading-none transition will-change-transform',
                 platforms.includes('Steam')
                   ? 'text-white group-active:text-zinc-400'
                   : 'text-zinc-400 group-active:text-white'

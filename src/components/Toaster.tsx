@@ -10,6 +10,7 @@ export default function Toaster() {
       toastOptions={{
         duration: 2000,
         classNames: {
+          icon: 'mr-1',
           toast: 'select-none w-96',
           actionButton: 'font-semibold'
         }

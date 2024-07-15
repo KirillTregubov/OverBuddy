@@ -54,8 +54,8 @@ function SetupSplash() {
                 Personalized Overwatch™ Experience
               </motion.h2>
               <motion.p>
-                Customize your main menu background to your liking. Browse all
-                available backgrounds.
+                Customize your Overwatch main menu background to your liking.
+                Browse all available backgrounds.
               </motion.p>
             </motion.div>
           </motion.div>
