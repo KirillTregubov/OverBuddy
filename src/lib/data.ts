@@ -294,6 +294,9 @@ export const useActiveBackgroundMutation = () =>
     }
   })
 
+export const invalidateActiveBackground = () =>
+  queryClient.invalidateQueries(activeBackgroundQueryOptions)
+
 export const useBackgroundMutation = ({
   onError
 }: {
@@ -371,8 +374,7 @@ export const useResetMutation = ({
 export const settingsQueryOptions = queryOptions({
   queryKey: ['settings'],
   queryFn: async () => {
-    console.log('start')
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000)) // TODO: remove
     const data = await invoke('get_settings_data')
     // const tempData = JSON.stringify({
     //   platforms: ['Steam'],

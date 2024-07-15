@@ -196,7 +196,6 @@ function Menu() {
         behavior: 'smooth',
         inline: 'center'
       })
-      console.log('resize')
     }
 
     handleResize()

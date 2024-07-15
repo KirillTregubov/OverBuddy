@@ -51,7 +51,6 @@ function ConfigureComponent() {
       })
     },
     onError: (error) => {
-      console.log(error)
       if (
         error instanceof ConfigError &&
         ConfigErrors.safeParse(error.error_key).success

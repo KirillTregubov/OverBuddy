@@ -200,7 +200,6 @@ function SetupSelect() {
             </h2>
           </button>
         </motion.div>
-        {/* TODO: retry button */}
         <motion.div className="w-full" variants={moveInVariants}>
           <Button
             primary

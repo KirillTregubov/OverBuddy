@@ -34,6 +34,7 @@ import {
   staggerChildrenVariants
 } from '@/lib/animations'
 import {
+  invalidateActiveBackground,
   settingsQueryOptions,
   useResetMutation,
   useSetupMutation,
@@ -125,13 +126,13 @@ function Settings() {
   const { mutate } = useSetupMutation({
     onError: (error) => {
       if (error instanceof SetupError) {
-        console.log(data)
         toast.warning(
           'All platforms were disconnected. You have been returned to the setup page.',
           {
             duration: 5000
           }
         )
+        invalidateActiveBackground()
         router.navigate({
           to: '/setup',
           replace: true
