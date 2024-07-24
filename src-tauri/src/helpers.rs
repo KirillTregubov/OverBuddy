@@ -2,8 +2,9 @@ use crate::config::{get_default_config, Config, SteamProfile, CONFIG_FILE};
 
 use serde::Serialize;
 use serde_json::{from_reader, Serializer, Value};
+use similar::{ChangeTag, TextDiff};
 use std::fs::{self, File};
-use std::io::{self, Write};
+use std::io::{self, BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 use sysinfo::System;
 use tauri::AppHandle;
@@ -170,23 +171,35 @@ pub fn get_file_name_from_path(path: &str) -> Option<&str> {
 // Background helpers
 
 // Update launch arguments
-pub fn get_launch_args(launch_args: Option<&str>, id: &str) -> String {
-    let new_arg = format!("--lobbyMap={}", id);
-    match launch_args {
-        Some(arguments) => {
-            let filtered_args = arguments
-                .split_whitespace()
-                .filter(|&part| !part.starts_with("--lobbyMap"))
-                .collect::<Vec<&str>>()
-                .join(" ");
+pub fn get_launch_args(launch_args: Option<&str>, id: Option<&str>) -> String {
+    let new_arg: Option<String>;
+    if id.is_some() {
+        new_arg = Some(format!("--lobbyMap={}", id.unwrap()));
+    } else {
+        new_arg = None;
+    }
 
-            if !filtered_args.is_empty() {
-                format!("{} {}", filtered_args, new_arg)
+    if launch_args.is_some() {
+        let filtered_args = launch_args
+            .unwrap()
+            .split_whitespace()
+            .filter(|&part| !part.starts_with("--lobbyMap"))
+            .collect::<Vec<&str>>()
+            .join(" ");
+
+        if !filtered_args.is_empty() {
+            if new_arg.is_some() {
+                return format!("{} {}", filtered_args, new_arg.unwrap());
             } else {
-                new_arg
+                return filtered_args;
             }
         }
-        None => new_arg,
+    }
+
+    if new_arg.is_some() {
+        return new_arg.unwrap();
+    } else {
+        return String::new();
     }
 }
 
@@ -357,9 +370,6 @@ fn extract_steam_user_info(
     middle_key: &str,
     id: &str,
 ) -> Result<SteamProfile, Error> {
-    println!("outer_key: {}", outer_key);
-    println!("middle_key: {}", middle_key);
-    println!("id: {}", id);
     if let Some(outer_start) = contents.find(&format!("\"{}\"", outer_key)) {
         if let Some(middle_start) = contents[outer_start..].find(&format!("\"{}\"", middle_key)) {
             if let Some(id_start) =
@@ -379,14 +389,13 @@ fn extract_steam_user_info(
                                 if open_braces == 0 {
                                     let end_index = object_start + i + 2;
                                     let object_str = &contents[object_start..end_index];
-                                    println!("{}", object_str);
                                     let avatar =
                                         extract_value(object_str, "avatar").map(|avatar| {
                                             format!("{}/{}_full.jpg", STEAM_AVATAR_URL, avatar)
                                         });
-                                    let mut name = extract_value(object_str, "name");
+                                    let mut name = extract_name_history(object_str);
                                     if name.is_none() || name.as_ref().unwrap().is_empty() {
-                                        name = extract_name_history(object_str);
+                                        name = extract_value(object_str, "name");
                                     }
                                     if name.is_none() || name.as_ref().unwrap().is_empty() {
                                         return Err(Error::Custom(format!(
@@ -446,105 +455,217 @@ fn extract_name_history(object_str: &str) -> Option<String> {
     None
 }
 
-// TODO: refactor
-const TEMPLATE: &str = "--lobbyMap=0x0800000000001197";
+fn diff_files(file1: &str, file2: &str) -> Result<bool, String> {
+    let read_lines = |filename: &str| -> io::Result<Vec<String>> {
+        let file = File::open(filename)?;
+        let reader = BufReader::new(file);
+        reader.lines().collect()
+    };
 
-pub fn set_steam_launch_options(
-    local_config: &str,
-    config_filename: &str,
-) -> Result<String, Error> {
-    let mut new_contents = local_config.to_string();
+    let lines1 = read_lines(file1)
+        .map_err(|e| format!("Failed to read {}: {}", file1, e))?
+        .join("\n");
+    let lines2 = read_lines(file2)
+        .map_err(|e| format!("Failed to read {}: {}", file2, e))?
+        .join("\n");
 
-    if let Some(user_start) = new_contents.find("\"UserLocalConfigStore\"") {
-        let software_pos = new_contents[user_start..].find("\"Software\"");
-        if software_pos.is_none() {
-            return Err(Error::Custom("Failed to find 'Software' key.".to_string()));
+    let diff = TextDiff::from_lines(&lines1, &lines2);
+
+    let mut delete_count = 0;
+    let mut diff_count = 0;
+    for change in diff.iter_all_changes() {
+        if change.tag() == ChangeTag::Delete {
+            delete_count += 1;
+        } else if change.tag() == ChangeTag::Insert {
+            diff_count += 1;
         }
 
-        let software_start = software_pos.unwrap() + user_start;
-        let valve_pos = new_contents[software_start..].find("\"Valve\"");
-        if valve_pos.is_none() {
-            return Err(Error::Custom("Failed to find 'Valve' key.".to_string()));
+        if diff_count > 1 || delete_count > 1 {
+            return Err("More than one line is different".to_string());
         }
-
-        let valve_start = valve_pos.unwrap() + software_start;
-        let steam_pos = new_contents[valve_start..].find("\"Steam\"");
-        if steam_pos.is_none() {
-            return Err(Error::Custom("Failed to find 'Steam' key.".to_string()));
-        }
-
-        let steam_start = steam_pos.unwrap() + valve_start;
-        let apps_pos = new_contents[steam_start..].find("\"apps\"");
-        if apps_pos.is_none() {
-            return Err(Error::Custom("Failed to find 'apps' key.".to_string()));
-        }
-
-        let apps_start = apps_pos.unwrap() + steam_start;
-        let app_id_pos = new_contents[apps_start..].find("\"2357570\"");
-        if app_id_pos.is_none() {
-            return Err(Error::Custom("Failed to find '2357570' key.".to_string()));
-        }
-
-        let app_id_start = app_id_pos.unwrap() + apps_start;
-        let brace_pos = new_contents[app_id_start..].find('{').ok_or_else(|| {
-            Error::Custom("Failed to find opening brace for '2357570'.".to_string())
-        })?;
-
-        let app_block_start = app_id_start + brace_pos + 1;
-        let launch_options_pos = new_contents[app_id_start..].find("\"LaunchOptions\"");
-        if launch_options_pos.is_none() {
-            new_contents.insert_str(
-                app_block_start + 1,
-                format!("\n\t\t\t\t\t\t\"LaunchOptions\"\t\t\"{}\"\n", TEMPLATE).as_str(),
-            );
-        } else {
-            // TODO: keep existing value but format it like in battlenet
-            let value_start =
-                app_id_start + launch_options_pos.unwrap() + "\"LaunchOptions\"".len() + 3;
-            let value_end = new_contents[value_start..].find('"').unwrap_or(value_start);
-            new_contents.replace_range(value_start..value_start + value_end, TEMPLATE);
-        }
-
-        let backup_path = format!("{}.backup", config_filename);
-        match fs::File::create(&backup_path) {
-            Ok(_) => {}
-            Err(_) => {
-                return Err(Error::Custom(format!(
-                    "Failed to create backup of [[{}]]",
-                    get_file_name_from_path(&config_filename).unwrap_or("unknown")
-                )));
-            }
-        }
-
-        let mut file = match fs::OpenOptions::new()
-            .write(true)
-            .truncate(true)
-            .open(&backup_path)
-        {
-            Ok(file) => file,
-            Err(_) => {
-                return Err(Error::Custom(format!(
-                    "Failed to open [[{}]] file at [[{}]]",
-                    get_file_name_from_path(&backup_path).unwrap_or("unknown"),
-                    backup_path
-                )));
-            }
-        };
-
-        match file.write_all(new_contents.as_bytes()) {
-            Ok(_) => {}
-            Err(_) => {
-                return Err(Error::Custom(format!(
-                    "Failed to write to [[{}]]",
-                    backup_path
-                )));
-            }
-        }
-
-        return Ok("Success".to_string());
     }
 
-    Err(Error::Custom(format!(
-        "Failed to find 'UserLocalConfigStore' key."
-    )))
+    if diff_count == 0 {
+        return Ok(false);
+    }
+    Ok(true)
+}
+
+pub fn set_steam_launch_options(config_filename: &str, id: Option<&str>) -> Result<(), Error> {
+    let mut file = match fs::OpenOptions::new().read(true).open(config_filename) {
+        Ok(file) => file,
+        Err(_) => {
+            return Err(Error::Custom(format!(
+                "Failed to open the Steam config file at [[{}]]",
+                config_filename
+            )));
+        }
+    };
+    let mut local_config = String::new();
+    match file.read_to_string(&mut local_config) {
+        Ok(_) => {}
+        Err(_) => {
+            return Err(Error::Custom(format!(
+                "Failed to read Steam config file at [[{}]]",
+                config_filename
+            )));
+        }
+    }
+
+    let user_start = local_config
+        .find("\"UserLocalConfigStore\"")
+        .ok_or_else(|| {
+            Error::Custom(format!(
+                "Failed to find the [[UserLocalConfigStore]] key in Steam config at [[{}]].",
+                config_filename
+            ))
+        })?;
+    let software_pos = local_config[user_start..]
+        .find("\"Software\"")
+        .ok_or_else(|| {
+            Error::Custom(format!(
+                "Failed to find the [[Software]] key in Steam config at [[{}]].",
+                config_filename
+            ))
+        })?;
+    let software_start = user_start + software_pos;
+
+    let valve_pos = local_config[software_start..]
+        .find("\"Valve\"")
+        .ok_or_else(|| {
+            Error::Custom(format!(
+                "Failed to find the [[Valve]] key in Steam config at [[{}]].",
+                config_filename
+            ))
+        })?;
+    let valve_start = valve_pos + software_start;
+
+    let steam_pos = local_config[valve_start..]
+        .find("\"Steam\"")
+        .ok_or_else(|| {
+            Error::Custom(format!(
+                "Failed to find the [[[Steam]] key in Steam config at [[{}]].",
+                config_filename
+            ))
+        })?;
+    let steam_start = valve_start + steam_pos;
+
+    let apps_pos = local_config[steam_start..]
+        .find("\"apps\"")
+        .ok_or_else(|| {
+            Error::Custom(format!(
+                "Failed to find the [[apps]] key in Steam config at [[{}]].",
+                config_filename
+            ))
+        })?;
+    let apps_start = steam_start + apps_pos;
+    let ow_id_pos = local_config[apps_start..]
+        .find("\"2357570\"")
+        .ok_or_else(|| {
+            Error::Custom(format!(
+                "Failed to find the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
+                config_filename
+            ))
+        })?;
+
+    let ow_id_start = ow_id_pos + apps_start;
+    let brace_pos = local_config[ow_id_start..].find('{').ok_or_else(|| {
+            Error::Custom(format!(
+                "Failed to find an opening brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
+                config_filename
+            ))
+        })?;
+
+    let ow_block_start = ow_id_start + brace_pos + 1;
+    let ow_block_end = ow_block_start + local_config[ow_block_start..].find('}').ok_or_else(|| {
+            Error::Custom(format!(
+                "Failed to find a closing brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
+                config_filename
+            ))
+        })?;
+
+    let launch_options_pos = local_config[ow_block_start..ow_block_end].find("\"LaunchOptions\"");
+
+    if launch_options_pos.is_none() {
+        let new_launch_args = get_launch_args(None, id);
+
+        local_config.insert_str(
+            ow_block_start + 1,
+            format!("\t\t\t\t\t\t\"LaunchOptions\"\t\t\"{}\"\n", new_launch_args).as_str(),
+        );
+    } else {
+        let value_start =
+            ow_block_start + launch_options_pos.unwrap() + "\"LaunchOptions\"".len() + 3;
+        let value_end = value_start
+            + local_config[value_start..ow_block_end]
+                .find('"')
+                .unwrap_or(value_start);
+        if value_start >= value_end {
+            return Err(Error::Custom(format!(
+                    "Failed to read the [[LaunchOptions]] key, inside the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
+                    config_filename
+                )));
+        }
+        let launch_args = &local_config[value_start..value_end];
+        let new_launch_args = get_launch_args(Some(launch_args), id);
+        local_config.replace_range(value_start..value_end, &new_launch_args);
+    }
+
+    let backup_path = format!("{}.backup", config_filename);
+    match fs::File::create(&backup_path) {
+        Ok(_) => {}
+        Err(_) => {
+            return Err(Error::Custom(format!(
+                "Failed to create backup of [[{}]]",
+                config_filename
+            )));
+        }
+    }
+
+    let mut file = match fs::OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .open(&backup_path)
+    {
+        Ok(file) => file,
+        Err(_) => {
+            return Err(Error::Custom(format!(
+                "Failed to open created backup file at [[{}]]",
+                backup_path
+            )));
+        }
+    };
+
+    match file.write_all(local_config.as_bytes()) {
+        Ok(_) => {}
+        Err(_) => {
+            return Err(Error::Custom(format!(
+                "Failed to write to the backup file at [[{}]]",
+                backup_path
+            )));
+        }
+    }
+
+    // verify backup file
+    let config_changed = diff_files(&config_filename, &backup_path);
+    if config_changed.is_err() {
+        return Err(Error::Custom(format!(
+            "Failed to verify the backup file at [[{}]], {}.",
+            backup_path,
+            config_changed.unwrap_err()
+        )));
+    }
+
+    // replace config file
+    println!("{}", config_changed.clone().unwrap());
+    if !config_changed.unwrap() {
+        return Ok(());
+    }
+
+    println!("replace");
+    // if fs::metadata(config_filename).is_ok() {
+    //     fs::remove_file(config_filename)?;
+    // }
+    fs::rename(backup_path, format!("{}a", config_filename))?;
+    return Ok(());
 }

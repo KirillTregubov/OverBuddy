@@ -17,16 +17,11 @@ export default function SteamProfileComponent({
         src={account.avatar || placeholder}
         alt={account.name}
         onError={(e) => (e.currentTarget.src = placeholder)}
-        className={clsx('rounded', large ? 'mb-1 max-h-32' : 'max-h-16')}
+        className={clsx('rounded', large ? 'mb-1 max-h-28' : 'max-h-16')}
       />
       <div className="flex flex-col justify-center">
         <h2 className="font-medium text-white">{account.name}</h2>
-        <h3
-          className={clsx(
-            'inline-flex items-center text-sm',
-            large ? 'text-zinc-300' : 'text-zinc-400'
-          )}
-        >
+        <h3 className="inline-flex items-center text-sm text-zinc-400">
           <HashIcon size={14} /> {account.id}
         </h3>
       </div>

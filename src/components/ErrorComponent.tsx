@@ -10,12 +10,14 @@ import {
   staggerChildrenVariants
 } from '@/lib/animations'
 import { useResetMutation } from '@/lib/data'
+import { useQueryClient } from '@tanstack/react-query'
 import { Button, MotionButton } from './Button'
 import { ReportButton } from './Reporter'
 import TracerImage from './TracerImage'
 
 export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     invoke('mounted')
@@ -55,6 +57,7 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
             onClick={() => {
               reset() // reset router error boundary
               router.invalidate() // reload the loader
+              queryClient.resetQueries() // reset all queries
             }}
           >
             Reload

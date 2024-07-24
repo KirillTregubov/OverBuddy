@@ -21,6 +21,7 @@ dunce = "1.0.4"
 sysinfo = "0.30.12"
 vdf-reader = "0.2.0"
 keyvalues-parser = "0.2.0"
+similar = "2.6.0"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

@@ -11,6 +11,7 @@ use serde_json::{from_reader, json};
 use std::env;
 use std::fs::{self, File};
 use std::io::Read;
+use std::os::windows::process::CommandExt; // NOTE: Windows only
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::thread;
@@ -328,7 +329,12 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
             helpers::safe_json_write(battle_net_config, &json)?;
             Command::new(config.battle_net.install.clone().unwrap())
                 .spawn()
-                .ok();
+                .or_else(|_| {
+                    Err(Error::Custom(format!(
+                        "Failed to open Battle.net at [[{}]].",
+                        config.battle_net.install.clone().unwrap()
+                    )))
+                })?;
         }
 
         // Enable Battle.net
@@ -371,27 +377,24 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
             let mut json: serde_json::Value = serde_json::from_str(&contents)?;
 
             // Revert to default background if it was changed
-            if let Some(launch_args) = json
-                .get("Games")
-                .and_then(|games| games.get("prometheus"))
-                .and_then(|prometheus| prometheus.get("AdditionalLaunchArguments"))
-                .and_then(|args| args.as_str())
-            {
-                let battle_net_was_closed = helpers::close_battle_net();
+            if config.background.current.is_some() {
+                if let Some(launch_args) = json
+                    .get("Games")
+                    .and_then(|games| games.get("prometheus"))
+                    .and_then(|prometheus| prometheus.get("AdditionalLaunchArguments"))
+                    .and_then(|args| args.as_str())
+                {
+                    let battle_net_was_closed = helpers::close_battle_net();
 
-                let filtered_args = launch_args
-                    .split_whitespace()
-                    .filter(|&part| !part.starts_with("--lobbyMap"))
-                    .collect::<Vec<&str>>()
-                    .join(" ");
+                    let filtered_args = helpers::get_launch_args(Some(launch_args), None);
+                    json["Games"]["prometheus"]["AdditionalLaunchArguments"] = json!(filtered_args);
+                    helpers::safe_json_write(battle_net_config, &json)?;
 
-                json["Games"]["prometheus"]["AdditionalLaunchArguments"] = json!(filtered_args);
-                helpers::safe_json_write(battle_net_config, &json)?;
-
-                if battle_net_was_closed {
-                    Command::new(config.battle_net.install.clone().unwrap())
-                        .spawn()
-                        .ok();
+                    if battle_net_was_closed {
+                        Command::new(config.battle_net.install.clone().unwrap())
+                            .spawn()
+                            .ok();
+                    }
                 }
             }
         }
@@ -690,15 +693,14 @@ fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
         };
 
         let launch_args = json["Games"]["prometheus"]["AdditionalLaunchArguments"].as_str();
-        let new_launch_args = helpers::get_launch_args(launch_args, id);
-
+        let new_launch_args = helpers::get_launch_args(launch_args, Some(id));
         json["Games"]["prometheus"]["AdditionalLaunchArguments"] = json!(new_launch_args);
         helpers::safe_json_write(battle_net_config, &json)?;
+
+        battle_net_cleanup();
     }
-    battle_net_cleanup();
 
     if config.steam.enabled {
-        let steam_was_closed = helpers::close_steam();
         let steam_configs = config.steam.configs.unwrap().clone();
         if steam_configs.is_empty() {
             return Err(Error::Custom(format!(
@@ -706,52 +708,42 @@ fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
             )));
         }
 
+        let steam_was_closed = helpers::close_steam(); // true; //
         steam_cleanup = Box::new(move || {
             if steam_was_closed {
-                // TODO: test error
-                println!("Steam was closed. Trying to reopen.");
-                // Command::new(battle_net_install).spawn().ok();
+                Command::new("cmd")
+                    .args(["/C", "start", "steam://open/games/details/2357570"])
+                    .creation_flags(0x0800_0000)
+                    .spawn()
+                    .ok();
             }
         });
 
         // Modify each Steam localconfig.vdf file
+        let mut success = false;
         for steam_config in steam_configs {
-            let mut file = match fs::OpenOptions::new()
-                .read(true)
-                .open(steam_config.file.clone())
-            {
-                Ok(file) => file,
-                Err(_) => {
+            println!("here {}", steam_config.id);
+            // if steam_config.id == "332752569" {
+
+            // TODO: handle case when Ovewatch is not installed
+            let result = helpers::set_steam_launch_options(steam_config.file.as_str(), Some(id));
+
+            match result {
+                Ok(_) => {
+                    println!("success for {}", steam_config.id);
+                    success = true;
+                }
+                Err(e) => {
                     steam_cleanup();
-                    return Err(Error::Custom(format!(
-                        "Failed to open the Steam config file at {}",
-                        steam_config.file
-                    )));
+                    return Err(e);
                 }
             };
-            let mut local_config = String::new();
-            match file.read_to_string(&mut local_config) {
-                Ok(_) => {}
-                Err(_) => {
-                    steam_cleanup();
-                    return Err(Error::Custom(format!(
-                        "Failed to read Steam config file at {}",
-                        steam_config.file
-                    )));
-                }
-            }
-
-            println!("here {}", steam_config.id);
-            if steam_config.id == "332752569" {
-                let val =
-                    helpers::set_steam_launch_options(&local_config, steam_config.file.as_str())?;
-                println!("aaa {}", val);
-            }
+            // }
         }
 
-        return Err(Error::Custom(format!("Steam is not supported yet.")));
+        steam_cleanup();
     }
-    steam_cleanup();
+    return Err(Error::Custom(format!("Steam is not supported yet.")));
 
     config.background.current = Some(id.to_string());
     config.background.is_outdated = false;
@@ -816,12 +808,7 @@ fn reset_background(handle: AppHandle) -> Result<String, Error> {
     };
 
     if let Some(arguments) = json["Games"]["prometheus"]["AdditionalLaunchArguments"].as_str() {
-        let filtered_args = arguments
-            .split_whitespace()
-            .filter(|&part| !part.starts_with("--lobbyMap"))
-            .collect::<Vec<&str>>()
-            .join(" ");
-
+        let filtered_args = helpers::get_launch_args(Some(arguments), None);
         json["Games"]["prometheus"]["AdditionalLaunchArguments"] = json!(filtered_args);
         helpers::safe_json_write(battle_net_config, &json)?;
     }

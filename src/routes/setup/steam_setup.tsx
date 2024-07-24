@@ -56,12 +56,12 @@ function SteamSetup() {
             className="text-2xl font-medium text-white"
             variants={moveInVariants}
           >
-            Confirm Steam profile{profiles.length > 1 ? 's' : ''}
+            Confirm Steam Account{profiles.length > 1 ? 's' : ''}
           </motion.h1>
-          <motion.p variants={moveInVariants}>
-            The following Steam profile{profiles.length > 1 ? 's' : ''} have
-            been detected. New accounts will be automatically detected, and can
-            be scanned in the settings page.
+          <motion.p variants={moveInVariants} className="text-balance">
+            OverBuddy has detected the following Steam account
+            {profiles.length > 1 ? 's' : ''}. New accounts can be scanned in the
+            settings page.
           </motion.p>
         </div>
         <motion.div className="flex gap-8" variants={moveInVariants}>
@@ -76,7 +76,7 @@ function SteamSetup() {
           onClick={() => mutate()}
           variants={moveInVariants}
         >
-          Continue
+          Confirm
         </MotionButton>
       </motion.div>
     </motion.div>

@@ -124,7 +124,7 @@ function Settings() {
   const router = useRouter()
   const { data, isFetching } = useSuspenseQuery(settingsQueryOptions)
   const { mutate } = useSetupMutation({
-    onError: (error) => {
+    onError: async (error) => {
       if (error instanceof SetupError) {
         toast.warning(
           'All platforms were disconnected. You have been returned to the setup page.',
@@ -257,8 +257,16 @@ function Settings() {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Disconnect Battle.net?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      You will no longer be able to change the background used
+                      You will no longer be able to change the background shown
                       when launching Overwatch through Battle.net.
+                      {data.platforms.filter((p) => p !== 'BattleNet')
+                        .length === 0 && (
+                        <>
+                          {' '}
+                          Since Battle.net is the only connected platform, this
+                          action will bring you back to the setup page.
+                        </>
+                      )}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -350,8 +358,16 @@ function Settings() {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Disconnect Steam?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      You will no longer be able to change the background used
+                      You will no longer be able to change the background shown
                       when launching Overwatch through Steam.
+                      {data.platforms.filter((p) => p !== 'Steam').length ===
+                        0 && (
+                        <>
+                          {' '}
+                          Since Steam is the only connected platform, this
+                          action will bring you back to the setup page.
+                        </>
+                      )}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -368,7 +384,7 @@ function Settings() {
                         })
                       }}
                     >
-                      Disconnect Battle.net
+                      Disconnect Steam
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
