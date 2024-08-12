@@ -229,10 +229,11 @@ pub fn safe_json_write(path: String, json: &serde_json::Value) -> Result<(), Err
     // Create backup
     let backup_path = format!("{}.backup", path);
     if Path::new(&path).exists() {
-        fs::copy(&path, &backup_path).map_err(|_| {
+        fs::copy(&path, &backup_path).map_err(|e| {
             Error::Custom(format!(
-                "Failed to create backup of [[{}]]",
-                get_file_name_from_path(&path).unwrap_or("unknown")
+                "Failed to create backup of [[{}]]: {}",
+                get_file_name_from_path(&path).unwrap_or("unknown"),
+                e
             ))
         })?;
     }

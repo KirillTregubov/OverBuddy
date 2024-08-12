@@ -21,6 +21,7 @@ import {
 } from '@/lib/schemas'
 import { queryClient } from '@/main'
 import { emit } from '@tauri-apps/api/event'
+import { isDev } from './dev'
 
 const updateLaunchConfig = async (
   config: LaunchConfig,
@@ -257,7 +258,8 @@ export const backgroundsQueryOptions = queryOptions({
     )
 
     return backgrounds.data
-  }
+  },
+  staleTime: isDev() ? 0 : Infinity
 })
 
 export const activeBackgroundQueryOptions = queryOptions({

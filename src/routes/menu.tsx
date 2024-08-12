@@ -83,7 +83,7 @@ function Menu() {
   const prevButtonAnimation = useAnimation()
   const nextButtonRef = useRef<HTMLButtonElement>(null)
   const nextButtonAnimation = useAnimation()
-  const settingsButtonRef = useRef<HTMLLinkElement>(null)
+  const settingsButtonRef = useRef<HTMLAnchorElement>(null)
   const settingsButtonAnimation = useAnimation()
 
   const sharedTimerRef = useRef<number>(0)
@@ -366,6 +366,8 @@ function Menu() {
           {/* NOTE: hideme if required */}
           <div className="ml-auto w-fit">
             <MotionLink
+              // TODO: fix type
+              /* @ts-expect-error ref type is wrong */
               ref={settingsButtonRef}
               to="/settings"
               replace
@@ -405,6 +407,7 @@ function Menu() {
             </MotionLink>
           </div>
         </div>
+
         {activeBackground && (
           <div className="absolute bottom-0 z-10 flex w-full items-center gap-5 rounded-b-lg bg-zinc-950/50 p-4 pt-0 before:absolute before:-top-8 before:left-0 before:h-8 before:w-full before:content-[''] before:bg-easing-b-menu-bottom">
             <AnimatePresence mode="wait" initial={false}>
@@ -456,12 +459,13 @@ function Menu() {
                 </AnimatePresence>
               </button>
             )}
+
             {/* <button className="group rounded-full border-2 border-orange-900/50 bg-orange-950 p-3.5 text-orange-100 shadow-md ring-white transition-[border-color,transform,fill] will-change-transform hover:scale-105 hover:border-white focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 active:scale-95 active:border-orange-200 active:ring-orange-200">
-            <HeartIcon
-              size={24}
-              className="fill-transparent transition-colors group-hover:fill-current group-focus-visible:fill-current group-active:fill-orange-200 group-active:stroke-orange-200"
-            />
-          </button> */}
+              <HeartIcon
+                size={24}
+                className="fill-transparent transition-colors group-hover:fill-current group-focus-visible:fill-current group-active:fill-orange-200 group-active:stroke-orange-200"
+              />
+            </button> */}
             <button
               className={clsx(
                 'h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-white transition-[border-color,transform,border-radius,box-shadow] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-orange-50 focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:!scale-100 disabled:!border-orange-800/40',

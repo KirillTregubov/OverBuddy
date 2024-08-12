@@ -637,113 +637,166 @@ fn get_backgrounds() -> String {
 #[tauri::command]
 fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
     let mut config = helpers::read_config(&handle)?;
-    let mut battle_net_cleanup: Box<dyn FnOnce()> = Box::new(|| {});
-    let mut steam_cleanup: Box<dyn FnOnce()> = Box::new(|| {});
+    // let mut battle_net_cleanup: Box<dyn FnOnce()>;
+    // let mut steam_cleanup: Box<dyn FnOnce()> = Box::new(|| {});
 
     // TODO: Return partial success and errors for each platform
+    let mut errors: Vec<Error> = vec![];
 
-    if config.battle_net.enabled {
-        let battle_net_was_closed = helpers::close_battle_net();
-        let battle_net_config = config.battle_net.config.clone().unwrap();
-        let battle_net_install = config.battle_net.install.clone().unwrap();
+    'battle_net: {
+        if config.battle_net.enabled {
+            let battle_net_was_closed = helpers::close_battle_net();
+            let battle_net_config = config.battle_net.config.clone().unwrap();
+            let battle_net_install = config.battle_net.install.clone().unwrap();
 
-        battle_net_cleanup = Box::new(move || {
-            if battle_net_was_closed {
-                // TODO: test error
-                Command::new(battle_net_install).spawn().ok();
-            }
-        });
-
-        // Open Battle.net.config file
-        let mut file = match fs::OpenOptions::new()
-            .read(true)
-            .open(battle_net_config.clone())
-        {
-            Ok(file) => file,
-            Err(_) => {
-                battle_net_cleanup();
-                return Err(Error::Custom(format!(
-                    "Failed to open the [[Battle.net.config]] file at [[{}]]",
-                    battle_net_config
-                )));
-            }
-        };
-        let mut contents = String::new();
-        match file.read_to_string(&mut contents) {
-            Ok(_) => {}
-            Err(_) => {
-                battle_net_cleanup();
-                return Err(Error::Custom(format!(
-                    "Failed to read [[Battle.net.config]] file at [[{}]]",
-                    battle_net_config
-                )));
-            }
-        }
-
-        // Parse Battle.net.config file
-        let mut json: serde_json::Value = match serde_json::from_str(&contents) {
-            Ok(json) => json,
-            Err(_) => {
-                battle_net_cleanup();
-                return Err(Error::Custom(format!(
-                    "Failed to parse [[Battle.net.config]] file at [[{}]]",
-                    battle_net_config
-                )));
-            }
-        };
-
-        let launch_args = json["Games"]["prometheus"]["AdditionalLaunchArguments"].as_str();
-        let new_launch_args = helpers::get_launch_args(launch_args, Some(id));
-        json["Games"]["prometheus"]["AdditionalLaunchArguments"] = json!(new_launch_args);
-        helpers::safe_json_write(battle_net_config, &json)?;
-
-        battle_net_cleanup();
-    }
-
-    if config.steam.enabled {
-        let steam_configs = config.steam.configs.unwrap().clone();
-        if steam_configs.is_empty() {
-            return Err(Error::Custom(format!(
-                "Failed to find any accounts in your Steam userdata folder."
-            )));
-        }
-
-        let steam_was_closed = helpers::close_steam(); // true; //
-        steam_cleanup = Box::new(move || {
-            if steam_was_closed {
-                Command::new("cmd")
-                    .args(["/C", "start", "steam://open/games/details/2357570"])
-                    .creation_flags(0x0800_0000)
-                    .spawn()
-                    .ok();
-            }
-        });
-
-        // Modify each Steam localconfig.vdf file
-        let mut success = false;
-        for steam_config in steam_configs {
-            println!("here {}", steam_config.id);
-            // if steam_config.id == "332752569" {
-
-            // TODO: handle case when Ovewatch is not installed
-            let result = helpers::set_steam_launch_options(steam_config.file.as_str(), Some(id));
-
-            match result {
-                Ok(_) => {
-                    println!("success for {}", steam_config.id);
-                    success = true;
+            let battle_net_cleanup: Box<dyn FnOnce()> = Box::new(move || {
+                if battle_net_was_closed {
+                    // TODO: test error
+                    Command::new(battle_net_install).spawn().ok();
                 }
+            });
+
+            // Open Battle.net.config file
+            let mut file = match fs::OpenOptions::new()
+                .read(true)
+                .open(battle_net_config.clone())
+            {
+                Ok(file) => file,
                 Err(e) => {
-                    steam_cleanup();
-                    return Err(e);
+                    battle_net_cleanup();
+                    let error = Error::Custom(format!(
+                        "Failed to open the [[Battle.net.config]] file at [[{}]]: {}",
+                        battle_net_config, e
+                    ));
+
+                    if config.steam.enabled {
+                        errors.push(error);
+                        break 'battle_net;
+                    }
+                    return Err(error);
                 }
             };
-            // }
-        }
 
-        steam_cleanup();
+            battle_net_cleanup();
+            let error = Error::Custom(format!(
+                "Failed to open the [[Battle.net.config]] file at [[{}]]",
+                battle_net_config
+            ));
+
+            if config.steam.enabled {
+                errors.push(error);
+                break 'battle_net;
+            }
+            return Err(error);
+
+            let mut contents = String::new();
+            match file.read_to_string(&mut contents) {
+                Ok(_) => {}
+                Err(e) => {
+                    battle_net_cleanup();
+
+                    let error = Error::Custom(format!(
+                        "Failed to read [[Battle.net.config]] file at [[{}]]: {}",
+                        battle_net_config, e
+                    ));
+
+                    if config.steam.enabled {
+                        errors.push(error);
+                        break 'battle_net;
+                    }
+                    return Err(error);
+                }
+            }
+
+            // Parse Battle.net.config file
+            let mut json: serde_json::Value = match serde_json::from_str(&contents) {
+                Ok(json) => json,
+                Err(e) => {
+                    battle_net_cleanup();
+
+                    let error = Error::Custom(format!(
+                        "Failed to parse [[Battle.net.config]] file at [[{}]]: {}",
+                        battle_net_config, e
+                    ));
+
+                    if config.steam.enabled {
+                        errors.push(error);
+                        break 'battle_net;
+                    }
+                    return Err(error);
+                }
+            };
+
+            let launch_args = json["Games"]["prometheus"]["AdditionalLaunchArguments"].as_str();
+            let new_launch_args = helpers::get_launch_args(launch_args, Some(id));
+            json["Games"]["prometheus"]["AdditionalLaunchArguments"] = json!(new_launch_args);
+
+            let result = helpers::safe_json_write(battle_net_config, &json);
+            battle_net_cleanup();
+            if let Err(error) = result {
+                if config.steam.enabled {
+                    errors.push(error);
+                    break 'battle_net;
+                }
+                return Err(error);
+            }
+        }
     }
-    return Err(Error::Custom(format!("Steam is not supported yet.")));
+
+    // if config.steam.enabled {
+    //     let steam_configs = config.steam.configs.clone().unwrap();
+    //     if steam_configs.is_empty() {
+    //         return Err(Error::Custom(format!(
+    //             "Failed to find any accounts in your Steam userdata folder."
+    //         )));
+    //     }
+
+    //     let steam_was_closed = helpers::close_steam(); // true; //
+    //     let steam_cleanup: Box<dyn FnOnce()> = Box::new(move || {
+    //         if steam_was_closed {
+    //             Command::new("cmd")
+    //                 .args(["/C", "start", "steam://open/games/details/2357570"])
+    //                 .creation_flags(0x0800_0000)
+    //                 .spawn()
+    //                 .ok();
+    //         }
+    //     });
+
+    //     // Modify each Steam localconfig.vdf file
+    //     let mut success = false;
+    //     for steam_config in steam_configs {
+    //         println!("here {}", steam_config.id);
+    //         // if steam_config.id == "332752569" {
+
+    //         // TODO: handle case when Ovewatch is not installed
+    //         let result = helpers::set_steam_launch_options(steam_config.file.as_str(), Some(id));
+
+    //         match result {
+    //             Ok(_) => {
+    //                 println!("success for {}", steam_config.id);
+    //                 success = true;
+    //             }
+    //             Err(e) => {
+    //                 steam_cleanup();
+    //                 return Err(e);
+    //             }
+    //         };
+    //         // }
+    //     }
+
+    //     println!("success {}", success);
+
+    //     steam_cleanup();
+    // }
+    // return Err(Error::Custom(format!("Steam is not supported yet.")));
+
+    // TODO: think how you want to do this
+    if !errors.is_empty() {
+        return Err(Error::Custom(format!(
+            "Encountered errors while setting the background: {:?}",
+            errors // errors.join(", ")
+        )));
+    }
 
     config.background.current = Some(id.to_string());
     config.background.is_outdated = false;

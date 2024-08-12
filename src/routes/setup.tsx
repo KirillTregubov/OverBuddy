@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 
 import { fadeInVariants } from '@/lib/animations'
 import { launchQueryOptions } from '@/lib/data'
+// import { isDev } from '@/lib/dev'
 
 export const Route = createFileRoute('/setup')({
   beforeLoad: async ({ context: { queryClient } }) => {
@@ -19,7 +20,8 @@ export const Route = createFileRoute('/setup')({
   component: Setup
 })
 
-const mode = 'release' // isDev() ? 'dev' : 'release'
+// const mode = isDev() ? 'dev' : 'release'
+const mode = 'release'
 
 function Setup() {
   return (

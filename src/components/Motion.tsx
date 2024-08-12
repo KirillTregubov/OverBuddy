@@ -1,7 +1,7 @@
-import { Link } from '@tanstack/react-router'
+import { createLink } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 
-export const MotionLink = motion(Link)
+export const MotionLink = createLink(motion.a)
 
 // type MotionComponentProps<T extends ElementType> = {
 //   as: T

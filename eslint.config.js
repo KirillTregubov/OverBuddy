@@ -24,7 +24,11 @@ export default [
     rules: {
       'react-refresh/only-export-components': 'warn',
       ...eslintPluginReactHooks.configs.recommended.rules,
-      'react/prop-types': [2, { ignore: ['className'] }] // TODO: https://github.com/shadcn-ui/ui/issues/120 and https://github.com/jsx-eslint/eslint-plugin-react/issues/3284
+      'react/prop-types': [2, { ignore: ['className'] }], // TODO: https://github.com/shadcn-ui/ui/issues/120 and https://github.com/jsx-eslint/eslint-plugin-react/issues/3284
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { caughtErrorsIgnorePattern: '^_' }
+      ]
     },
     settings: {
       react: {
