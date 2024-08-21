@@ -314,6 +314,20 @@ const BACKGROUNDS: &[Background] = &[
         description: "Reinhardt Mythic Weapon (Season 11)",
         tags: &[],
     },
+    Background {
+        id: "0x0800000000001276",
+        image: "juno.jpg",
+        name: "Juno",
+        description: "Juno Release (Season 12)",
+        tags: &["Art"],
+    },
+    Background {
+        id: "0x0800000000001277",
+        image: "anubis_reaper.jpg",
+        name: "Anubis Reaper",
+        description: "Season 12 Mythic Skin",
+        tags: &["Art"],
+    },
 ];
 
 pub fn get_backgrounds() -> &'static [Background] {

@@ -622,7 +622,7 @@ function ResetButton() {
                 <AnimatePresence mode="wait">
                   {isConfirming === 'confirm' && (
                     <span>
-                      Confirm Reset Settings (This action cannot be undone)
+                      Confirm Reset Settings (This action cannot be undone.)
                     </span>
                   )}
                   {isConfirming === 'pending' && (

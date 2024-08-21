@@ -376,7 +376,7 @@ export const useResetMutation = ({
 export const settingsQueryOptions = queryOptions({
   queryKey: ['settings'],
   queryFn: async () => {
-    await new Promise((resolve) => setTimeout(resolve, 1000)) // TODO: remove
+    // await new Promise((resolve) => setTimeout(resolve, 1000)) // TODO: remove
     const data = await invoke('get_settings_data')
     // const tempData = JSON.stringify({
     //   platforms: ['Steam'],
