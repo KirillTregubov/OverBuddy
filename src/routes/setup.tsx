@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 import Version from '@/components/Version'
 import { fadeInVariants } from '@/lib/animations'
 import { launchQueryOptions } from '@/lib/data'
-// import { isDev } from '@/lib/dev'
 
 export const Route = createFileRoute('/setup')({
   beforeLoad: async ({ context: { queryClient } }) => {

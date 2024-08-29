@@ -214,7 +214,7 @@ function Settings() {
                 Check for Updates
               </MotionButton>
               <p className="text-zinc-400">
-                <Version /> Installed.
+                <Version /> installed.
               </p>
             </div>
           </motion.div>
