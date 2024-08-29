@@ -11,7 +11,8 @@ const SteamConfig = z.object({
 export const SteamProfile = z.object({
   id: z.string(),
   name: z.string(),
-  avatar: z.string().url().nullable()
+  avatar: z.string().url().nullable(),
+  has_overwatch: z.boolean()
 })
 export type SteamProfile = z.infer<typeof SteamProfile>
 

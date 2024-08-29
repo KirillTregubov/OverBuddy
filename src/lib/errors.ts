@@ -1,6 +1,7 @@
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+import { mode } from '@/lib/dev'
 import { Platform } from '@/lib/schemas'
 
 /* ConfigErrors */
@@ -65,7 +66,10 @@ export function handleError(error: unknown) {
   // }
 }
 
+// TODO: Add react query and rust function information
 export function getReportURL(error: Error) {
-  const body = encodeURIComponent(`### Error\n\n\`\`\`\n${error.stack}\n\`\`\``)
+  const body = encodeURIComponent(
+    `**Describe your issue**\n\n<!--Please describe how you ran into this issue and leave any other comments.-->\n\n**What version of OverBuddy are you using?**\n\n\`\`\`Version ${import.meta.env.PACKAGE_VERSION} (${mode})\`\`\`\n\n**What was the error encountered?**\n\n\`\`\`\n${error}\n\`\`\``
+  )
   return `https://github.com/KirillTregubov/OverBuddy/issues/new?body=${body}`
 }

@@ -162,7 +162,7 @@ function Menu() {
     toast.error(
       'Your background is outdated. This may result in a black screen in game.',
       {
-        // id: 'reset-background',
+        id: 'reset-background',
         action: {
           label: 'Revert to Default',
           onClick: () => resetBackground()
@@ -339,7 +339,7 @@ function Menu() {
         transition={{ duration: 0.3 }}
       >
         <div className="absolute left-0 right-0 top-0 z-10 flex gap-4 p-4">
-          {activeBackground && (
+          {/* {activeBackground && (
             <div
               className="scrollbar-hide flex h-fit w-fit flex-wrap gap-2 text-sm"
               key={activeBackground.id}
@@ -362,7 +362,7 @@ function Menu() {
                 </motion.p>
               ))}
             </div>
-          )}
+          )} */}
           {/* NOTE: hideme if required */}
           <div className="ml-auto w-fit">
             <MotionLink
@@ -522,13 +522,16 @@ function Menu() {
         {activeBackground ? (
           <img
             alt={`${activeBackground.name} Background`}
-            className="pointer-events-none z-0 h-full w-full select-none rounded-lg object-cover shadow-lg"
+            className="pointer-events-none h-full w-full select-none rounded-lg object-cover shadow-lg"
             src={`/backgrounds/${activeBackground.image}`}
+            // src={`/backgrounds/demo.png`}
             onError={onImageError}
             draggable={false}
           />
         ) : (
-          <div className="">hello</div>
+          <div className="flex h-full w-full items-center justify-center rounded-lg bg-zinc-800/80 font-medium text-zinc-400 shadow-lg">
+            No Background Selected
+          </div>
         )}
       </motion.div>
     </motion.div>

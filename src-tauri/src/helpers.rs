@@ -404,10 +404,13 @@ fn extract_steam_user_info(
                                         )));
                                     }
 
+                                    let has_overwatch = is_steam_overwatch_installed(contents);
+
                                     return Ok(SteamProfile {
                                         avatar,
                                         name,
                                         id: Some(id.to_string()),
+                                        has_overwatch,
                                     });
                                 }
                             }
@@ -454,6 +457,15 @@ fn extract_name_history(object_str: &str) -> Option<String> {
         }
     }
     None
+}
+
+fn is_steam_overwatch_installed(contents: &str) -> bool {
+    // limit to the first 100 lines
+    println!("{}", &contents[..100]);
+    // let user_start = local_config
+    //     .find("\"UserLocalConfigStore\"")
+
+    return true;
 }
 
 fn diff_files(file1: &str, file2: &str) -> Result<bool, String> {

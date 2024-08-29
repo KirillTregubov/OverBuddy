@@ -360,6 +360,7 @@ export const useResetMutation = ({
       if (!config.success) {
         throw new Error(`Failed to reset.`)
       }
+      queryClient.invalidateQueries({ queryKey: ['active_background'] })
       updateLaunchConfig(config.data)
     },
     onError: (error) => {
@@ -376,38 +377,7 @@ export const useResetMutation = ({
 export const settingsQueryOptions = queryOptions({
   queryKey: ['settings'],
   queryFn: async () => {
-    // await new Promise((resolve) => setTimeout(resolve, 1000)) // TODO: remove
     const data = await invoke('get_settings_data')
-    // const tempData = JSON.stringify({
-    //   platforms: ['Steam'],
-    //   steam_profiles: [
-    //     {
-    //       id: '1121757682',
-    //       name: 'Aimless Russian',
-    //       avatar:
-    //         'https://avatars.akamai.steamstatic.com/141b0b20bef5f40f8e4c85f74e551d9b588bb334_full.jpg'
-    //     },
-    //     {
-    //       id: '171934192',
-    //       name: 'assist delivery',
-    //       avatar:
-    //         'https://avatars.akamai.steamstatic.com/0ebd2c813afc992309612b5973b0dfec761303d7_full.jpg'
-    //     },
-    //     {
-    //       id: '332752569',
-    //       name: 'Spectra',
-    //       avatar:
-    //         'https://avatars.akamai.steamstatic.com/a8091fa7e1c73cf1289ef49f74e105e0c0f5562f_full.jpg'
-    //     },
-    //     {
-    //       id: '3327525693',
-    //       name: 'cq6WyuAOdyN8zHgdQxETtAHJrsqWmuns',
-    //       avatar:
-    //         'https://avatars.akamai.steamstatic.com/a8091fa7e1c73cf1289ef49f74e105e0c0f5562f_full.jpg'
-    //     }
-    //   ]
-    // })
-
     const settings = SettingsData.safeParse(JSON.parse(data as string))
     if (!settings.success) {
       throw new Error(`Failed to get settings. ${settings.error.message}`)

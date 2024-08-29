@@ -45,6 +45,27 @@ const BACKGROUNDS: &[Background] = &[
         description: "Overwatch 2 Launch",
         tags: &[],
     },
+    Background {
+        id: "0x0800000000000F11",
+        image: "cyber_demon_genji_green.jpg",
+        name: "Cyber Demon Genji (Green)",
+        description: "Season 1 Mythic Skin",
+        tags: &["Animated"],
+    },
+    Background {
+        id: "0x0800000000000EFA",
+        image: "cyber_demon_genji_red.jpg",
+        name: "Cyber Demon Genji (Red)",
+        description: "Season 1 Mythic Skin",
+        tags: &["Animated"],
+    },
+    Background {
+        id: "0x0800000000000F12",
+        image: "cyber_demon_genji_pink.jpg",
+        name: "Cyber Demon Genji (Pink)",
+        description: "Season 1 Mythic Skin",
+        tags: &["Animated"],
+    },
     // Background {
     //     id: "0x0800000000000F8F",
     //     image: "ramattra.jpg",
@@ -279,13 +300,14 @@ const BACKGROUNDS: &[Background] = &[
         description: "Porsche Event (Season 10)",
         tags: &["Collaboration", "Art"],
     },
-    Background {
-        id: "0x080000000000123F",
-        image: "calamity_empress_ashe.jpg",
-        name: "Calamity Empress Ashe",
-        description: "Season 11 Mythic Skin",
-        tags: &["Art"],
-    },
+    // Removed in Season 12, before I could even push to main :(
+    // Background {
+    //     id: "0x080000000000123F",
+    //     image: "calamity_empress_ashe.jpg",
+    //     name: "Calamity Empress Ashe",
+    //     description: "Season 11 Mythic Skin",
+    //     tags: &["Art"],
+    // },
     Background {
         id: "0x08000000000008BA",
         image: "rose_gold_mercy.jpg",
@@ -293,13 +315,14 @@ const BACKGROUNDS: &[Background] = &[
         description: "Breast Cancer Charity Event (Season 11)",
         tags: &["Charity"],
     },
-    Background {
-        id: "0x0800000000001243",
-        image: "transformers.jpg",
-        name: "Optimus Prime Reinhardt",
-        description: "Transformers Event (Season 11)",
-        tags: &["Collaboration", "Art"],
-    },
+    // Removed in Season 12, before I could even push to main :(
+    // Background {
+    //     id: "0x0800000000001243",
+    //     image: "transformers.jpg",
+    //     name: "Optimus Prime Reinhardt",
+    //     description: "Transformers Event (Season 11)",
+    //     tags: &["Collaboration", "Art"],
+    // },
     Background {
         id: "0x0800000000001249",
         image: "summer_games_2024.jpg",

@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
@@ -7,7 +8,6 @@ import ErrorComponent from '@/components/ErrorComponent'
 import Toaster from '@/components/Toaster'
 import { routeTree } from '@/routeTree.gen'
 import '@/styles.css'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 export const queryClient = new QueryClient({
   defaultOptions: {

@@ -117,7 +117,8 @@ function ResetButton({ reset }: Omit<ErrorComponentProps, 'error'>) {
         transition={{ opacity: { duration: 0.15 } }}
       >
         {isConfirming === 'idle' && 'Reset Settings'}
-        {isConfirming === 'confirm' && 'Confirm Reset Settings'}
+        {isConfirming === 'confirm' &&
+          'Confirm Reset Settings (Cannot be undone)'}
       </MotionButton>
     </AnimatePresence>
   )

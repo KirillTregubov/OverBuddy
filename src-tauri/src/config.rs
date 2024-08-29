@@ -14,8 +14,9 @@ pub struct SteamLocalconfig {
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct SteamProfile {
     pub id: Option<String>,
-    pub avatar: Option<String>,
     pub name: Option<String>,
+    pub avatar: Option<String>,
+    pub has_overwatch: bool,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]

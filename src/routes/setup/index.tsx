@@ -1,23 +1,63 @@
 import {
-  createFileRoute
+  createFileRoute,
+  useNavigate
   // useNavigate
 } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import { BookLockIcon, GlobeIcon, SparklesIcon } from 'lucide-react'
 
 import logo from '@/assets/logo.svg'
-import { ExternalLinkInline, LinkButton } from '@/components/Button'
+import { Button, ExternalLinkInline } from '@/components/Button'
 import {
   fadeInVariants,
   moveInVariants,
   staggerChildrenVariants
 } from '@/lib/animations'
+import { useSetupMutation } from '@/lib/data'
+import {
+  ConfigError,
+  ConfigErrors,
+  handleError,
+  SetupError
+} from '@/lib/errors'
 
 export const Route = createFileRoute('/setup/')({
   component: SetupSplash
 })
 
 function SetupSplash() {
+  const navigate = useNavigate()
+  const { status, mutate, reset } = useSetupMutation({
+    onError: (error) => {
+      if (error instanceof SetupError) {
+        handleError(error)
+        reset()
+      } else if (
+        error instanceof ConfigError &&
+        ConfigErrors.safeParse(error.error_key).success
+      ) {
+        navigate({
+          to: '/setup/$key',
+          params: {
+            key: error.error_key
+          },
+          search: {
+            message: error.message,
+            platforms: error.platforms
+          },
+          replace: true
+        })
+        return
+      }
+    },
+    onSuccess: () => {
+      navigate({
+        to: '/menu',
+        replace: true
+      })
+    }
+  })
+
   return (
     <motion.div
       className="mx-auto h-full w-full max-w-xl"
@@ -76,8 +116,8 @@ function SetupSplash() {
                   open source
                 </ExternalLinkInline>
                 . It operates independently and is not affiliated with Blizzard
-                Entertainment® or Valve®. You can undo the changes it makes at
-                any time by reverting to the default background.
+                Entertainment®{/*or Valve®*/}. You can undo the changes it
+                makes at any time by reverting to the default background.
               </motion.p>
             </motion.div>
           </motion.div>
@@ -90,27 +130,34 @@ function SetupSplash() {
             </motion.div>
             <motion.div>
               <motion.h2 className="mb-1 flex items-center gap-2 text-lg font-medium text-white">
-                Privacy Notice
+                Built with Privacy in Mind
               </motion.h2>
               <motion.p className="text-pretty">
                 To change the menu background, OverBuddy needs to read and write
-                your Battle.net® or Steam® configuration files. It does{' '}
-                <span className="font-medium">NOT</span> modify any game files.
-                Your Battle.net or Steam client will be restarted to apply the
-                changes.
+                your Battle.net® {/* or Steam® */}configuration files. It does{' '}
+                <span className="font-medium">NOT</span> modify any game files. Your Battle.net {/*or Steam */}
+                client will be restarted to apply the changes.
               </motion.p>
             </motion.div>
           </motion.div>
         </div>
         <motion.div variants={moveInVariants} className="flex w-full">
-          <LinkButton
+          {/* <LinkButton
             primary
             className="w-full py-3"
             to="/setup/select"
             replace
           >
             Continue
-          </LinkButton>
+          </LinkButton> */}
+          <Button
+            primary
+            className="w-full py-3"
+            disabled={status !== 'idle'}
+            onClick={() => mutate({ platforms: ['BattleNet'] })}
+          >
+            Continue
+          </Button>
         </motion.div>
       </motion.div>
     </motion.div>

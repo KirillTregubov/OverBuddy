@@ -1,6 +1,7 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 
+import Version from '@/components/Version'
 import { fadeInVariants } from '@/lib/animations'
 import { launchQueryOptions } from '@/lib/data'
 // import { isDev } from '@/lib/dev'
@@ -20,9 +21,6 @@ export const Route = createFileRoute('/setup')({
   component: Setup
 })
 
-// const mode = isDev() ? 'dev' : 'release'
-const mode = 'release'
-
 function Setup() {
   return (
     <motion.div
@@ -41,17 +39,8 @@ function Setup() {
         <div className="m-auto max-w-xl">
           <p>
             Made with ❤️ by <span className="font-bold">Kirill Tregubov</span>.
-            Version{' '}
-            <span className="proportional-nums">
-              {import.meta.env.PACKAGE_VERSION}
-            </span>{' '}
-            ({mode}).
+            <Version />.
           </p>
-          {/* <p>
-            Blizzard Entertainment, Battle.net and Overwatch are trademarks or
-            registered trademarks of Blizzard Entertainment, Inc. in the U.S.
-            and/or other countries.
-          </p> */}
         </div>
       </motion.div>
     </motion.div>
