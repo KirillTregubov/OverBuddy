@@ -111,7 +111,7 @@ function Settings() {
             </div>
             <div className="flex flex-col gap-1.5 text-zinc-400">
               <p>
-                OverBuddy allows you to change your Overwatch main menu
+                OverBuddy allows you to change your Overwatch™ main menu
                 background. Made with{' '}
                 <span className="saturate-[0.75]">❤️</span> by{' '}
                 <span className="font-bold">Kirill Tregubov</span>. All code is{' '}

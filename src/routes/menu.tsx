@@ -524,7 +524,6 @@ function Menu() {
             alt={`${activeBackground.name} Background`}
             className="pointer-events-none h-full w-full select-none rounded-lg object-cover shadow-lg"
             src={`/backgrounds/${activeBackground.image}`}
-            // src={`/backgrounds/demo.png`}
             onError={onImageError}
             draggable={false}
           />

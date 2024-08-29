@@ -38,7 +38,7 @@ function Setup() {
       >
         <div className="m-auto max-w-xl">
           <p>
-            Made with ❤️ by <span className="font-bold">Kirill Tregubov</span>.
+            Made with ❤️ by <span className="font-bold">Kirill Tregubov</span>.{' '} 
             <Version />.
           </p>
         </div>
