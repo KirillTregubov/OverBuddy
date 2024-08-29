@@ -1,11 +1,10 @@
 import { TanStackRouterVite } from '@tanstack/router-vite-plugin'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-import version from 'vite-plugin-package-version'
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
-  plugins: [react(), TanStackRouterVite(), version()],
+  plugins: [react(), TanStackRouterVite()],
   resolve: {
     alias: {
       '@': '/src'
@@ -39,5 +38,13 @@ export default defineConfig(async () => ({
     minify: !process.env.TAURI_DEBUG ? ('esbuild' as const) : false,
     // // produce sourcemaps for debug builds
     sourcemap: !!process.env.TAURI_DEBUG
+  },
+  define: {
+    'import.meta.env.REPOSITORY_URL': JSON.stringify(
+      process.env.npm_package_repository
+    ),
+    'import.meta.env.PACKAGE_VERSION': JSON.stringify(
+      process.env.npm_package_version
+    )
   }
 }))

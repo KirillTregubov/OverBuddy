@@ -41,3 +41,91 @@
   opacity: 1;
   transform: translate3d(0, 0.2em, 0);
 }
+
+.toaster {
+  display: flex;
+
+  &[data-x-position='center'] {
+    justify-content: center;
+  }
+
+  &[data-x-position='left'] {
+    justify-content: flex-start;
+  }
+
+  &[data-x-position='right'] {
+    justify-content: flex-end;
+  }
+}
+
+img {
+  user-select: none;
+  pointer-events: none;
+}
+
+button.highlight {
+  filter: drop-shadow(0px 0px 4px rgb(234 88 12 / 0.1));
+}
+
+button.highlight-base {
+  filter: drop-shadow(0px 0px 4px rgb(234 88 12 / 0));
+}
+
+.scroller {
+  /* --scrollbar-color-thumb: theme('colors.zinc.600');
+  --scrollbar-color-track: theme('colors.zinc.800'); */
+  --scrollbar-width-legacy: 8px;
+
+  transition:
+    --scrollbar-color-thumb 0.15s ease-in-out,
+    --scrollbar-color-track 0.15s ease-in-out;
+}
+
+@property --scrollbar-color-thumb {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: theme('colors.zinc.600');
+}
+
+@property --scrollbar-color-track {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: theme('colors.zinc.800');
+}
+
+.scroller-hidden {
+  --scrollbar-color-thumb: transparent;
+  --scrollbar-color-track: transparent;
+}
+
+body.scroller {
+  --scrollbar-width-legacy: 11px;
+}
+
+@supports selector(::-webkit-scrollbar) {
+  .scroller::-webkit-scrollbar-thumb {
+    border: 2px solid var(--scrollbar-color-track);
+    border-radius: 999px;
+    background-color: var(--scrollbar-color-thumb);
+  }
+  .scroller::-webkit-scrollbar-track {
+    border-radius: 999px;
+    background-color: var(--scrollbar-color-track);
+  }
+  .scroller::-webkit-scrollbar {
+    max-width: var(--scrollbar-width-legacy);
+    max-height: var(--scrollbar-width-legacy);
+  }
+
+  .scroller-settings::-webkit-scrollbar-track {
+    margin-left: -0.0625rem;
+    margin-right: 0.6875rem;
+  }
+
+  body.scroller::-webkit-scrollbar-thumb {
+    border-left: 3px solid var(--scrollbar-color-track);
+  }
+  body.scroller::-webkit-scrollbar-track {
+    border-radius: 0;
+  }
+}

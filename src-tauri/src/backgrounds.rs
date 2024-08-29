@@ -45,6 +45,27 @@ const BACKGROUNDS: &[Background] = &[
         description: "Overwatch 2 Launch",
         tags: &[],
     },
+    Background {
+        id: "0x0800000000000F11",
+        image: "cyber_demon_genji_green.jpg",
+        name: "Cyber Demon Genji (Green)",
+        description: "Season 1 Mythic Skin",
+        tags: &["Animated"],
+    },
+    Background {
+        id: "0x0800000000000EFA",
+        image: "cyber_demon_genji_red.jpg",
+        name: "Cyber Demon Genji (Red)",
+        description: "Season 1 Mythic Skin",
+        tags: &["Animated"],
+    },
+    Background {
+        id: "0x0800000000000F12",
+        image: "cyber_demon_genji_pink.jpg",
+        name: "Cyber Demon Genji (Pink)",
+        description: "Season 1 Mythic Skin",
+        tags: &["Animated"],
+    },
     // Background {
     //     id: "0x0800000000000F8F",
     //     image: "ramattra.jpg",
@@ -148,7 +169,7 @@ const BACKGROUNDS: &[Background] = &[
         image: "zero_hour_owl.jpg",
         name: "Overwatch League Zero Hour",
         description: "Overwatch League Promo (Season 4)",
-        tags: &[],
+        tags: &["Overwatch League"],
     },
     // Background {
     //     id: "0x0800000000001133",
@@ -211,7 +232,7 @@ const BACKGROUNDS: &[Background] = &[
         image: "overwatch_world_cup.jpg",
         name: "Overwatch World Cup",
         description: "Overwatch World Cup 2023 (Season 7)",
-        tags: &[],
+        tags: &["World Cup"],
     },
     // Background {
     //     id: "0x0800000000001173",
@@ -277,6 +298,57 @@ const BACKGROUNDS: &[Background] = &[
         image: "porsche.jpg",
         name: "Porsche D.Va",
         description: "Porsche Event (Season 10)",
+        tags: &["Collaboration", "Art"],
+    },
+    // Removed in Season 12, before I could even push to main :(
+    // Background {
+    //     id: "0x080000000000123F",
+    //     image: "calamity_empress_ashe.jpg",
+    //     name: "Calamity Empress Ashe",
+    //     description: "Season 11 Mythic Skin",
+    //     tags: &["Art"],
+    // },
+    Background {
+        id: "0x08000000000008BA",
+        image: "rose_gold_mercy.jpg",
+        name: "Rose Gold Mercy",
+        description: "Breast Cancer Charity Event (Season 11)",
+        tags: &["Charity"],
+    },
+    // Removed in Season 12, before I could even push to main :(
+    // Background {
+    //     id: "0x0800000000001243",
+    //     image: "transformers.jpg",
+    //     name: "Optimus Prime Reinhardt",
+    //     description: "Transformers Event (Season 11)",
+    //     tags: &["Collaboration", "Art"],
+    // },
+    Background {
+        id: "0x0800000000001249",
+        image: "summer_games_2024.jpg",
+        name: "Lifeguard Lifeweaver & Kiriko",
+        description: "Summer Games 2024 (Season 11)",
+        tags: &[],
+    },
+    Background {
+        id: "0x080000000000124A",
+        image: "reinhardt_bound_demon_mythic.jpg",
+        name: "Reinhardt Bound Demon",
+        description: "Reinhardt Mythic Weapon (Season 11)",
+        tags: &[],
+    },
+    Background {
+        id: "0x0800000000001276",
+        image: "juno.jpg",
+        name: "Juno",
+        description: "Juno Release (Season 12)",
+        tags: &["Art"],
+    },
+    Background {
+        id: "0x0800000000001277",
+        image: "anubis_reaper.jpg",
+        name: "Anubis Reaper",
+        description: "Season 12 Mythic Skin",
         tags: &["Art"],
     },
 ];

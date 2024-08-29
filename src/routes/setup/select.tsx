@@ -1,27 +1,40 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
-import { CheckCircleIcon, CircleIcon } from 'lucide-react'
+import { CheckCircleIcon, CircleIcon, LoaderPinwheel } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
 import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
-import { moveInVariants, staggerChildrenVariants } from '@/lib/animations'
+import { Button } from '@/components/Button'
+import {
+  fadeInVariants,
+  moveInVariants,
+  staggerChildrenVariants
+} from '@/lib/animations'
 import { useSetupMutation } from '@/lib/data'
-import { ConfigError, ConfigErrors, handleError } from '@/lib/errors'
+import {
+  ConfigError,
+  ConfigErrors,
+  SetupError,
+  handleError
+} from '@/lib/errors'
 import { Platform } from '@/lib/schemas'
 
 export const Route = createFileRoute('/setup/select')({
   component: SetupSelect
 })
 
-export function SetupSelect() {
+function SetupSelect() {
   const [platforms, setPlatforms] = useState<Platform[]>([])
   const navigate = useNavigate()
   const { status, mutate, reset } = useSetupMutation({
     onError: (error) => {
-      if (
+      if (error instanceof SetupError) {
+        handleError(error)
+        reset()
+      } else if (
         error instanceof ConfigError &&
         ConfigErrors.safeParse(error.error_key).success
       ) {
@@ -31,15 +44,13 @@ export function SetupSelect() {
             key: error.error_key
           },
           search: {
-            action: error.error_action || 'finding',
+            message: error.message,
             platforms: error.platforms
           },
           replace: true
         })
         return
       }
-      handleError(error)
-      reset()
     },
     onSuccess: () => {
       navigate({
@@ -51,56 +62,61 @@ export function SetupSelect() {
 
   return (
     <motion.div
-      className="mx-auto flex h-full max-w-xl select-none flex-col items-center justify-center pb-8"
-      variants={staggerChildrenVariants}
+      className="mx-auto h-full w-full max-w-xl"
+      variants={fadeInVariants}
       initial="hidden"
       animate="show"
     >
-      <div className="mb-6 flex flex-col items-center gap-2 text-center text-zinc-400">
-        <motion.h1
-          className="text-2xl font-medium text-white"
-          variants={moveInVariants}
-        >
-          Select your Platform(s)
-        </motion.h1>
-        <motion.p variants={moveInVariants}>
-          Select the platform(s) you use to play Overwatch™. This will allow
-          OverBuddy to automatically detect your installation and apply the
-          desired changes.
-        </motion.p>
-        <motion.p variants={moveInVariants}>
-          You can change this later in the settings.
-        </motion.p>
-      </div>
-      <motion.div className="mb-8 flex gap-8" variants={moveInVariants}>
-        <button
-          className="group outline-none"
-          onClick={() => {
-            if (platforms.includes('BattleNet')) {
-              setPlatforms(platforms.filter((p) => p !== 'BattleNet'))
-              return
-            }
-            setPlatforms([...platforms, 'BattleNet'])
-          }}
-        >
-          <div className="flex flex-col items-center gap-2 transition-transform duration-200 will-change-transform group-active:scale-90">
+      <motion.div
+        className="flex h-full w-full select-none flex-col items-center justify-center gap-5"
+        variants={staggerChildrenVariants}
+        initial="hidden"
+        animate="show"
+      >
+        <div className="flex flex-col items-center gap-2 text-center text-zinc-400">
+          <motion.h1
+            className="text-2xl font-medium text-white"
+            variants={moveInVariants}
+          >
+            Connect your Platform(s)
+          </motion.h1>
+          <motion.p variants={moveInVariants}>
+            Select the platform(s) you use to play Overwatch™. OverBuddy will
+            automatically detect installations and required configurations.
+          </motion.p>
+          <motion.p variants={moveInVariants}>
+            You can change this later in the settings.
+          </motion.p>
+        </div>
+        <motion.div className="flex gap-4" variants={moveInVariants}>
+          <button
+            className="group flex flex-col items-center gap-2 p-3 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95 disabled:pointer-events-none"
+            onClick={() => {
+              if (platforms.includes('BattleNet')) {
+                setPlatforms(platforms.filter((p) => p !== 'BattleNet'))
+                return
+              }
+              setPlatforms([...platforms, 'BattleNet'])
+            }}
+            title="Connect Battle.net"
+            disabled={status !== 'idle'}
+          >
             <img
               src={BattleNet}
               alt="Battle.net Logo"
               title="Battle.net"
-              width="64px"
-              height="64px"
+              width="72px"
+              height="72px"
               className={clsx(
-                'rounded-full ring-white grayscale transition-[transform,filter,box-shadow] will-change-transform group-hover:scale-110 group-focus-visible:scale-110 group-focus-visible:ring',
+                'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
                 platforms.includes('BattleNet')
                   ? 'grayscale-0 group-active:grayscale'
                   : 'group-active:grayscale-0'
               )}
-              draggable={false}
             />
             <h2
               className={clsx(
-                'flex items-center gap-1 text-center font-medium transition-colors',
+                'flex items-center gap-1.5 text-center font-medium leading-none transition will-change-transform',
                 platforms.includes('BattleNet')
                   ? 'text-white group-active:text-zinc-400'
                   : 'text-zinc-400 group-active:text-white'
@@ -127,36 +143,35 @@ export function SetupSelect() {
               </AnimatePresence>
               Battle.net
             </h2>
-          </div>
-        </button>
-        <button
-          className="group outline-none"
-          onClick={() => {
-            if (platforms.includes('Steam')) {
-              setPlatforms(platforms.filter((p) => p !== 'Steam'))
-              return
-            }
-            setPlatforms([...platforms, 'Steam'])
-          }}
-        >
-          <div className="flex flex-col items-center gap-2 transition-transform duration-200 will-change-transform group-active:scale-90">
+          </button>
+          <button
+            className="group flex flex-col items-center gap-2 p-3 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95 disabled:pointer-events-none"
+            onClick={() => {
+              if (platforms.includes('Steam')) {
+                setPlatforms(platforms.filter((p) => p !== 'Steam'))
+                return
+              }
+              setPlatforms([...platforms, 'Steam'])
+            }}
+            title="Connect Steam"
+            disabled={status !== 'idle'}
+          >
             <img
               src={Steam}
               alt="Steam Logo"
               title="Steam"
-              width="64px"
-              height="64px"
+              width="72px"
+              height="72px"
               className={clsx(
-                'rounded-full ring-white grayscale transition-[transform,filter,box-shadow] will-change-transform group-hover:scale-110 group-focus-visible:scale-110 group-focus-visible:ring',
+                'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
                 platforms.includes('Steam')
                   ? 'grayscale-0 group-active:grayscale'
                   : 'group-active:grayscale-0'
               )}
-              draggable={false}
             />
             <h2
               className={clsx(
-                'flex items-center gap-1 text-center font-medium transition-colors',
+                'flex items-center gap-1.5 text-center font-medium leading-none transition will-change-transform',
                 platforms.includes('Steam')
                   ? 'text-white group-active:text-zinc-400'
                   : 'text-zinc-400 group-active:text-white'
@@ -183,23 +198,47 @@ export function SetupSelect() {
               </AnimatePresence>
               Steam
             </h2>
-          </div>
-        </button>
+          </button>
+        </motion.div>
+        <motion.div className="w-full" variants={moveInVariants}>
+          <Button
+            primary
+            className="flex w-full items-center justify-center gap-2 py-3"
+            disabled={status !== 'idle'}
+            onClick={() => {
+              if (platforms.length === 0) {
+                toast.warning('You must select at least one platform.')
+                return
+              }
+              mutate({ platforms })
+            }}
+          >
+            <AnimatePresence mode="wait">
+              {status === 'idle' ? (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  key="idle"
+                >
+                  Continue
+                </motion.span>
+              ) : status === 'pending' || status === 'success' ? (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  key="pending"
+                >
+                  <LoaderPinwheel className="animate-spin" />
+                </motion.span>
+              ) : null}
+            </AnimatePresence>
+          </Button>
+        </motion.div>
       </motion.div>
-      <motion.button
-        className="w-full select-none rounded-lg bg-zinc-50 px-4 py-3 font-medium capitalize text-black transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-200/70 focus-visible:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:!scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-        disabled={status !== 'idle'}
-        onClick={() => {
-          if (platforms.length === 0) {
-            toast.warning('You must select at least one platform.')
-            return
-          }
-          mutate(platforms)
-        }}
-        variants={moveInVariants}
-      >
-        Continue
-      </motion.button>
     </motion.div>
   )
 }

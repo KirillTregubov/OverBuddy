@@ -1,25 +1,38 @@
 import {
-  // Link,
   createFileRoute,
   useNavigate
+  // useNavigate
 } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import { BookLockIcon, GlobeIcon, SparklesIcon } from 'lucide-react'
 
 import logo from '@/assets/logo.svg'
-import { moveInVariants, staggerChildrenVariants } from '@/lib/animations'
+import { Button, ExternalLinkInline } from '@/components/Button'
+import {
+  fadeInVariants,
+  moveInVariants,
+  staggerChildrenVariants
+} from '@/lib/animations'
 import { useSetupMutation } from '@/lib/data'
-import { ConfigError, ConfigErrors, handleError } from '@/lib/errors'
+import {
+  ConfigError,
+  ConfigErrors,
+  handleError,
+  SetupError
+} from '@/lib/errors'
 
 export const Route = createFileRoute('/setup/')({
   component: SetupSplash
 })
 
-export function SetupSplash() {
+function SetupSplash() {
   const navigate = useNavigate()
   const { status, mutate, reset } = useSetupMutation({
     onError: (error) => {
-      if (
+      if (error instanceof SetupError) {
+        handleError(error)
+        reset()
+      } else if (
         error instanceof ConfigError &&
         ConfigErrors.safeParse(error.error_key).success
       ) {
@@ -29,15 +42,13 @@ export function SetupSplash() {
             key: error.error_key
           },
           search: {
-            action: error.error_action || 'finding',
+            message: error.message,
             platforms: error.platforms
           },
           replace: true
         })
         return
       }
-      handleError(error)
-      reset()
     },
     onSuccess: () => {
       navigate({
@@ -49,107 +60,105 @@ export function SetupSplash() {
 
   return (
     <motion.div
-      className="mx-auto flex h-full max-w-xl select-none flex-col items-center justify-center pb-8"
-      variants={staggerChildrenVariants}
+      className="mx-auto h-full w-full max-w-xl"
+      variants={fadeInVariants}
+      initial="hidden"
+      animate="show"
     >
-      <motion.img
-        className="mb-2"
-        src={logo}
-        alt="OverBuddy Logo"
-        variants={moveInVariants}
-        draggable={false}
-        width="64px"
-        height="64px"
-      />
-      <motion.h1
-        className="mb-8 text-2xl font-medium"
-        variants={moveInVariants}
+      <motion.div
+        className="flex h-full w-full select-none flex-col items-center justify-center gap-8"
+        variants={staggerChildrenVariants}
       >
-        Welcome to <span className="font-bold">OverBuddy</span>!
-      </motion.h1>
-      <div className="mb-10 flex flex-col gap-5 text-zinc-400">
-        <div className="flex items-start gap-4">
+        <div className="flex flex-col items-center gap-2">
+          <motion.img
+            src={logo}
+            alt="OverBuddy Logo"
+            variants={moveInVariants}
+            width="64px"
+            height="64px"
+          />
+          <motion.h1 className="text-2xl font-medium" variants={moveInVariants}>
+            Welcome to <span className="font-bold">OverBuddy</span>!
+          </motion.h1>
+        </div>
+        <div className="flex flex-col gap-5 text-zinc-400">
           <motion.div
-            className="mt-1 rounded-lg bg-zinc-800 p-3 text-white"
+            className="flex items-start gap-4"
             variants={moveInVariants}
           >
-            <SparklesIcon size={20} />
+            <motion.div className="mt-1 rounded-lg bg-zinc-800 p-3 text-white">
+              <SparklesIcon size={20} />
+            </motion.div>
+            <motion.div>
+              <motion.h2 className="mb-1 flex gap-2 text-lg font-medium text-white">
+                Personalized Overwatch™ Experience
+              </motion.h2>
+              <motion.p>
+                Customize your Overwatch main menu background to your liking.
+                Browse all available backgrounds.
+              </motion.p>
+            </motion.div>
           </motion.div>
-          <div>
-            <motion.h2
-              className="mb-1 flex gap-2 text-lg font-medium text-white"
-              variants={moveInVariants}
-            >
-              Personalized Overwatch™ Experience
-            </motion.h2>
-            <motion.p variants={moveInVariants}>
-              Explore all available backgrounds and select your favourite to
-              customize your in-game menu.
-            </motion.p>
-          </div>
-        </div>
-        <div className="flex items-start gap-4">
           <motion.div
-            className="mt-1 rounded-lg bg-zinc-800 p-3 text-white"
+            className="flex items-start gap-4"
             variants={moveInVariants}
           >
-            <GlobeIcon size={20} />
+            <motion.div className="mt-1 rounded-lg bg-zinc-800 p-3 text-white">
+              <GlobeIcon size={20} />
+            </motion.div>
+            <motion.div>
+              <motion.h2 className="mb-1 flex items-center gap-2 text-lg font-medium text-white">
+                Free and Transparent
+              </motion.h2>
+              <motion.p>
+                OverBuddy is free to use and{' '}
+                <ExternalLinkInline href={import.meta.env.REPOSITORY_URL}>
+                  open source
+                </ExternalLinkInline>
+                . It operates independently and is not affiliated with Blizzard
+                Entertainment®{/*or Valve®*/}. You can undo the changes it
+                makes at any time by reverting to the default background.
+              </motion.p>
+            </motion.div>
           </motion.div>
-          <div>
-            <motion.h2
-              className="mb-1 flex items-center gap-2 text-lg font-medium text-white"
-              variants={moveInVariants}
-            >
-              Free and Open Source
-            </motion.h2>
-            <motion.p variants={moveInVariants}>
-              OverBuddy is free to use and open source. It operates
-              independently and is not affiliated with Blizzard Entertainment®.
-              You can undo the changes made by this app at any time by reverting
-              to the default background.
-            </motion.p>
-          </div>
-        </div>
-        <div className="flex items-start gap-4">
           <motion.div
-            className="mt-1 rounded-lg bg-zinc-800 p-3 text-white"
+            className="flex items-start gap-4"
             variants={moveInVariants}
           >
-            <BookLockIcon size={20} />
+            <motion.div className="mt-1 rounded-lg bg-zinc-800 p-3 text-white">
+              <BookLockIcon size={20} />
+            </motion.div>
+            <motion.div>
+              <motion.h2 className="mb-1 flex items-center gap-2 text-lg font-medium text-white">
+                Built with Privacy in Mind
+              </motion.h2>
+              <motion.p className="text-pretty">
+                To change the menu background, OverBuddy needs to read and write
+                your Battle.net® {/* or Steam® */}configuration files. It does{' '}
+                <span className="font-medium">NOT</span> modify any game files. Your Battle.net {/*or Steam */}
+                client will be restarted to apply the changes.
+              </motion.p>
+            </motion.div>
           </motion.div>
-          <div>
-            <motion.h2
-              className="mb-1 flex items-center gap-2 text-lg font-medium text-white"
-              variants={moveInVariants}
-            >
-              Privacy Notice
-            </motion.h2>
-            <motion.p variants={moveInVariants}>
-              To change your background, this app needs to read and write your
-              Battle.net®{/* or Steam®*/} configuration files. It does{' '}
-              <span className="font-medium">NOT</span> modify any game files. To
-              apply the changes, your Battle.net{/* or Steam*/} client will be
-              automatically restarted.
-            </motion.p>
-          </div>
         </div>
-      </div>
-      <motion.div variants={moveInVariants} className="flex w-full">
-        {/* <Link
-          className="w-full select-none rounded-lg bg-zinc-50 px-4 py-3 text-center font-medium capitalize text-black transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-200/70 focus-visible:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:scale-95"
-          to="/setup/select"
-          replace
-          draggable={false}
-        >
-          Continue
-        </Link> */}
-        <button
-          className="w-full select-none rounded-lg bg-zinc-50 px-4 py-3 text-center font-medium capitalize text-black transition-[background-color,box-shadow,transform] will-change-transform hover:bg-zinc-200/70 focus-visible:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring focus-visible:ring-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-          disabled={status !== 'idle'}
-          onClick={() => mutate(['BattleNet'])}
-        >
-          Continue
-        </button>
+        <motion.div variants={moveInVariants} className="flex w-full">
+          {/* <LinkButton
+            primary
+            className="w-full py-3"
+            to="/setup/select"
+            replace
+          >
+            Continue
+          </LinkButton> */}
+          <Button
+            primary
+            className="w-full py-3"
+            disabled={status !== 'idle'}
+            onClick={() => mutate({ platforms: ['BattleNet'] })}
+          >
+            Continue
+          </Button>
+        </motion.div>
       </motion.div>
     </motion.div>
   )
