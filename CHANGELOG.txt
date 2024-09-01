@@ -1,4 +1,6 @@
 OverBuddy has been updated! Steam support is coming soon.
+- Fixed an issue with the installer and made interface improvements.
+Other changes in this update:
 - Added Settings page.
 - Added Keybinds for important actions.
 - Added new backgrounds and removed backgrounds no longer available.
