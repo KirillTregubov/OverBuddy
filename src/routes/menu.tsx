@@ -234,7 +234,7 @@ function Menu() {
       animate="show"
     >
       <div className="relative">
-        <div className="scrollbar-hide -mx-1 flex h-48 flex-shrink-0 items-center gap-3 overflow-x-auto scroll-smooth px-12 before:pointer-events-none before:absolute before:-left-1 before:z-10 before:h-full before:w-6 before:content-[''] before:bg-easing-l-menu-top after:pointer-events-none after:absolute after:-right-1 after:z-10 after:h-full after:w-6 after:content-[''] after:bg-easing-r-menu-top first:pl-12 last:pr-12">
+        <div className="scrollbar-hide -mx-3 flex h-48 flex-shrink-0 items-center gap-3 overflow-x-auto scroll-smooth px-14 before:pointer-events-none before:absolute before:-left-3 before:z-10 before:h-full before:w-6 before:content-[''] before:bg-easing-l-menu-top after:pointer-events-none after:absolute after:-right-3 after:z-10 after:h-full after:w-6 after:content-[''] after:bg-easing-r-menu-top">
           {backgrounds.map((background, index) => (
             <motion.button
               key={background.id}
@@ -290,7 +290,7 @@ function Menu() {
           ))}
         </div>
         <motion.div
-          className="pointer-events-none absolute left-1 top-0 z-20 flex h-full items-center"
+          className="pointer-events-none absolute left-0 top-0 z-20 flex h-full items-center"
           initial={{ transform: 'translateX(15px)' }}
           animate={{ transform: 'translateX(0px)' }}
           transition={{ duration: 0.3 }}
@@ -311,7 +311,7 @@ function Menu() {
           </motion.button>
         </motion.div>
         <motion.div
-          className="pointer-events-none absolute right-1 top-0 z-20 flex h-full items-center"
+          className="pointer-events-none absolute right-0 top-0 z-20 flex h-full items-center"
           initial={{ transform: 'translateX(-15px)' }}
           animate={{ transform: 'translateX(0px)' }}
           transition={{ duration: 0.3 }}

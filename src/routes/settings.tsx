@@ -130,9 +130,9 @@ function Settings() {
                 <ExternalLinkInline href="https://gist.github.com/Toyz/30e6fd504c713511f67f1a607025b0bc">
                   Toyz
                 </ExternalLinkInline>{' '}
-                or{' '}
-                <ExternalLinkInline href="https://github.com/HaruChanHeart/next-overwatch-lobby">
-                  HaruChanHeart
+                or the{' '}
+                <ExternalLinkInline href="https://github.com/overtools/OWLib">
+                  OverTools Team
                 </ExternalLinkInline>
                 .
               </p>

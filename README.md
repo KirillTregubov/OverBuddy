@@ -2,7 +2,7 @@
     <img width="128px" height="128px" src="src-tauri/icons/128x128@2x.png">
     <h1>OverBuddy</h1>
     <p>Customize your Overwatch™ 2 in-game main menu background.</p>
-    <p>Current Version: 1.3.0</p>
+    <p>Current Version: 1.3.2</p>
     <div>
       <a href="https://github.com/KirillTregubov/OverBuddy/releases/latest">Download</a>
       ·
@@ -53,7 +53,7 @@ OverBuddy is a free and open source Windows application that allows Overwatch™
 
 As with all software, OverBuddy is built on the shoulders of giants.
 
-I would like to extend my gratitude to [Toyz](https://github.com/Toyz) for publishing the [Overwatch command line arguments](https://gist.github.com/Toyz/30e6fd504c713511f67f1a607025b0bc), to [SkyBorik](https://steamcommunity.com/id/MRPRP30) for showing the community [How to change Main Menu background](https://steamcommunity.com/sharedfiles/filedetails/?id=3099694051), and to [HaruChanHeart](https://github.com/HaruChanHeart) for their [Overwatch 2 Menu Database](https://github.com/HaruChanHeart/next-overwatch-lobby).
+I would like to extend my gratitude to [Toyz](https://github.com/Toyz) for publishing the [Overwatch command line arguments](https://gist.github.com/Toyz/30e6fd504c713511f67f1a607025b0bc), to [SkyBorik](https://steamcommunity.com/id/MRPRP30) for showing the community [How to change Main Menu background](https://steamcommunity.com/sharedfiles/filedetails/?id=3099694051), and to the [OverTools Team](https://github.com/overtools) for their [OWLib tool](https://github.com/overtools/OWLib).
 
 ## Installation
 
