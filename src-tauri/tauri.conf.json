@@ -29,6 +29,7 @@
         "icons/128x128@2x.png",
         "icons/icon.ico"
       ],
+      "publisher": "Kirill Tregubov",
       "shortDescription": "OverBuddy",
       "longDescription": "Elevate your Overwatch™ 2 experience by customizing your in-game menu background with ease. Browse through all available backgrounds and select your favourite. No need to guess the lobby code or mess around with configuration anymore!",
       "category": "Utility",
