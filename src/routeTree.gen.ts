@@ -127,17 +127,105 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
-export const routeTree = rootRoute.addChildren({
-  IndexRoute,
-  MenuRoute,
-  SettingsRoute,
-  SetupRoute: SetupRoute.addChildren({
-    SetupKeyRoute,
-    SetupSelectRoute,
-    SetupSteamsetupRoute,
-    SetupIndexRoute,
-  }),
-})
+interface SetupRouteChildren {
+  SetupKeyRoute: typeof SetupKeyRoute
+  SetupSelectRoute: typeof SetupSelectRoute
+  SetupSteamsetupRoute: typeof SetupSteamsetupRoute
+  SetupIndexRoute: typeof SetupIndexRoute
+}
+
+const SetupRouteChildren: SetupRouteChildren = {
+  SetupKeyRoute: SetupKeyRoute,
+  SetupSelectRoute: SetupSelectRoute,
+  SetupSteamsetupRoute: SetupSteamsetupRoute,
+  SetupIndexRoute: SetupIndexRoute,
+}
+
+const SetupRouteWithChildren = SetupRoute._addFileChildren(SetupRouteChildren)
+
+export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
+  '/menu': typeof MenuRoute
+  '/settings': typeof SettingsRoute
+  '/setup': typeof SetupRouteWithChildren
+  '/setup/$key': typeof SetupKeyRoute
+  '/setup/select': typeof SetupSelectRoute
+  '/setup/steam_setup': typeof SetupSteamsetupRoute
+  '/setup/': typeof SetupIndexRoute
+}
+
+export interface FileRoutesByTo {
+  '/': typeof IndexRoute
+  '/menu': typeof MenuRoute
+  '/settings': typeof SettingsRoute
+  '/setup/$key': typeof SetupKeyRoute
+  '/setup/select': typeof SetupSelectRoute
+  '/setup/steam_setup': typeof SetupSteamsetupRoute
+  '/setup': typeof SetupIndexRoute
+}
+
+export interface FileRoutesById {
+  __root__: typeof rootRoute
+  '/': typeof IndexRoute
+  '/menu': typeof MenuRoute
+  '/settings': typeof SettingsRoute
+  '/setup': typeof SetupRouteWithChildren
+  '/setup/$key': typeof SetupKeyRoute
+  '/setup/select': typeof SetupSelectRoute
+  '/setup/steam_setup': typeof SetupSteamsetupRoute
+  '/setup/': typeof SetupIndexRoute
+}
+
+export interface FileRouteTypes {
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths:
+    | '/'
+    | '/menu'
+    | '/settings'
+    | '/setup'
+    | '/setup/$key'
+    | '/setup/select'
+    | '/setup/steam_setup'
+    | '/setup/'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/menu'
+    | '/settings'
+    | '/setup/$key'
+    | '/setup/select'
+    | '/setup/steam_setup'
+    | '/setup'
+  id:
+    | '__root__'
+    | '/'
+    | '/menu'
+    | '/settings'
+    | '/setup'
+    | '/setup/$key'
+    | '/setup/select'
+    | '/setup/steam_setup'
+    | '/setup/'
+  fileRoutesById: FileRoutesById
+}
+
+export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
+  MenuRoute: typeof MenuRoute
+  SettingsRoute: typeof SettingsRoute
+  SetupRoute: typeof SetupRouteWithChildren
+}
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  MenuRoute: MenuRoute,
+  SettingsRoute: SettingsRoute,
+  SetupRoute: SetupRouteWithChildren,
+}
+
+export const routeTree = rootRoute
+  ._addFileChildren(rootRouteChildren)
+  ._addFileTypes<FileRouteTypes>()
 
 /* prettier-ignore-end */
 
