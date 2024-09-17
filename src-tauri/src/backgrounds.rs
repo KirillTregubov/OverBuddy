@@ -351,6 +351,13 @@ const BACKGROUNDS: &[Background] = &[
         description: "Season 12 Mythic Skin",
         tags: &["Art"],
     },
+    Background {
+        id: "0x0800000000001293",
+        image: "world_of_warcraft.jpg",
+        name: "Sylvanas Widowmaker",
+        description: "World of Warcraft Event (Season 12)",
+        tags: &["Collaboration", "Art"],
+    },
 ];
 
 pub fn get_backgrounds() -> &'static [Background] {

@@ -1,5 +1,5 @@
 OverBuddy has been updated! Steam support is coming soon.
-- Fixed an issue with the installer and made interface improvements.
+- Added World of Warcraft collaboration background.
 Other changes in this update:
 - Added Settings page.
 - Added Keybinds for important actions.

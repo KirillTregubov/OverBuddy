@@ -135,7 +135,8 @@ function SetupSplash() {
               <motion.p className="text-pretty">
                 To change the menu background, OverBuddy needs to read and write
                 your Battle.net® {/* or Steam® */}configuration files. It does{' '}
-                <span className="font-medium">NOT</span> modify any game files. Your Battle.net {/*or Steam */}
+                <span className="font-medium">NOT</span> modify any game files.
+                Your Battle.net {/*or Steam */}
                 client will be restarted to apply the changes.
               </motion.p>
             </motion.div>
