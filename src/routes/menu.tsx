@@ -12,8 +12,8 @@ import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { toast } from 'sonner'
 
 import placeholder from '@/assets/placeholder.svg'
+import { MotionLink } from '@/components/Button'
 import Loading from '@/components/Loading'
-import { MotionLink } from '@/components/Motion'
 import { fadeInVariants } from '@/lib/animations'
 import {
   activeBackgroundQueryOptions,
@@ -23,7 +23,6 @@ import {
   useBackgroundMutation,
   useResetBackgroundMutation
 } from '@/lib/data'
-import linkFix from '@/lib/linkFix'
 import useKeyPress from '@/lib/useKeyPress'
 
 const buttonTapAnimation = {
@@ -366,8 +365,6 @@ function Menu() {
           {/* NOTE: hideme if required */}
           <div className="ml-auto w-fit">
             <MotionLink
-              // TODO: fix type
-              /* @ts-expect-error ref type is wrong */
               ref={settingsButtonRef}
               to="/settings"
               replace
@@ -387,7 +384,6 @@ function Menu() {
               transition={{ duration: 0.15, ease: 'easeInOut' }}
               draggable={false}
               animate={settingsButtonAnimation}
-              {...linkFix}
             >
               <motion.div
                 variants={{
