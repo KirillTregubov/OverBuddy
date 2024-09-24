@@ -1,7 +1,7 @@
 import { buttonClasses } from '@/lib/button'
 import linkFix from '@/lib/linkFix'
 import { cn } from '@/lib/utils'
-import { Link, type LinkProps } from '@tanstack/react-router'
+import { createLink, Link, type LinkProps } from '@tanstack/react-router'
 import { motion, type HTMLMotionProps } from 'framer-motion'
 import { forwardRef } from 'react'
 
@@ -80,14 +80,15 @@ export function MotionButton({
   )
 }
 
-type MotionLinkProps = RouterLinkProps & HTMLMotionProps<'a'>
+export const MotionA = forwardRef<
+  HTMLAnchorElement,
+  RouterLinkProps & HTMLMotionProps<'a'>
+>((props, ref) => {
+  return <motion.a {...props} ref={ref} />
+})
+MotionA.displayName = 'MotionA'
 
-export const MotionLink = forwardRef<HTMLAnchorElement, MotionLinkProps>(
-  (props, ref) => {
-    return <motion.a {...props} ref={ref} />
-  }
-)
-MotionLink.displayName = 'MotionLink'
+export const MotionLink = createLink(motion.a)
 
 export function ExternalLinkInline({
   children,

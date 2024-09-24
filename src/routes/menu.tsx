@@ -23,6 +23,7 @@ import {
   useBackgroundMutation,
   useResetBackgroundMutation
 } from '@/lib/data'
+import linkFix from '@/lib/linkFix'
 import useKeyPress from '@/lib/useKeyPress'
 
 const buttonTapAnimation = {
@@ -365,6 +366,7 @@ function Menu() {
           {/* NOTE: hideme if required */}
           <div className="ml-auto w-fit">
             <MotionLink
+              /* @ts-expect-error ref type is wrong */
               ref={settingsButtonRef}
               to="/settings"
               replace
@@ -384,6 +386,7 @@ function Menu() {
               transition={{ duration: 0.15, ease: 'easeInOut' }}
               draggable={false}
               animate={settingsButtonAnimation}
+              {...linkFix}
             >
               <motion.div
                 variants={{

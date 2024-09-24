@@ -335,7 +335,7 @@ const BACKGROUNDS: &[Background] = &[
         image: "reinhardt_bound_demon_mythic.jpg",
         name: "Reinhardt Bound Demon",
         description: "Reinhardt Mythic Weapon (Season 11)",
-        tags: &[],
+        tags: &["Mythic Weapon"],
     },
     Background {
         id: "0x0800000000001276",
@@ -357,6 +357,13 @@ const BACKGROUNDS: &[Background] = &[
         name: "Sylvanas Widowmaker",
         description: "World of Warcraft Event (Season 12)",
         tags: &["Collaboration", "Art"],
+    },
+    Background {
+        id: "0x0800000000001289",
+        image: "ana_midnight_sun_mythic.jpg",
+        name: "Ana Midnight Sun",
+        description: "Season 12 Mythic Skin",
+        tags: &["Mythic Weapon"],
     },
 ];
 
