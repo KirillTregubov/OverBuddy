@@ -1,5 +1,5 @@
 import { buttonClasses } from '@/lib/button'
-import linkFix from '@/lib/linkFix'
+import { anchorLinkFix } from '@/lib/linkFix'
 import { cn } from '@/lib/utils'
 import { createLink, Link, type LinkProps } from '@tanstack/react-router'
 import { motion, type HTMLMotionProps } from 'framer-motion'
@@ -47,7 +47,7 @@ export function LinkButton({
 }: LinkButtonProps) {
   return (
     <Link
-      {...linkFix}
+      {...anchorLinkFix}
       {...props}
       className={buttonClasses(className, { primary, destructive })}
       role={role}

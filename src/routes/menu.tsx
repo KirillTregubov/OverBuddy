@@ -23,7 +23,7 @@ import {
   useBackgroundMutation,
   useResetBackgroundMutation
 } from '@/lib/data'
-import linkFix from '@/lib/linkFix'
+import { linkFix } from '@/lib/linkFix'
 import useKeyPress from '@/lib/useKeyPress'
 
 const buttonTapAnimation = {
