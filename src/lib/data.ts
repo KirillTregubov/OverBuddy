@@ -1,5 +1,5 @@
 import { queryOptions, useMutation } from '@tanstack/react-query'
-import { invoke } from '@tauri-apps/api'
+import { invoke } from '@tauri-apps/api/core'
 import { toast } from 'sonner'
 import { z } from 'zod'
 

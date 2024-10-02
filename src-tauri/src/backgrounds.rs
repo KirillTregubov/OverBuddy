@@ -362,7 +362,7 @@ const BACKGROUNDS: &[Background] = &[
         id: "0x0800000000001289",
         image: "ana_midnight_sun_mythic.jpg",
         name: "Ana Midnight Sun",
-        description: "Season 12 Mythic Skin",
+        description: "Ana Mythic Weapon (Season 12)",
         tags: &["Mythic Weapon"],
     },
 ];

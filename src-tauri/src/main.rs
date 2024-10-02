@@ -22,7 +22,7 @@ use tauri::Window;
 
 #[tauri::command]
 fn mounted(window: Window) {
-    let window = window.get_window("main").unwrap();
+    let window = window.get_webview_window("main").unwrap();
     if window.is_visible().unwrap() {
         return;
     }
@@ -175,7 +175,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         let battle_net_config = match &config.battle_net.config {
             Some(battle_net_config) => battle_net_config.clone(),
             None => {
-                let app_data_dir = handle.path_resolver().app_data_dir().unwrap();
+                let app_data_dir = handle.path().app_data_dir().unwrap();
                 let resource_path = app_data_dir.join("../Battle.net");
 
                 // Check if Battle.net AppData directory exists
@@ -569,11 +569,7 @@ fn get_setup_path(key: &str, handle: AppHandle) -> Result<String, Error> {
         }
         "BattleNetConfig" => {
             let path = helpers::display_path_string(
-                &handle
-                    .path_resolver()
-                    .app_data_dir()
-                    .unwrap()
-                    .join("../Battle.net"),
+                &handle.path().app_data_dir().unwrap().join("../Battle.net"),
             );
 
             return Ok(serde_json::to_string(&json!({
@@ -925,6 +921,9 @@ fn reset(handle: AppHandle) -> Result<String, Error> {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_shell::init())
         // .setup(|app| {
         //     let splashscreen_window = app.get_window("splashscreen").unwrap();
         //     let main_window = app.get_window("main").unwrap();
