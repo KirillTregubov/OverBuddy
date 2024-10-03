@@ -51,7 +51,7 @@ async function updateVersion(type: string) {
 
   // Update Cargo.toml
   const updatedCargoToml = cargoToml.replace(
-    /version = ".*"/,
+    /^version = ".*"/m,
     `version = "${newVersion}"`
   )
   fs.writeFileSync(cargoTomlPath, updatedCargoToml)

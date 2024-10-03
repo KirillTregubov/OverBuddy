@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/react-query'
 import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
-import { invoke } from '@tauri-apps/api'
+import { invoke } from '@tauri-apps/api/core'
 import { useEffect } from 'react'
 
 export const Route = createRootRouteWithContext<{

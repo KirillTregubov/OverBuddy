@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
+import { relaunch } from '@tauri-apps/plugin-process'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -8,7 +9,7 @@ import {
   LoaderPinwheel,
   XIcon
 } from 'lucide-react'
-import { Suspense, useCallback, useState } from 'react'
+import { Suspense, useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import BattleNet from '@/assets/BattleNet.svg'
@@ -27,6 +28,7 @@ import {
 import { ExternalLinkInline, MotionButton } from '@/components/Button'
 import KeyboardButton from '@/components/KeyboardButton'
 import Loading, { LoadingInline } from '@/components/Loading'
+import { Progress } from '@/components/Progress'
 import SteamProfileList from '@/components/SteamProfileList'
 import Version from '@/components/Version'
 import {
@@ -38,6 +40,7 @@ import {
 import {
   invalidateActiveBackground,
   settingsQueryOptions,
+  useCheckUpdates,
   useResetMutation,
   useSetupMutation,
   useUpdateMutation
@@ -55,7 +58,6 @@ export const Route = createFileRoute('/settings')({
 
 function Settings() {
   const router = useRouter()
-  const { mutate: checkForUpdates } = useUpdateMutation()
 
   const onEscapePress = useCallback(
     async (event: KeyboardEvent) => {
@@ -75,7 +77,7 @@ function Settings() {
 
   return (
     <motion.div
-      className="flex w-full select-none flex-col p-6"
+      className="flex w-full flex-col p-6"
       variants={fadeInFastVariants}
       initial="hidden"
       animate="show"
@@ -85,8 +87,8 @@ function Settings() {
           className="mb-4 flex justify-between"
           variants={moveInLessVariants}
         >
-          <h1 className="text-2xl font-bold">Settings</h1>
-          <div className="-mr-2.5">
+          <h1 className="select-none text-2xl font-bold">Settings</h1>
+          <div className="-mr-2.5 select-none">
             <button
               onClick={() => router.navigate({ to: '/menu', replace: true })}
               className="group flex items-center gap-0.5 rounded-full px-1.5 font-medium text-zinc-400 transition-[box-shadow,color,background-color,border-color,transform] duration-100 will-change-transform hover:text-zinc-50 focus-visible:text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95"
@@ -106,8 +108,10 @@ function Settings() {
             variants={moveInLessVariants}
           >
             <div className="flex items-baseline gap-2.5 text-zinc-400">
-              <h2 className="text-lg font-bold text-white">About</h2>
-              <p className="">About OverBuddy.</p>
+              <h2 className="select-none text-lg font-bold text-white">
+                About
+              </h2>
+              <p className="select-none">About OverBuddy.</p>
             </div>
             <div className="flex flex-col gap-1.5 text-zinc-400">
               <p>
@@ -150,8 +154,10 @@ function Settings() {
             variants={moveInLessVariants}
           >
             <div className="flex items-baseline gap-2.5 text-zinc-400">
-              <h2 className="text-lg font-bold text-white">Platforms</h2>
-              <p className="">
+              <h2 className="select-none text-lg font-bold text-white">
+                Platforms
+              </h2>
+              <p className="select-none">
                 Connected platform(s) you use to play Overwatch.
               </p>
             </div>
@@ -170,31 +176,33 @@ function Settings() {
             variants={moveInLessVariants}
           >
             <div className="flex items-baseline gap-2.5 text-zinc-400">
-              <h2 className="text-lg font-bold text-white">Keybinds</h2>
-              <p className="">Available keyboard controls.</p>
+              <h2 className="select-none text-lg font-bold text-white">
+                Keybinds
+              </h2>
+              <p className="select-none">Available keyboard controls.</p>
             </div>
             <div className="flex flex-col gap-1.5 text-zinc-400">
               <div className="flex items-baseline gap-4">
                 <div className="flex items-baseline gap-2">
                   <KeyboardButton>Esc</KeyboardButton>
                 </div>
-                <p>Open/Close Settings</p>
+                <p className="select-none">Open/Close Settings</p>
               </div>
               <div className="flex items-baseline gap-4">
                 <div className="flex items-baseline gap-2">
                   <KeyboardButton>A</KeyboardButton>
-                  or
+                  <span className="select-none">or</span>
                   <KeyboardButton>←</KeyboardButton>
                 </div>
-                <p>Select Previous Background</p>
+                <p className="select-none">Select Previous Background</p>
               </div>
               <div className="flex items-baseline gap-4">
                 <div className="flex items-baseline gap-2">
                   <KeyboardButton>D</KeyboardButton>
-                  or
+                  <span className="select-none">or</span>
                   <KeyboardButton>→</KeyboardButton>
                 </div>
-                <p>Select Next Background</p>
+                <p className="select-none">Select Next Background</p>
               </div>
             </div>
           </motion.div>
@@ -203,28 +211,24 @@ function Settings() {
             variants={moveInLessVariants}
           >
             <div className="flex items-baseline gap-2.5 text-zinc-400">
-              <h2 className="text-lg font-bold text-white">Update</h2>
-              <p className="">Check for updates.</p>
+              <h2 className="select-none text-lg font-bold text-white">
+                Update
+              </h2>
+              <p className="select-none">Check for updates.</p>
             </div>
-            <div className="flex w-full items-center gap-4">
-              <MotionButton
-                className="w-fit min-w-36"
-                onClick={() => checkForUpdates()}
-              >
-                Check for Updates
-              </MotionButton>
-              <p className="text-zinc-400">
-                <Version /> installed.
-              </p>
-            </div>
+            <CheckForUpdates />
           </motion.div>
           <motion.div
             className="flex flex-col gap-1.5"
             variants={moveInLessVariants}
           >
             <div className="flex items-baseline gap-2.5 text-zinc-400">
-              <h2 className="text-lg font-bold text-white">Reset</h2>
-              <p className="">Reset all settings to their defaults.</p>
+              <h2 className="select-none text-lg font-bold text-white">
+                Reset
+              </h2>
+              <p className="select-none">
+                Reset all settings to their defaults.
+              </p>
             </div>
             <ResetButton />
           </motion.div>
@@ -359,7 +363,7 @@ function Platforms() {
             />
             <h2
               className={clsx(
-                'flex min-w-[6rem] items-center gap-1.5 text-center font-medium leading-none transition',
+                'flex min-w-[6rem] select-none items-center gap-1.5 text-center font-medium leading-none transition',
                 data.platforms.includes('BattleNet')
                   ? 'text-white group-active:text-zinc-400'
                   : 'text-zinc-400 group-active:text-white'
@@ -474,7 +478,7 @@ function Platforms() {
               />
               <h2
                 className={clsx(
-                  'flex min-w-[4.5rem] items-center gap-1.5 text-center font-medium leading-none transition',
+                  'flex min-w-[4.5rem] select-none items-center gap-1.5 text-center font-medium leading-none transition',
                   data.platforms.includes('Steam')
                     ? 'text-white group-active:text-zinc-400'
                     : 'text-zinc-400 group-active:text-white'
@@ -501,7 +505,7 @@ function Platforms() {
                 </AnimatePresence>
                 Steam
               </h2>
-              <div className="absolute top-8 rotate-12 text-nowrap rounded-full bg-gradient-to-br from-pink-500 to-orange-500 px-2 py-1 text-xs font-medium text-white">
+              <div className="absolute top-8 rotate-12 select-none text-nowrap rounded-full bg-gradient-to-br from-pink-500 to-orange-500 px-2 py-1 text-xs font-medium text-white">
                 Coming Soon
               </div>
             </AlertDialogTrigger>
@@ -517,6 +521,208 @@ function Platforms() {
         </AlertDialog>
       </motion.div>
     </motion.div>
+  )
+}
+
+// Prevent F5, Ctrl+R (Windows/Linux), Command+R (Mac) from refreshing the page
+function preventReload(event: KeyboardEvent) {
+  if (
+    event.key === 'F5' ||
+    (event.ctrlKey && event.key === 'r')
+    // || (event.metaKey && event.key === 'r') // macOS
+  ) {
+    event.preventDefault()
+  }
+}
+
+function CheckForUpdates() {
+  const [isOpen, setIsOpen] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const {
+    status: checkStatus,
+    data: checkData,
+    mutate: checkForUpdates
+  } = useCheckUpdates({
+    onSuccess: (data) => {
+      if (!data) return
+      setIsOpen(data.available)
+      if (data.available === false) {
+        toast.success('You are using the latest version of OverBuddy.')
+      }
+    }
+  })
+  const {
+    data: updateSuccess,
+    status: updateStatus,
+    mutate: update
+  } = useUpdateMutation()
+
+  useEffect(() => {
+    if (updateStatus === 'success' && updateSuccess) {
+      document.addEventListener('keydown', preventReload)
+    }
+
+    return () => {
+      document.removeEventListener('keydown', preventReload)
+    }
+  }, [updateStatus, updateSuccess])
+
+  return (
+    <>
+      <AlertDialog open={isOpen && checkData?.available}>
+        <AlertDialogContent data-ignore-global-shortcut>
+          <AnimatePresence mode="wait" initial={false}>
+            {updateStatus === 'idle' ? (
+              <motion.span
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ opacity: { duration: 0.15 } }}
+                key="idle"
+              >
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    OverBuddy v{checkData?.version} is available.
+                  </AlertDialogTitle>
+                  <pre className="whitespace-pre-wrap font-sans">
+                    <AlertDialogDescription>
+                      {checkData?.body ?? 'There is no changelog available.'}
+                    </AlertDialogDescription>
+                  </pre>
+                </AlertDialogHeader>
+              </motion.span>
+            ) : updateStatus === 'success' ? (
+              <motion.span
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ opacity: { duration: 0.15 } }}
+                key="success"
+              >
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    OverBuddy v{checkData?.version} has been installed.
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Please restart OverBuddy to complete the update.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+              </motion.span>
+            ) : (
+              <motion.span
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ opacity: { duration: 0.15 } }}
+                key="updating"
+              >
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Updating to OverBuddy v{checkData?.version}...
+                  </AlertDialogTitle>
+                  <AlertDialogDescription asChild>
+                    <div className="py-1">
+                      <Progress value={progress} />
+                    </div>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+              </motion.span>
+            )}
+          </AnimatePresence>
+          <AlertDialogFooter>
+            <AnimatePresence mode="wait" initial={false}>
+              {updateStatus === 'idle' && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ opacity: { duration: 0.15 } }}
+                  key="cancel"
+                >
+                  <AlertDialogCancel onClick={() => setIsOpen(false)}>
+                    Cancel
+                  </AlertDialogCancel>
+                </motion.div>
+              )}
+              {updateStatus === 'idle' ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ opacity: { duration: 0.15 } }}
+                  key="download"
+                >
+                  <AlertDialogAction onClick={() => update(setProgress)}>
+                    Download and Install
+                  </AlertDialogAction>
+                </motion.div>
+              ) : updateStatus === 'success' ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ opacity: { duration: 0.15 } }}
+                  key="restart"
+                >
+                  <AlertDialogAction onClick={() => relaunch()}>
+                    Restart OverBuddy
+                  </AlertDialogAction>
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ opacity: { duration: 0.15 } }}
+                  key="downloading"
+                >
+                  <AlertDialogAction
+                    disabled
+                    className="pointer-events-none disabled:!opacity-80"
+                  >
+                    Downloading...
+                  </AlertDialogAction>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <div className="flex w-full items-center gap-4">
+        <MotionButton
+          className="w-fit min-w-[10.5rem] disabled:pointer-events-none disabled:!opacity-100"
+          onClick={() => checkForUpdates()}
+          disabled={checkStatus === 'pending'}
+        >
+          <AnimatePresence mode="wait">
+            {checkStatus === 'pending' ? (
+              <motion.span
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                key="pending"
+              >
+                <LoaderPinwheel className="mx-auto animate-spin" />
+              </motion.span>
+            ) : (
+              <motion.span
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                key="idle"
+              >
+                Check for Updates
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </MotionButton>
+        <p className="text-zinc-400">
+          <Version /> installed.
+        </p>
+      </div>
+    </>
   )
 }
 
@@ -554,7 +760,7 @@ function ResetButton() {
 
   return (
     <div className="flex gap-2">
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         {isConfirming === 'idle' && (
           <MotionButton
             key="idle"

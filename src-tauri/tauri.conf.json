@@ -2,54 +2,52 @@
   "build": {
     "beforeDevCommand": "pnpm dev",
     "beforeBuildCommand": "pnpm build",
-    "devPath": "http://localhost:1420",
-    "distDir": "../dist"
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420"
   },
-  "package": {
-    "productName": "OverBuddy"
-  },
-  "tauri": {
-    "allowlist": {
-      "all": false,
-      "shell": {
-        "all": false,
-        "open": true
+  "bundle": {
+    "active": true,
+    "targets": ["msi"],
+    "windows": {
+      "certificateThumbprint": null,
+      "webviewInstallMode": {
+        "type": "embedBootstrapper",
+        "silent": true
       },
-      "dialog": {
-        "open": true
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "",
+      "wix": {
+        "dialogImagePath": "icons/WindowsDialogImage.bmp",
+        "bannerPath": "icons/WindowsBanner.bmp"
       }
     },
-    "bundle": {
-      "active": true,
-      "targets": ["msi", "updater"],
-      "identifier": "com.overbuddy.app",
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.ico"
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "publisher": "Kirill Tregubov",
+    "shortDescription": "OverBuddy",
+    "longDescription": "Elevate your Overwatch™ 2 experience by customizing your in-game menu background with ease. Browse through all available backgrounds and select your favourite. No need to guess the lobby code or mess around with configuration anymore!",
+    "category": "Utility",
+    "createUpdaterArtifacts": "v1Compatible"
+  },
+  "productName": "OverBuddy",
+  "mainBinaryName": "OverBuddy",
+  "identifier": "com.overbuddy.app",
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEI2OUE5NTMyM0M5ODUzNwpSV1EzaGNralU2bHBDOXM0TzcxSFU3aG9CZlVnV3Znc3lWZ0xianFuT0d4WGJBQklGclNabWhZcQo=",
+      "endpoints": [
+        "https://github.com/KirillTregubov/OverBuddy/releases/latest/download/latest.json"
       ],
-      "publisher": "Kirill Tregubov",
-      "shortDescription": "OverBuddy",
-      "longDescription": "Elevate your Overwatch™ 2 experience by customizing your in-game menu background with ease. Browse through all available backgrounds and select your favourite. No need to guess the lobby code or mess around with configuration anymore!",
-      "category": "Utility",
       "windows": {
-        "certificateThumbprint": null,
-        "webviewInstallMode": {
-          "type": "embedBootstrapper",
-          "silent": true
-        },
-        "digestAlgorithm": "sha256",
-        "timestampUrl": "",
-        "wix": {
-          "dialogImagePath": "icons/WindowsDialogImage.bmp",
-          "bannerPath": "icons/WindowsBanner.bmp"
-        }
+        "installMode": "passive"
       }
-    },
-    "security": {
-      "csp": null
-    },
+    }
+  },
+  "app": {
     "windows": [
       {
         "title": "OverBuddy",
@@ -64,16 +62,9 @@
         "visible": false
       }
     ],
-    "updater": {
-      "active": true,
-      "dialog": true,
-      "windows": {
-        "installMode": "passive"
-      },
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEI2OUE5NTMyM0M5ODUzNwpSV1EzaGNralU2bHBDOXM0TzcxSFU3aG9CZlVnV3Znc3lWZ0xianFuT0d4WGJBQklGclNabWhZcQo=",
-      "endpoints": [
-        "https://github.com/KirillTregubov/OverBuddy/releases/latest/download/latest.json"
-      ]
+    "security": {
+      "csp": null,
+      "capabilities": ["main-capability"]
     }
   }
 }

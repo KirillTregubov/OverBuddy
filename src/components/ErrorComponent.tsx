@@ -1,5 +1,5 @@
 import { useRouter, type ErrorComponentProps } from '@tanstack/react-router'
-import { invoke } from '@tauri-apps/api'
+import { invoke } from '@tauri-apps/api/core'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useCallback, useEffect, useState } from 'react'
 
