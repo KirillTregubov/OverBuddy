@@ -1,9 +1,5 @@
 OverBuddy has been updated! Steam support is coming soon.
-- Added Ana Midnight Sun mythic weapon background
-- Added World of Warcraft collaboration background.
+- Updated "Check for Updates" in Settings.
 Other changes in this update:
-- Added Settings page.
-- Added Keybinds for important actions.
-- Added new backgrounds and removed backgrounds no longer available.
-- Updated the error screen with new actions.
+- Added new backgrounds and removed ones no longer available.
 - Fixed various issues and made improvements.

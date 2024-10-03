@@ -404,6 +404,12 @@ export const useCheckUpdates = ({
   useMutation({
     mutationFn: async () => {
       const update = await check()
+      if (isDev()) {
+        return {
+          available: false
+        } satisfies useCheckUpdatesReturnType
+      }
+
       if (update) {
         return {
           available: update.available,

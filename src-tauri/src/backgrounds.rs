@@ -22,7 +22,7 @@ const BACKGROUNDS: &[Background] = &[
         image: "heroes.jpg",
         name: "Heroes",
         description: "2022 Alpha Test",
-        tags: &[],
+        tags: &["Animated"],
     },
     Background {
         id: "0x0800000000000D6C",
@@ -134,7 +134,7 @@ const BACKGROUNDS: &[Background] = &[
         image: "cupid_hanzo.jpg",
         name: "Cupid Hanzo",
         description: "Ultimate Valentine 2023 (Season 3)",
-        tags: &[],
+        tags: &["Animated"],
     },
     // Background {
     //     id: "0x0800000000000EED",
