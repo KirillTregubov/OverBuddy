@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
+import { relaunch } from '@tauri-apps/plugin-process'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -8,7 +9,7 @@ import {
   LoaderPinwheel,
   XIcon
 } from 'lucide-react'
-import { Suspense, useCallback, useState } from 'react'
+import { Suspense, useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import BattleNet from '@/assets/BattleNet.svg'
@@ -27,6 +28,7 @@ import {
 import { ExternalLinkInline, MotionButton } from '@/components/Button'
 import KeyboardButton from '@/components/KeyboardButton'
 import Loading, { LoadingInline } from '@/components/Loading'
+import { Progress } from '@/components/Progress'
 import SteamProfileList from '@/components/SteamProfileList'
 import Version from '@/components/Version'
 import {
@@ -38,6 +40,7 @@ import {
 import {
   invalidateActiveBackground,
   settingsQueryOptions,
+  useCheckUpdates,
   useResetMutation,
   useSetupMutation,
   useUpdateMutation
@@ -55,7 +58,6 @@ export const Route = createFileRoute('/settings')({
 
 function Settings() {
   const router = useRouter()
-  const { mutate: checkForUpdates } = useUpdateMutation()
 
   const onEscapePress = useCallback(
     async (event: KeyboardEvent) => {
@@ -206,17 +208,7 @@ function Settings() {
               <h2 className="text-lg font-bold text-white">Update</h2>
               <p className="">Check for updates.</p>
             </div>
-            <div className="flex w-full items-center gap-4">
-              <MotionButton
-                className="w-fit min-w-36"
-                onClick={() => checkForUpdates()}
-              >
-                Check for Updates
-              </MotionButton>
-              <p className="text-zinc-400">
-                <Version /> installed.
-              </p>
-            </div>
+            <CheckForUpdates />
           </motion.div>
           <motion.div
             className="flex flex-col gap-1.5"
@@ -520,6 +512,208 @@ function Platforms() {
   )
 }
 
+// Prevent F5, Ctrl+R (Windows/Linux), Command+R (Mac) from refreshing the page
+function preventReload(event: KeyboardEvent) {
+  if (
+    event.key === 'F5' ||
+    (event.ctrlKey && event.key === 'r')
+    // || (event.metaKey && event.key === 'r') // macOS
+  ) {
+    event.preventDefault()
+  }
+}
+
+function CheckForUpdates() {
+  const [isOpen, setIsOpen] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const {
+    status: checkStatus,
+    data: checkData,
+    mutate: checkForUpdates
+  } = useCheckUpdates({
+    onSuccess: (data) => {
+      if (!data) return
+      setIsOpen(data.available)
+      if (data.available === false) {
+        toast.success('You are using the latest version of OverBuddy.')
+      }
+    }
+  })
+  const {
+    data: updateSuccess,
+    status: updateStatus,
+    mutate: update
+  } = useUpdateMutation()
+
+  useEffect(() => {
+    if (updateStatus === 'success' && updateSuccess) {
+      document.addEventListener('keydown', preventReload)
+    }
+
+    return () => {
+      document.removeEventListener('keydown', preventReload)
+    }
+  }, [updateStatus, updateSuccess])
+
+  return (
+    <>
+      <AlertDialog open={isOpen && checkData?.available}>
+        <AlertDialogContent data-ignore-global-shortcut>
+          <AnimatePresence mode="wait" initial={false}>
+            {updateStatus === 'idle' ? (
+              <motion.span
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ opacity: { duration: 0.15 } }}
+                key="idle"
+              >
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    OverBuddy v{checkData?.version} is available.
+                  </AlertDialogTitle>
+                  <pre className="whitespace-pre-wrap font-sans">
+                    <AlertDialogDescription>
+                      {checkData?.body ?? 'There is no changelog available.'}
+                    </AlertDialogDescription>
+                  </pre>
+                </AlertDialogHeader>
+              </motion.span>
+            ) : updateStatus === 'success' ? (
+              <motion.span
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ opacity: { duration: 0.15 } }}
+                key="success"
+              >
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    OverBuddy v{checkData?.version} has been installed.
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Please restart OverBuddy to complete the update.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+              </motion.span>
+            ) : (
+              <motion.span
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ opacity: { duration: 0.15 } }}
+                key="updating"
+              >
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Updating to OverBuddy v{checkData?.version}...
+                  </AlertDialogTitle>
+                  <AlertDialogDescription asChild>
+                    <div className="py-1">
+                      <Progress value={progress} />
+                    </div>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+              </motion.span>
+            )}
+          </AnimatePresence>
+          <AlertDialogFooter>
+            <AnimatePresence mode="wait" initial={false}>
+              {updateStatus === 'idle' && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ opacity: { duration: 0.15 } }}
+                  key="cancel"
+                >
+                  <AlertDialogCancel onClick={() => setIsOpen(false)}>
+                    Cancel
+                  </AlertDialogCancel>
+                </motion.div>
+              )}
+              {updateStatus === 'idle' ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ opacity: { duration: 0.15 } }}
+                  key="download"
+                >
+                  <AlertDialogAction onClick={() => update(setProgress)}>
+                    Download and Install
+                  </AlertDialogAction>
+                </motion.div>
+              ) : updateStatus === 'success' ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ opacity: { duration: 0.15 } }}
+                  key="restart"
+                >
+                  <AlertDialogAction onClick={() => relaunch()}>
+                    Restart OverBuddy
+                  </AlertDialogAction>
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ opacity: { duration: 0.15 } }}
+                  key="downloading"
+                >
+                  <AlertDialogAction
+                    disabled
+                    className="pointer-events-none disabled:!opacity-80"
+                  >
+                    Downloading...
+                  </AlertDialogAction>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <div className="flex w-full items-center gap-4">
+        <MotionButton
+          className="w-fit min-w-[10.5rem] disabled:pointer-events-none disabled:!opacity-100"
+          onClick={() => checkForUpdates()}
+          disabled={checkStatus === 'pending'}
+        >
+          <AnimatePresence mode="wait">
+            {checkStatus === 'pending' ? (
+              <motion.span
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                key="pending"
+              >
+                <LoaderPinwheel className="mx-auto animate-spin" />
+              </motion.span>
+            ) : (
+              <motion.span
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                key="idle"
+              >
+                Check for Updates
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </MotionButton>
+        <p className="text-zinc-400">
+          <Version /> installed.
+        </p>
+      </div>
+    </>
+  )
+}
+
 type State = 'idle' | 'confirm' | 'pending' | 'success'
 
 function ResetButton() {
@@ -554,7 +748,7 @@ function ResetButton() {
 
   return (
     <div className="flex gap-2">
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         {isConfirming === 'idle' && (
           <MotionButton
             key="idle"

@@ -18,12 +18,12 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "1.0"
 dunce = "1.0.4"
-sysinfo = "0.30.12"
+sysinfo = "0.30.13"
 vdf-reader = "0.2.0"
 keyvalues-parser = "0.2.0"
 similar = "2.6.0"
-tauri-plugin-shell = "2"
 tauri-plugin-dialog = "2"
+tauri-plugin-process = "2"
 
 [target."cfg(not(any(target_os = \"android\", target_os = \"ios\")))".dependencies]
 tauri-plugin-updater = "2"

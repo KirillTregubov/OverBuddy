@@ -7,9 +7,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": [
-      "msi"
-    ],
+    "targets": ["msi"],
     "windows": {
       "certificateThumbprint": null,
       "webviewInstallMode": {

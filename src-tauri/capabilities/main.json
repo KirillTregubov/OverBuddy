@@ -2,16 +2,12 @@
   "identifier": "main-capability",
   "description": "Capability of the main window",
   "local": true,
-  "windows": [
-    "main"
-  ],
+  "windows": ["main"],
   "platforms": ["windows"],
   "permissions": [
     "core:default",
     "updater:default",
-    "shell:allow-open",
     "dialog:allow-open",
-    "shell:default",
-    "dialog:default"
+    "process:allow-restart"
   ]
 }
