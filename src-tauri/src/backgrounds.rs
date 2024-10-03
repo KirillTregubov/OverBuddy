@@ -22,7 +22,7 @@ const BACKGROUNDS: &[Background] = &[
         image: "heroes.jpg",
         name: "Heroes",
         description: "2022 Alpha Test",
-        tags: &[],
+        tags: &["Animated"],
     },
     Background {
         id: "0x0800000000000D6C",
@@ -134,7 +134,7 @@ const BACKGROUNDS: &[Background] = &[
         image: "cupid_hanzo.jpg",
         name: "Cupid Hanzo",
         description: "Ultimate Valentine 2023 (Season 3)",
-        tags: &[],
+        tags: &["Animated"],
     },
     // Background {
     //     id: "0x0800000000000EED",
@@ -362,7 +362,7 @@ const BACKGROUNDS: &[Background] = &[
         id: "0x0800000000001289",
         image: "ana_midnight_sun_mythic.jpg",
         name: "Ana Midnight Sun",
-        description: "Season 12 Mythic Skin",
+        description: "Ana Mythic Weapon (Season 12)",
         tags: &["Mythic Weapon"],
     },
 ];

@@ -1,5 +1,6 @@
 import { queryOptions, useMutation } from '@tanstack/react-query'
-import { invoke } from '@tauri-apps/api'
+import { invoke } from '@tauri-apps/api/core'
+import { check } from '@tauri-apps/plugin-updater'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
@@ -20,7 +21,6 @@ import {
   type Platform
 } from '@/lib/schemas'
 import { queryClient } from '@/main'
-import { emit } from '@tauri-apps/api/event'
 import { isDev } from './dev'
 
 const updateLaunchConfig = async (
@@ -387,17 +387,83 @@ export const settingsQueryOptions = queryOptions({
   staleTime: 0
 })
 
-export const useUpdateMutation = ({
+type useCheckUpdatesReturnType =
+  | { available: false }
+  | {
+      available: boolean
+      version: string
+      body: string | undefined
+    }
+  | undefined
+
+export const useCheckUpdates = ({
   onSuccess
 }: {
-  onSuccess?: () => void
+  onSuccess?: (data?: useCheckUpdatesReturnType) => void
 } = {}) =>
   useMutation({
     mutationFn: async () => {
-      await emit('tauri://update')
+      const update = await check()
+      if (isDev()) {
+        return {
+          available: false
+        } satisfies useCheckUpdatesReturnType
+      }
+
+      if (update) {
+        return {
+          available: update.available,
+          version: update.version,
+          body: update.body
+        } satisfies useCheckUpdatesReturnType
+      }
+
+      return {
+        available: false
+      } satisfies useCheckUpdatesReturnType
     },
     onError: (error) => {
       handleError(error)
     },
-    onSuccess: () => onSuccess?.()
+    onSuccess: (data) => onSuccess?.(data)
+  })
+
+export const useUpdateMutation = ({
+  onSuccess
+}: {
+  onSuccess?: (data: boolean) => void
+} = {}) =>
+  useMutation({
+    mutationFn: async (
+      onProgress: (progress: number | ((prevState: number) => number)) => void
+    ) => {
+      const update = await check()
+      if (!update || !update.available) {
+        return false
+      }
+
+      let downloaded = 0
+      let contentLength = 0
+      await update.downloadAndInstall((event) => {
+        switch (event.event) {
+          case 'Started':
+            contentLength = event.data.contentLength!
+            onProgress(0)
+            break
+          case 'Progress':
+            downloaded += event.data.chunkLength
+            onProgress((downloaded / contentLength) * 100)
+            break
+          case 'Finished':
+            onProgress(100)
+            break
+        }
+      })
+
+      return true
+    },
+    onError: (error) => {
+      handleError(error)
+    },
+    onSuccess: (data) => onSuccess?.(data)
   })

@@ -7,7 +7,7 @@ use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 use sysinfo::System;
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 
 // Global helpers
 
@@ -57,7 +57,7 @@ fn merge(a: &mut Value, b: Value) {
 }
 
 pub fn read_config(handle: &AppHandle) -> Result<Config, Error> {
-    let app_local_data_dir = handle.path_resolver().app_local_data_dir().unwrap();
+    let app_local_data_dir = handle.path().app_local_data_dir().unwrap();
 
     // Ensure directory exists
     if !app_local_data_dir.exists() {
@@ -115,7 +115,7 @@ pub fn read_config(handle: &AppHandle) -> Result<Config, Error> {
 }
 
 pub fn write_config(handle: &AppHandle, config: &Config) -> Result<(), Error> {
-    let app_local_data_dir = handle.path_resolver().app_local_data_dir().unwrap();
+    let app_local_data_dir = handle.path().app_local_data_dir().unwrap();
 
     // Ensure directory exists
     if !app_local_data_dir.exists() {

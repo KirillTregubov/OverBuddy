@@ -333,13 +333,13 @@ function Menu() {
         </motion.div>
       </div>
       <motion.div
-        className="relative flex h-full min-h-0 w-full flex-1 select-none justify-center"
+        className="relative flex h-full min-h-0 w-full flex-1 justify-center"
         initial={{ transform: 'scale(.95)' }}
         whileInView={{ transform: 'scale(1)' }}
         transition={{ duration: 0.3 }}
       >
         <div className="absolute left-0 right-0 top-0 z-10 flex gap-4 p-4">
-          {/* {activeBackground && (
+          {activeBackground && (
             <div
               className="scrollbar-hide flex h-fit w-fit flex-wrap gap-2 text-sm"
               key={activeBackground.id}
@@ -362,7 +362,7 @@ function Menu() {
                 </motion.p>
               ))}
             </div>
-          )} */}
+          )}
           {/* NOTE: hideme if required */}
           <div className="ml-auto w-fit">
             <MotionLink
@@ -518,19 +518,21 @@ function Menu() {
             </button>
           </div>
         )}
-        {activeBackground ? (
-          <img
-            alt={`${activeBackground.name} Background`}
-            className="pointer-events-none h-full w-full select-none rounded-lg object-cover shadow-lg"
-            src={`/backgrounds/${activeBackground.image}`}
-            onError={onImageError}
-            draggable={false}
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center rounded-lg bg-zinc-800/80 font-medium text-zinc-400 shadow-lg">
-            No Background Selected
-          </div>
-        )}
+        <div className="pointer-events-none select-none">
+          {activeBackground ? (
+            <img
+              alt={`${activeBackground.name} Background`}
+              className="pointer-events-none h-full w-full select-none rounded-lg object-cover shadow-lg"
+              src={`/backgrounds/${activeBackground.image}`}
+              onError={onImageError}
+              draggable={false}
+            />
+          ) : (
+            <div className="flex h-full w-full select-none items-center justify-center rounded-lg bg-zinc-800/80 font-medium text-zinc-400 shadow-lg">
+              No Background Selected
+            </div>
+          )}
+        </div>
       </motion.div>
     </motion.div>
   )
