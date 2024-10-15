@@ -396,32 +396,34 @@ type useCheckUpdatesReturnType =
     }
   | undefined
 
+const checkUpdate = async () => {
+  const update = await check()
+  if (isDev()) {
+    return {
+      available: false
+    } satisfies useCheckUpdatesReturnType
+  }
+
+  if (update) {
+    return {
+      available: update.available,
+      version: update.version,
+      body: update.body
+    } satisfies useCheckUpdatesReturnType
+  }
+
+  return {
+    available: false
+  } satisfies useCheckUpdatesReturnType
+}
+
 export const useCheckUpdates = ({
   onSuccess
 }: {
   onSuccess?: (data?: useCheckUpdatesReturnType) => void
 } = {}) =>
   useMutation({
-    mutationFn: async () => {
-      const update = await check()
-      if (isDev()) {
-        return {
-          available: false
-        } satisfies useCheckUpdatesReturnType
-      }
-
-      if (update) {
-        return {
-          available: update.available,
-          version: update.version,
-          body: update.body
-        } satisfies useCheckUpdatesReturnType
-      }
-
-      return {
-        available: false
-      } satisfies useCheckUpdatesReturnType
-    },
+    mutationFn: checkUpdate,
     onError: (error) => {
       handleError(error)
     },
@@ -466,4 +468,11 @@ export const useUpdateMutation = ({
       handleError(error)
     },
     onSuccess: (data) => onSuccess?.(data)
+  })
+
+export const updateQueryOptions = (enabled: boolean = false) =>
+  queryOptions({
+    queryKey: ['check_for_update'],
+    queryFn: checkUpdate,
+    enabled
   })
