@@ -518,7 +518,7 @@ function Menu() {
             </button>
           </div>
         )}
-        <div className="pointer-events-none select-none">
+        <div className="pointer-events-none h-full w-full select-none">
           {activeBackground ? (
             <img
               alt={`${activeBackground.name} Background`}

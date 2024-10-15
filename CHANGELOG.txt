@@ -1,5 +1,6 @@
 OverBuddy has been updated! Steam support is coming soon.
-- Updated "Check for Updates" in Settings.
+- Added Season 13 background.
 Other changes in this update:
+- Updated "Check for Updates" in Settings.
 - Added new backgrounds and removed ones no longer available.
 - Fixed various issues and made improvements.
