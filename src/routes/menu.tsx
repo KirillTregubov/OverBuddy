@@ -1,5 +1,5 @@
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import clsx from 'clsx'
 import { AnimatePresence, motion, useAnimation } from 'framer-motion'
 import {
@@ -19,6 +19,7 @@ import {
   activeBackgroundQueryOptions,
   backgroundsQueryOptions,
   launchQueryOptions,
+  updateQueryOptions,
   useActiveBackgroundMutation,
   useBackgroundMutation,
   useResetBackgroundMutation
@@ -31,8 +32,10 @@ const buttonTapAnimation = {
 }
 
 export const Route = createFileRoute('/menu')({
-  loader: async ({ context: { queryClient } }) =>
-    await queryClient.ensureQueryData(backgroundsQueryOptions),
+  loader: async ({ context: { queryClient } }) => {
+    queryClient.ensureQueryData(updateQueryOptions(true))
+    await queryClient.ensureQueryData(backgroundsQueryOptions)
+  },
   beforeLoad: async ({ context: { queryClient } }) => {
     const { is_setup, steam } = await queryClient
       .fetchQuery(launchQueryOptions)
@@ -58,8 +61,10 @@ const onImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
 }
 
 function Menu() {
+  const navigate = useNavigate()
   const { data: backgrounds } = useSuspenseQuery(backgroundsQueryOptions)
   const { data: config } = useSuspenseQuery(launchQueryOptions)
+  const { data: updateAvailable } = useQuery(updateQueryOptions(true))
   const {
     status: setStatus,
     mutate: setBackground,
@@ -78,6 +83,26 @@ function Menu() {
     activeBackgroundQueryOptions
   )
   const { mutate: setActiveBackground } = useActiveBackgroundMutation()
+
+  useEffect(() => {
+    if (updateAvailable?.available) {
+      toast.warning('There is a new version of OverBuddy available.', {
+        id: 'update-available',
+        action: {
+          label: 'View Update',
+          onClick: () => {
+            navigate({
+              to: '/settings',
+              search: {
+                update: true
+              }
+            })
+          }
+        },
+        duration: 5000
+      })
+    }
+  }, [updateAvailable, navigate])
 
   const prevButtonRef = useRef<HTMLButtonElement>(null)
   const prevButtonAnimation = useAnimation()

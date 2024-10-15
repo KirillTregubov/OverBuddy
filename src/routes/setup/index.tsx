@@ -8,25 +8,35 @@ import { BookLockIcon, GlobeIcon, SparklesIcon } from 'lucide-react'
 
 import logo from '@/assets/logo.svg'
 import { Button, ExternalLinkInline } from '@/components/Button'
+import Loading from '@/components/Loading'
 import {
   fadeInVariants,
   moveInVariants,
   staggerChildrenVariants
 } from '@/lib/animations'
-import { useSetupMutation } from '@/lib/data'
+import { updateQueryOptions, useSetupMutation } from '@/lib/data'
 import {
   ConfigError,
   ConfigErrors,
   handleError,
   SetupError
 } from '@/lib/errors'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/setup/')({
-  component: SetupSplash
+  loader: async ({ context: { queryClient } }) =>
+    await queryClient.ensureQueryData(updateQueryOptions(true)),
+  component: SetupSplash,
+  pendingComponent: Loading
 })
 
 function SetupSplash() {
   const navigate = useNavigate()
+  const {
+    data: { available: updateAvailable }
+  } = useSuspenseQuery(updateQueryOptions(true))
   const { status, mutate, reset } = useSetupMutation({
     onError: (error) => {
       if (error instanceof SetupError) {
@@ -57,6 +67,26 @@ function SetupSplash() {
       })
     }
   })
+
+  useEffect(() => {
+    if (updateAvailable) {
+      toast.warning('There is a new version of OverBuddy available.', {
+        id: 'update-available',
+        action: {
+          label: 'View Update',
+          onClick: () => {
+            navigate({
+              to: '/settings',
+              search: {
+                update: true
+              }
+            })
+          }
+        },
+        duration: 5000
+      })
+    }
+  }, [updateAvailable, navigate])
 
   return (
     <motion.div

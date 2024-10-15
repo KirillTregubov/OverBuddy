@@ -1,4 +1,4 @@
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { relaunch } from '@tauri-apps/plugin-process'
 import clsx from 'clsx'
@@ -40,6 +40,7 @@ import {
 import {
   invalidateActiveBackground,
   settingsQueryOptions,
+  updateQueryOptions,
   useCheckUpdates,
   useResetMutation,
   useSetupMutation,
@@ -48,9 +49,21 @@ import {
 import { ConfigError, ConfigErrors, SetupError } from '@/lib/errors'
 import useKeyPress from '@/lib/useKeyPress'
 
+type SettingsSearch = {
+  update: boolean
+}
+
 export const Route = createFileRoute('/settings')({
-  loader: ({ context: { queryClient } }) => {
+  loaderDeps: ({ search: { update } }) => ({ update }),
+  loader: async ({ context: { queryClient }, deps: { update } }) => {
     queryClient.prefetchQuery(settingsQueryOptions)
+    if (update) await queryClient.ensureQueryData(updateQueryOptions(true))
+    else queryClient.removeQueries(updateQueryOptions(true))
+  },
+  validateSearch: (search: Record<string, unknown>): SettingsSearch => {
+    return {
+      update: (search.update as boolean) || false
+    }
   },
   component: Settings,
   pendingComponent: Loading
@@ -536,7 +549,9 @@ function preventReload(event: KeyboardEvent) {
 }
 
 function CheckForUpdates() {
-  const [isOpen, setIsOpen] = useState(false)
+  const { update } = Route.useSearch()
+  const { data: checkData2 } = useQuery(updateQueryOptions(update))
+  const [isOpen, setIsOpen] = useState(checkData2?.available ?? false)
   const [progress, setProgress] = useState(0)
   const {
     status: checkStatus,
@@ -546,6 +561,7 @@ function CheckForUpdates() {
     onSuccess: (data) => {
       if (!data) return
       setIsOpen(data.available)
+
       if (data.available === false) {
         toast.success('You are using the latest version of OverBuddy.')
       }
@@ -554,7 +570,7 @@ function CheckForUpdates() {
   const {
     data: updateSuccess,
     status: updateStatus,
-    mutate: update
+    mutate: applyUpdate
   } = useUpdateMutation()
 
   useEffect(() => {
@@ -569,7 +585,9 @@ function CheckForUpdates() {
 
   return (
     <>
-      <AlertDialog open={isOpen && checkData?.available}>
+      <AlertDialog
+        open={isOpen && (checkData?.available || checkData2?.available)}
+      >
         <AlertDialogContent data-ignore-global-shortcut>
           <AnimatePresence mode="wait" initial={false}>
             {updateStatus === 'idle' ? (
@@ -582,11 +600,13 @@ function CheckForUpdates() {
               >
                 <AlertDialogHeader>
                   <AlertDialogTitle>
-                    OverBuddy v{checkData?.version} is available.
+                    OverBuddy v{checkData?.version || checkData2?.version} is
+                    available.
                   </AlertDialogTitle>
                   <pre className="whitespace-pre-wrap font-sans">
                     <AlertDialogDescription>
-                      {checkData?.body ?? 'There is no changelog available.'}
+                      {(checkData?.body || checkData2?.body) ??
+                        'There is no changelog available.'}
                     </AlertDialogDescription>
                   </pre>
                 </AlertDialogHeader>
@@ -601,7 +621,8 @@ function CheckForUpdates() {
               >
                 <AlertDialogHeader>
                   <AlertDialogTitle>
-                    OverBuddy v{checkData?.version} has been installed.
+                    OverBuddy v{checkData?.version || checkData2?.version} has
+                    been installed.
                   </AlertDialogTitle>
                   <AlertDialogDescription>
                     Please restart OverBuddy to complete the update.
@@ -618,7 +639,8 @@ function CheckForUpdates() {
               >
                 <AlertDialogHeader>
                   <AlertDialogTitle>
-                    Updating to OverBuddy v{checkData?.version}...
+                    Updating to OverBuddy v
+                    {checkData?.version || checkData2?.version}...
                   </AlertDialogTitle>
                   <AlertDialogDescription asChild>
                     <div className="py-1">
@@ -644,6 +666,8 @@ function CheckForUpdates() {
                   </AlertDialogCancel>
                 </motion.div>
               )}
+            </AnimatePresence>
+            <AnimatePresence mode="wait" initial={false}>
               {updateStatus === 'idle' ? (
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -652,7 +676,7 @@ function CheckForUpdates() {
                   transition={{ opacity: { duration: 0.15 } }}
                   key="download"
                 >
-                  <AlertDialogAction onClick={() => update(setProgress)}>
+                  <AlertDialogAction onClick={() => applyUpdate(setProgress)}>
                     Download and Install
                   </AlertDialogAction>
                 </motion.div>

@@ -2422,7 +2422,7 @@ dependencies = [
 
 [[package]]
 name = "overbuddy"
-version = "1.4.1"
+version = "1.4.2"
 dependencies = [
  "dunce",
  "keyvalues-parser",
