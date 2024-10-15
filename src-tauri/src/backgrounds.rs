@@ -365,6 +365,13 @@ const BACKGROUNDS: &[Background] = &[
         description: "Ana Mythic Weapon (Season 12)",
         tags: &["Mythic Weapon"],
     },
+    Background {
+        id: "0x08000000000012A5",
+        image: "spellbinder_widowmaker.jpg",
+        name: "Spellbinder Widowmaker",
+        description: "Season 13 Mythic Skin",
+        tags: &["Art"],
+    },
 ];
 
 pub fn get_backgrounds() -> &'static [Background] {
