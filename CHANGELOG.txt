@@ -1,7 +1,5 @@
 OverBuddy has been updated! Steam support is coming soon.
-- Added Season 13 background.
-- Added update check on startup.
+- Added Season 13, OWCS Finals, and My Hero Academia backgrounds.
 Other changes in this update:
-- Updated "Check for Updates" in Settings.
-- Added new backgrounds and removed ones no longer available.
+- Updated "Check for Updates" in Settings and startup update check.
 - Fixed various issues and made improvements.

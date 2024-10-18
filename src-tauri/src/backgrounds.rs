@@ -337,13 +337,13 @@ const BACKGROUNDS: &[Background] = &[
         description: "Reinhardt Mythic Weapon (Season 11)",
         tags: &["Mythic Weapon"],
     },
-    Background {
-        id: "0x0800000000001276",
-        image: "juno.jpg",
-        name: "Juno",
-        description: "Juno Release (Season 12)",
-        tags: &["Art"],
-    },
+    // Background {
+    //     id: "0x0800000000001276",
+    //     image: "juno.jpg",
+    //     name: "Juno",
+    //     description: "Juno Release (Season 12)",
+    //     tags: &["Art"],
+    // },
     Background {
         id: "0x0800000000001277",
         image: "anubis_reaper.jpg",
@@ -371,6 +371,20 @@ const BACKGROUNDS: &[Background] = &[
         name: "Spellbinder Widowmaker",
         description: "Season 13 Mythic Skin",
         tags: &["Art"],
+    },
+    Background {
+        id: "0x0800000000001276",
+        image: "owcs_finals_2024.jpg",
+        name: "OWCS Finals 2024",
+        description: "Overwatch Championship Series Finals 2024",
+        tags: &["Overwatch Champions Series", "Art", "Juno Music"],
+    },
+    Background {
+        id: "0x08000000000012A4",
+        image: "my_hero_academia.jpg",
+        name: "My Hero Academia",
+        description: "My Hero Academia Event (Season 13)",
+        tags: &["Collaboration", "Art"],
     },
 ];
 
