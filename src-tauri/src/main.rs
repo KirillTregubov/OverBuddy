@@ -14,22 +14,8 @@ use std::io::Read;
 use std::os::windows::process::CommandExt; // NOTE: Windows only
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::thread;
-use std::time::Duration;
 use tauri::AppHandle;
 use tauri::Manager;
-use tauri::Window;
-
-#[tauri::command]
-fn mounted(window: Window) {
-    let window = window.get_webview_window("main").unwrap();
-    if window.is_visible().unwrap() {
-        return;
-    }
-    thread::sleep(Duration::from_millis(500));
-    window.show().unwrap();
-    window.set_focus().unwrap();
-}
 
 #[tauri::command]
 fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
@@ -926,7 +912,6 @@ fn main() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
-            mounted,
             get_launch_config,
             setup,
             resolve_setup_error,

@@ -208,7 +208,7 @@ pub fn get_launch_args(launch_args: Option<&str>, id: Option<&str>) -> String {
 pub fn close_battle_net() -> bool {
     let mut flag = false;
     let system = System::new_all();
-    for process in system.processes_by_name("Battle.net.exe") {
+    for process in system.processes_by_name("Battle.net.exe".as_ref()) {
         if process.kill() {
             flag = true;
         }
@@ -316,7 +316,7 @@ pub fn safe_json_write(path: String, json: &serde_json::Value) -> Result<(), Err
 pub fn close_steam() -> bool {
     let mut flag = false;
     let system = System::new_all();
-    for process in system.processes_by_name("steam.exe") {
+    for process in system.processes_by_name("steam.exe".as_ref()) {
         if process.kill() {
             flag = true;
         }
