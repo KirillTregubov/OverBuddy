@@ -45,27 +45,28 @@ const BACKGROUNDS: &[Background] = &[
         description: "Overwatch 2 Launch",
         tags: &[],
     },
-    Background {
-        id: "0x0800000000000F11",
-        image: "cyber_demon_genji_green.jpg",
-        name: "Cyber Demon Genji (Green)",
-        description: "Season 1 Mythic Skin",
-        tags: &["Animated"],
-    },
-    Background {
-        id: "0x0800000000000EFA",
-        image: "cyber_demon_genji_red.jpg",
-        name: "Cyber Demon Genji (Red)",
-        description: "Season 1 Mythic Skin",
-        tags: &["Animated"],
-    },
-    Background {
-        id: "0x0800000000000F12",
-        image: "cyber_demon_genji_pink.jpg",
-        name: "Cyber Demon Genji (Pink)",
-        description: "Season 1 Mythic Skin",
-        tags: &["Animated"],
-    },
+    // Broken after Season 13 mid-season patch
+    // Background {
+    //     id: "0x0800000000000F11",
+    //     image: "cyber_demon_genji_green.jpg",
+    //     name: "Cyber Demon Genji (Green)",
+    //     description: "Season 1 Mythic Skin",
+    //     tags: &["Animated"],
+    // },
+    // Background {
+    //     id: "0x0800000000000EFA",
+    //     image: "cyber_demon_genji_red.jpg",
+    //     name: "Cyber Demon Genji (Red)",
+    //     description: "Season 1 Mythic Skin",
+    //     tags: &["Animated"],
+    // },
+    // Background {
+    //     id: "0x0800000000000F12",
+    //     image: "cyber_demon_genji_pink.jpg",
+    //     name: "Cyber Demon Genji (Pink)",
+    //     description: "Season 1 Mythic Skin",
+    //     tags: &["Animated"],
+    // },
     // Background {
     //     id: "0x0800000000000F8F",
     //     image: "ramattra.jpg",
@@ -373,11 +374,11 @@ const BACKGROUNDS: &[Background] = &[
         tags: &["Art"],
     },
     Background {
-        id: "0x0800000000001276",
+        id: "0x08000000000012A3",
         image: "owcs_finals_2024.jpg",
         name: "OWCS Finals 2024",
         description: "Overwatch Championship Series Finals 2024",
-        tags: &["Overwatch Champions Series", "Art", "Juno Music"],
+        tags: &["Overwatch Champions Series", "Art", "Crowd Sounds"],
     },
     Background {
         id: "0x08000000000012A4",
@@ -385,6 +386,13 @@ const BACKGROUNDS: &[Background] = &[
         name: "My Hero Academia",
         description: "My Hero Academia Event (Season 13)",
         tags: &["Collaboration", "Art"],
+    },
+    Background {
+        id: "0x08000000000012C2",
+        image: "overwatch_classic.jpg",
+        name: "Overwatch Classic",
+        description: "Overwatch Classic Event (Season 13)",
+        tags: &["Overwatch 1.0 Patch", "Original Theme Song"],
     },
 ];
 
