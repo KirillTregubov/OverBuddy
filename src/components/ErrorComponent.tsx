@@ -1,7 +1,6 @@
 import { useRouter, type ErrorComponentProps } from '@tanstack/react-router'
-import { invoke } from '@tauri-apps/api/core'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 
 import { FormattedError } from '@/components/Error'
 import {
@@ -18,10 +17,6 @@ import TracerImage from './TracerImage'
 export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
-
-  useEffect(() => {
-    invoke('mounted')
-  }, [])
 
   if (typeof error === 'string') {
     error = Error(error)
