@@ -394,6 +394,13 @@ const BACKGROUNDS: &[Background] = &[
         description: "Overwatch Classic Event (Season 13)",
         tags: &["Overwatch 1.0 Patch", "Original Theme Song"],
     },
+    Background {
+        id: "0x08000000000012BE",
+        image: "soldier_76_deliverance.jpg",
+        name: "Soldier: 76 Deliverance",
+        description: "Soldier: 76 Mythic Weapon (Season 13)",
+        tags: &["Mythic Weapon"],
+    },
 ];
 
 pub fn get_backgrounds() -> &'static [Background] {
