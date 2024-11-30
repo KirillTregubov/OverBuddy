@@ -6,14 +6,17 @@
     <link rel="shortcut icon" href="#" />
     <title>OverBuddy</title>
     <script>
-      document.addEventListener(
-        'contextmenu',
-        (event) => {
-          event.preventDefault()
-          return
-        },
-        { capture: true }
-      )
+      const isProduction = '%PROD%' === 'true' // Vite environment variable
+      if (isProduction) {
+        document.addEventListener(
+          'contextmenu',
+          (event) => {
+            event.preventDefault()
+            return
+          },
+          { capture: true }
+        )
+      }
     </script>
   </head>
   <body class="scroller bg-zinc-900 text-white">

@@ -1,5 +1,6 @@
-import { launchQueryOptions } from '@/lib/data'
 import { createFileRoute, redirect } from '@tanstack/react-router'
+
+import { launchQueryOptions } from '@/lib/data'
 
 export const Route = createFileRoute('/')({
   beforeLoad: async ({ context: { queryClient } }) => {
@@ -9,5 +10,6 @@ export const Route = createFileRoute('/')({
     } else {
       throw redirect({ to: '/setup' })
     }
-  }
+  },
+  pendingMs: 0
 })

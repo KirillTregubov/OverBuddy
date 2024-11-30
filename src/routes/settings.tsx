@@ -27,7 +27,7 @@ import {
 } from '@/components/AlertDialog'
 import { ExternalLinkInline, MotionButton } from '@/components/Button'
 import KeyboardButton from '@/components/KeyboardButton'
-import Loading, { LoadingInline } from '@/components/Loading'
+import { LoadingInline } from '@/components/Loading'
 import { Progress } from '@/components/Progress'
 import SteamProfileList from '@/components/SteamProfileList'
 import Version from '@/components/Version'
@@ -65,8 +65,7 @@ export const Route = createFileRoute('/settings')({
       update: (search.update as boolean) || false
     }
   },
-  component: Settings,
-  pendingComponent: Loading
+  component: Settings
 })
 
 function Settings() {
