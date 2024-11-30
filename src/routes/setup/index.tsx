@@ -3,8 +3,8 @@ import {
   useNavigate
   // useNavigate
 } from '@tanstack/react-router'
-import { motion } from 'framer-motion'
 import { BookLockIcon, GlobeIcon, SparklesIcon } from 'lucide-react'
+import { motion } from 'motion/react'
 
 import logo from '@/assets/logo.svg'
 import { Button, ExternalLinkInline } from '@/components/Button'

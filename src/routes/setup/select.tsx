@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import clsx from 'clsx'
-import { AnimatePresence, motion } from 'framer-motion'
 import { CheckCircleIcon, CircleIcon, LoaderPinwheel } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 

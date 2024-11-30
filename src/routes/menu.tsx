@@ -1,13 +1,13 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import clsx from 'clsx'
-import { AnimatePresence, motion, useAnimation } from 'framer-motion'
 import {
   ChevronLeft,
   ChevronRight,
   LoaderPinwheel,
   SettingsIcon
 } from 'lucide-react'
+import { AnimatePresence, motion, useAnimation } from 'motion/react'
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { toast } from 'sonner'
 

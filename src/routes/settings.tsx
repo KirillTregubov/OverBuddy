@@ -2,13 +2,13 @@ import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { relaunch } from '@tauri-apps/plugin-process'
 import clsx from 'clsx'
-import { AnimatePresence, motion } from 'framer-motion'
 import {
   CheckCircleIcon,
   CircleIcon,
   LoaderPinwheel,
   XIcon
 } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { Suspense, useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
