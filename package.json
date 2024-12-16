@@ -3,7 +3,7 @@
   "author": "Kirill Tregubov",
   "repository": "https://github.com/KirillTregubov/OverBuddy",
   "private": true,
-  "version": "1.4.7",
+  "version": "1.4.6",
   "type": "module",
   "scripts": {
     "tauri": "tauri",
