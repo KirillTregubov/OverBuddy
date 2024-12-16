@@ -452,7 +452,7 @@ function Platforms() {
             <AlertDialogTrigger
               className="group relative -m-3 flex flex-col items-center justify-center gap-2 p-3 outline-none transition-[background-color,transform] duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
               onClick={(event) => {
-                toast.warning('Compatibility with Steam is not ready yet.', {
+                toast.warning('Steam compatibility is not ready yet.', {
                   id: 'steam-support-warning'
                 })
                 event.preventDefault()

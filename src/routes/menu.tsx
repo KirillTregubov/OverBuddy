@@ -282,7 +282,10 @@ function Menu() {
               }}
               transition={{ duration: 0.3 }}
               tabIndex={-1}
-              ref={(el) => (backgroundRefs.current[index] = el!)}
+              data-index={index}
+              ref={(el) => {
+                backgroundRefs.current[index] = el!
+              }}
             >
               <img
                 id={background.id}

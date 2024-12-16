@@ -1,7 +1,7 @@
 {
   "build": {
-    "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build",
+    "beforeDevCommand": "pnpm vite-dev",
+    "beforeBuildCommand": "pnpm vite-build",
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173"
   },

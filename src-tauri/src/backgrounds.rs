@@ -380,13 +380,13 @@ const BACKGROUNDS: &[Background] = &[
         description: "Overwatch Championship Series Finals 2024",
         tags: &["Overwatch Champions Series", "Art", "Crowd Sounds"],
     },
-    Background {
-        id: "0x08000000000012A4",
-        image: "my_hero_academia.jpg",
-        name: "My Hero Academia",
-        description: "My Hero Academia Event (Season 13)",
-        tags: &["Collaboration", "Art"],
-    },
+    // Background {
+    //     id: "0x08000000000012A4",
+    //     image: "my_hero_academia.jpg",
+    //     name: "My Hero Academia",
+    //     description: "My Hero Academia Event (Season 13)",
+    //     tags: &["Collaboration", "Art"],
+    // },
     Background {
         id: "0x08000000000012C2",
         image: "overwatch_classic.jpg",
@@ -401,6 +401,28 @@ const BACKGROUNDS: &[Background] = &[
         description: "Soldier: 76 Mythic Weapon (Season 13)",
         tags: &["Mythic Weapon"],
     },
+    Background {
+        id: "0x08000000000012C6",
+        image: "hazard.jpg",
+        name: "Hazard",
+        description: "Hazard Release (Season 14)",
+        tags: &["Art"],
+    },
+    Background {
+        id: "0x08000000000012C7",
+        image: "thor_reinhardt.jpg",
+        name: "Thor Reinhardt",
+        description: "Season 14 Mythic Skin",
+        tags: &["Animated Art"],
+    },
+    Background {
+        id: "0x08000000000012EA",
+        image: "welcome_home_china.jpg",
+        name: "Welcome Home, China",
+        description: "China Re-release with NetEase",
+        tags: &["Art"],
+    },
+    // 欢迎回家
 ];
 
 pub fn get_backgrounds() -> &'static [Background] {

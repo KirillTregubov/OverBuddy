@@ -3,7 +3,6 @@ import { anchorLinkFix } from '@/lib/linkFix'
 import { cn } from '@/lib/utils'
 import { createLink, Link, type LinkProps } from '@tanstack/react-router'
 import { motion, type HTMLMotionProps } from 'motion/react'
-import { forwardRef } from 'react'
 
 type ButtonProps = {
   children: React.ReactNode
@@ -80,11 +79,9 @@ export function MotionButton({
   )
 }
 
-const MotionLinkComponent = forwardRef<HTMLAnchorElement, HTMLMotionProps<'a'>>(
-  (props, ref) => {
-    return <motion.a {...props} ref={ref} />
-  }
-)
+const MotionLinkComponent = (props: HTMLMotionProps<'a'>) => {
+  return <motion.a {...props} />
+}
 MotionLinkComponent.displayName = 'MotionA'
 
 export const MotionLink = createLink(MotionLinkComponent)
