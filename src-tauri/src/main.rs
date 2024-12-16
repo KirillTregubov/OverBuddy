@@ -777,7 +777,7 @@ fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
 fn reset_background(handle: AppHandle) -> Result<String, Error> {
     let mut config = helpers::read_config(&handle)?;
 
-    // TODO: Steam support and Return partial success and errors for each platform
+    // TODO: Steam compatibility and Return partial success and errors for each platform
     let mut battle_net_error: Option<Error> = None;
     // let mut steam_error: Option<Error> = None;
 

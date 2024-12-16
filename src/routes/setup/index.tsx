@@ -3,12 +3,11 @@ import {
   useNavigate
   // useNavigate
 } from '@tanstack/react-router'
-import { motion } from 'framer-motion'
 import { BookLockIcon, GlobeIcon, SparklesIcon } from 'lucide-react'
+import { motion } from 'motion/react'
 
 import logo from '@/assets/logo.svg'
 import { Button, ExternalLinkInline } from '@/components/Button'
-import Loading from '@/components/Loading'
 import {
   fadeInVariants,
   moveInVariants,
@@ -28,8 +27,7 @@ import { toast } from 'sonner'
 export const Route = createFileRoute('/setup/')({
   loader: async ({ context: { queryClient } }) =>
     await queryClient.ensureQueryData(updateQueryOptions(true)),
-  component: SetupSplash,
-  pendingComponent: Loading
+  component: SetupSplash
 })
 
 function SetupSplash() {

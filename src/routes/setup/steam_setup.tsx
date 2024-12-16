@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 
 import { MotionButton } from '@/components/Button'
 import SteamProfileComponent from '@/components/SteamProfile'

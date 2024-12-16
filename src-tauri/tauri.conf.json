@@ -1,9 +1,9 @@
 {
   "build": {
-    "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build",
+    "beforeDevCommand": "pnpm vite-dev",
+    "beforeBuildCommand": "pnpm vite-build",
     "frontendDist": "../dist",
-    "devUrl": "http://localhost:1420"
+    "devUrl": "http://localhost:5173"
   },
   "bundle": {
     "active": true,
@@ -57,6 +57,7 @@
         "fullscreen": false,
         "alwaysOnTop": false,
         "resizable": false,
+        "maximizable": false,
         "width": 1024,
         "height": 768,
         "backgroundColor": "#18181b"

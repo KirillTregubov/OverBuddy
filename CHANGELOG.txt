@@ -1,7 +1,6 @@
-OverBuddy has been updated! Steam support is coming soon.
-- Added Season 13, OWCS Finals, My Hero Academia, Overwatch Classic, Soldier Mythic Weapon backgrounds.
-- Removed Cyber Demon Genji background (broken after Season 13 mid-season patch).
-- Faster app startup time.
+OverBuddy has been updated! Steam compatibility is coming soon.
+- Added Season 14 backgrounds, removed broken ones.
+- Faster app startup time, more consistent loading animations.
 Other changes in this update:
 - Updated "Check for Updates" in Settings and startup update check.
 - Fixed various issues and made improvements.

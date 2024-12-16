@@ -2,13 +2,13 @@ import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { relaunch } from '@tauri-apps/plugin-process'
 import clsx from 'clsx'
-import { AnimatePresence, motion } from 'framer-motion'
 import {
   CheckCircleIcon,
   CircleIcon,
   LoaderPinwheel,
   XIcon
 } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { Suspense, useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -27,7 +27,7 @@ import {
 } from '@/components/AlertDialog'
 import { ExternalLinkInline, MotionButton } from '@/components/Button'
 import KeyboardButton from '@/components/KeyboardButton'
-import Loading, { LoadingInline } from '@/components/Loading'
+import { LoadingInline } from '@/components/Loading'
 import { Progress } from '@/components/Progress'
 import SteamProfileList from '@/components/SteamProfileList'
 import Version from '@/components/Version'
@@ -65,8 +65,7 @@ export const Route = createFileRoute('/settings')({
       update: (search.update as boolean) || false
     }
   },
-  component: Settings,
-  pendingComponent: Loading
+  component: Settings
 })
 
 function Settings() {
@@ -453,7 +452,7 @@ function Platforms() {
             <AlertDialogTrigger
               className="group relative -m-3 flex flex-col items-center justify-center gap-2 p-3 outline-none transition-[background-color,transform] duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
               onClick={(event) => {
-                toast.warning('Compatibility with Steam is not ready yet.', {
+                toast.warning('Steam compatibility is not ready yet.', {
                   id: 'steam-support-warning'
                 })
                 event.preventDefault()

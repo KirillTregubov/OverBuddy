@@ -1,6 +1,6 @@
 import clsx from 'clsx'
-import { AnimatePresence, motion } from 'framer-motion'
 import { LoaderPinwheel } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useRef } from 'react'
 
 import SteamProfileComponent from '@/components/SteamProfile'

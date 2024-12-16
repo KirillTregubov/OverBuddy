@@ -1,6 +1,6 @@
 [package]
 name = "overbuddy"
-version = "1.4.5"
+version = "1.4.6"
 description = "Elevate your Overwatch™ 2 experience by customizing your in-game menu background with ease."
 authors = ["Kirill Tregubov"]
 license = "../LICENSE"
@@ -18,7 +18,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "1.0"
 dunce = "1.0.5"
-sysinfo = "0.32"
+sysinfo = "0.33"
 similar = "2.6.0"
 tauri-plugin-dialog = "2"
 tauri-plugin-process = "2"

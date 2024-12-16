@@ -5,6 +5,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 
 import ErrorComponent from '@/components/ErrorComponent'
+import Loading from '@/components/Loading'
 import Toaster from '@/components/Toaster'
 import { routeTree } from '@/routeTree.gen'
 import '@/styles.css'
@@ -32,7 +33,8 @@ const router = createRouter({
   // This will ensure that the loader is always called when the route is preloaded or visited
   defaultPreloadStaleTime: 0,
   notFoundMode: 'root',
-  defaultErrorComponent: ErrorComponent
+  defaultErrorComponent: ErrorComponent,
+  defaultPendingComponent: Loading
 })
 
 declare module '@tanstack/react-router' {

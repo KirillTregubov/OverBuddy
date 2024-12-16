@@ -1,19 +1,18 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import clsx from 'clsx'
-import { AnimatePresence, motion, useAnimation } from 'framer-motion'
 import {
   ChevronLeft,
   ChevronRight,
   LoaderPinwheel,
   SettingsIcon
 } from 'lucide-react'
+import { AnimatePresence, motion, useAnimation } from 'motion/react'
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { toast } from 'sonner'
 
 import placeholder from '@/assets/placeholder.svg'
 import { MotionLink } from '@/components/Button'
-import Loading from '@/components/Loading'
 import { fadeInVariants } from '@/lib/animations'
 import {
   activeBackgroundQueryOptions,
@@ -52,7 +51,7 @@ export const Route = createFileRoute('/menu')({
     }
   },
   component: Menu,
-  pendingComponent: Loading
+  pendingMs: 0
 })
 
 const onImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
@@ -266,27 +265,27 @@ function Menu() {
               onClick={() => handleSelect(index)}
               aria-label={`${background.name} Background`}
               className={clsx(
-                'aspect-video w-fit select-none shadow-lg ring-offset-transparent transition-[width,height,box-shadow,filter] focus:outline-none',
+                'aspect-video w-fit select-none shadow-lg ring-offset-transparent transition-[width,height,box-shadow,filter] duration-200 focus:outline-none',
                 activeBackground?.id === background.id
                   ? 'highlight h-36 rounded-xl shadow-orange-600/15'
                   : 'highlight-base h-28 rounded-lg shadow-orange-600/10 hover:shadow-orange-600/15'
               )}
-              initial={{ transform: 'scale(.9)' }}
-              animate={{ transform: 'scale(1)' }}
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
               whileHover={{
-                transform:
-                  activeBackground?.id === background.id
-                    ? 'scale(1)'
-                    : 'scale(1.05)',
+                scale: activeBackground?.id === background.id ? 1 : 1.05,
                 transition: { duration: 0.2 }
               }}
               whileTap={{
-                transform: 'scale(1)',
+                scale: 1,
                 transition: { duration: 0.2 }
               }}
               transition={{ duration: 0.3 }}
               tabIndex={-1}
-              ref={(el) => (backgroundRefs.current[index] = el!)}
+              data-index={index}
+              ref={(el) => {
+                backgroundRefs.current[index] = el!
+              }}
             >
               <img
                 id={background.id}
@@ -303,13 +302,22 @@ function Menu() {
               />
               <div
                 className={clsx(
-                  'pointer-events-none absolute bottom-0 left-0 right-0 select-none truncate text-ellipsis bg-gradient-to-t from-zinc-950/50 to-transparent p-1 text-center font-bold text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] transition-[font-size,border-radius] duration-200 will-change-transform',
+                  'pointer-events-none absolute bottom-0 left-0 right-0 select-none truncate text-ellipsis bg-gradient-to-t from-zinc-950/50 to-transparent p-1 pb-2 pt-1.5 text-center text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] transition-[border-radius] duration-200',
                   activeBackground?.id === background.id
-                    ? 'rounded-b-xl text-sm'
-                    : 'rounded-b-lg py-1.5 text-xs'
+                    ? 'rounded-b-xl'
+                    : 'rounded-b-lg'
                 )}
               >
-                {background.name}
+                <div
+                  className={clsx(
+                    'font-bold transition-[font-size] duration-200 will-change-transform',
+                    activeBackground?.id === background.id
+                      ? 'text-sm/4'
+                      : 'text-xs'
+                  )}
+                >
+                  {background.name}
+                </div>
               </div>
             </motion.button>
           ))}
