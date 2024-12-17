@@ -422,7 +422,13 @@ const BACKGROUNDS: &[Background] = &[
         description: "China Re-release with NetEase",
         tags: &["Art"],
     },
-    // 欢迎回家
+    Background {
+        id: "0x08000000000012CA",
+        image: "avatar_the_last_airbender.jpg",
+        name: "Avatar: The Last Airbender",
+        description: "Avatar: The Last Airbender Event (Season 14)",
+        tags: &["Collaboration", "Animated Art"],
+    },
 ];
 
 pub fn get_backgrounds() -> &'static [Background] {
