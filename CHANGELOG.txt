@@ -1,6 +1,6 @@
 OverBuddy has been updated! Steam compatibility is coming soon.
 - Added Season 14 backgrounds, removed broken ones.
-- Faster app startup time, more consistent loading animations.
 Other changes in this update:
+- Faster app startup time, more consistent loading animations.
 - Updated "Check for Updates" in Settings and startup update check.
 - Fixed various issues and made improvements.
