@@ -432,7 +432,7 @@ const BACKGROUNDS: &[Background] = &[
 ];
 
 pub fn get_backgrounds() -> &'static [Background] {
-    &BACKGROUNDS
+    BACKGROUNDS
 }
 
 pub fn find_background_by_id(id: &str) -> Option<&'static Background> {

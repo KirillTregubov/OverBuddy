@@ -33,7 +33,7 @@ impl serde::Serialize for Error {
 }
 
 pub fn display_path_string(path: &PathBuf) -> Result<String, Error> {
-    dunce::canonicalize(&path)
+    dunce::canonicalize(path)
         .map(|canonicalized| canonicalized.display().to_string())
         .map_err(|err| Error::Custom(format!("Error processing path: {:?}", err)))
 }
@@ -87,10 +87,7 @@ pub fn read_config(handle: &AppHandle) -> Result<Config, Error> {
     }
 
     // Get config
-    let config = match fs::read_to_string(&config_file_path) {
-        Ok(contents) => contents,
-        Err(_) => String::new(),
-    };
+    let config = fs::read_to_string(&config_file_path).unwrap_or_default();
     let config: Config = match serde_json::from_str::<Value>(&config) {
         Ok(json) => {
             let result: Result<Config, _> = serde_json::from_value(json.clone());
@@ -111,7 +108,7 @@ pub fn read_config(handle: &AppHandle) -> Result<Config, Error> {
         Err(_) => get_default_config(),
     };
 
-    return Ok(config);
+    Ok(config)
 }
 
 pub fn write_config(handle: &AppHandle, config: &Config) -> Result<(), Error> {
@@ -148,7 +145,7 @@ pub fn write_config(handle: &AppHandle, config: &Config) -> Result<(), Error> {
     let serialized_config = match serde_json::to_string(&config) {
         Ok(json) => json,
         Err(_) => {
-            return Err(Error::Custom(format!("Failed to serialize config.")));
+            return Err(Error::Custom("Failed to serialize config.".into()));
         }
     };
     match fs::write(&config_file_path, &serialized_config) {
@@ -161,7 +158,7 @@ pub fn write_config(handle: &AppHandle, config: &Config) -> Result<(), Error> {
         }
     }
 
-    return Ok(());
+    Ok(())
 }
 
 pub fn get_file_name_from_path(path: &str) -> Option<&str> {
@@ -172,12 +169,11 @@ pub fn get_file_name_from_path(path: &str) -> Option<&str> {
 
 // Update launch arguments
 pub fn get_launch_args(launch_args: Option<&str>, id: Option<&str>) -> String {
-    let new_arg: Option<String>;
-    if id.is_some() {
-        new_arg = Some(format!("--lobbyMap={}", id.unwrap()));
+    let new_arg: Option<String> = if id.is_some() {
+        Some(format!("--lobbyMap={}", id.unwrap()))
     } else {
-        new_arg = None;
-    }
+        None
+    };
 
     if launch_args.is_some() {
         let filtered_args = launch_args
@@ -196,10 +192,10 @@ pub fn get_launch_args(launch_args: Option<&str>, id: Option<&str>) -> String {
         }
     }
 
-    if new_arg.is_some() {
-        return new_arg.unwrap();
+    if let Some(arg) = new_arg {
+        arg
     } else {
-        return String::new();
+        String::new()
     }
 }
 
@@ -214,7 +210,7 @@ pub fn close_battle_net() -> bool {
         }
     }
 
-    return flag;
+    flag
 }
 
 // pub fn is_battle_net_running() -> Result<bool, Error> {
@@ -322,7 +318,7 @@ pub fn close_steam() -> bool {
         }
     }
 
-    return flag;
+    flag
 }
 
 pub fn get_steam_profiles(config: &Config) -> Result<Vec<SteamProfile>, Error> {
@@ -399,9 +395,9 @@ fn extract_steam_user_info(
                                         name = extract_value(object_str, "name");
                                     }
                                     if name.is_none() || name.as_ref().unwrap().is_empty() {
-                                        return Err(Error::Custom(format!(
-                                            "Failed to find profile name"
-                                        )));
+                                        return Err(Error::Custom(
+                                            "Failed to find profile name".into(),
+                                        ));
                                     }
 
                                     let has_overwatch = is_steam_overwatch_installed(contents);
@@ -422,9 +418,9 @@ fn extract_steam_user_info(
             }
         }
     }
-    Err(Error::Custom(format!(
-        "Reached the end of file without finding target"
-    )))
+    Err(Error::Custom(
+        "Reached the end of file without finding target".into(),
+    ))
 }
 
 fn extract_value(object_str: &str, key: &str) -> Option<String> {

@@ -770,7 +770,7 @@ function ResetButton() {
   })
   const [isConfirming, setIsConfirming] = useState<State>('idle')
 
-  const handleClick = useCallback(() => {
+  const handleClick = () => {
     if (isConfirming === 'idle') {
       setIsConfirming('confirm')
       return
@@ -779,7 +779,7 @@ function ResetButton() {
       mutate()
       return
     }
-  }, [isConfirming, mutate])
+  }
 
   return (
     <div className="flex gap-2">

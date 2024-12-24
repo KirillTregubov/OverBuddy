@@ -196,19 +196,6 @@ function Menu() {
     )
   }, [config.background.is_outdated, resetBackground])
 
-  const handleSelect = useCallback(
-    (index: number) => {
-      const ref = backgroundRefs.current[index]
-      if (!ref || (activeBackground && ref.id === activeBackground?.id)) return
-      const background = backgrounds.at(index)
-      if (!background) return
-
-      setActiveBackground(background)
-      resetSetBackground()
-    },
-    [activeBackground, backgrounds, resetSetBackground, setActiveBackground]
-  )
-
   useLayoutEffect(() => {
     if (!activeBackground) return
     const index = backgrounds.findIndex((bg) => bg.id === activeBackground.id)
@@ -229,26 +216,32 @@ function Menu() {
     }
   }, [activeBackground, backgrounds])
 
-  const handleNavigate = useCallback(
-    (direction: 'prev' | 'next') => {
-      if (!activeBackground) return
-      const currentIndex = backgrounds.findIndex(
-        (bg) => bg.id === activeBackground.id
-      )
-      let newIndex
+  const handleSelect = (index: number) => {
+    const ref = backgroundRefs.current[index]
+    if (!ref || (activeBackground && ref.id === activeBackground?.id)) return
+    const background = backgrounds.at(index)
+    if (!background) return
 
-      if (direction === 'prev') {
-        newIndex =
-          currentIndex - 1 < 0 ? backgrounds.length - 1 : currentIndex - 1
-      } else {
-        newIndex = currentIndex + 1 >= backgrounds.length ? 0 : currentIndex + 1
-      }
+    setActiveBackground(background)
+    resetSetBackground()
+  }
 
-      handleSelect(newIndex)
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [activeBackground, backgrounds]
-  )
+  const handleNavigate = (direction: 'prev' | 'next') => {
+    if (!activeBackground) return
+    const currentIndex = backgrounds.findIndex(
+      (bg) => bg.id === activeBackground.id
+    )
+    let newIndex
+
+    if (direction === 'prev') {
+      newIndex =
+        currentIndex - 1 < 0 ? backgrounds.length - 1 : currentIndex - 1
+    } else {
+      newIndex = currentIndex + 1 >= backgrounds.length ? 0 : currentIndex + 1
+    }
+
+    handleSelect(newIndex)
+  }
 
   return (
     <motion.div

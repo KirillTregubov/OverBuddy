@@ -1,5 +1,6 @@
 import { fixupConfigRules, fixupPluginRules } from '@eslint/compat'
 import eslint from '@eslint/js'
+import reactCompilerPlugin from 'eslint-plugin-react-compiler'
 import eslintPluginReactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import pluginsJSXRuntime from 'eslint-plugin-react/configs/jsx-runtime.js'
@@ -19,7 +20,8 @@ export default [
   {
     plugins: {
       'react-refresh': reactRefresh,
-      'react-hooks': fixupPluginRules(eslintPluginReactHooks)
+      'react-hooks': fixupPluginRules(eslintPluginReactHooks),
+      'react-compiler': reactCompilerPlugin
     },
     rules: {
       'react-refresh/only-export-components': 'warn',
@@ -27,7 +29,8 @@ export default [
       '@typescript-eslint/no-unused-vars': [
         'error',
         { caughtErrorsIgnorePattern: '^_' }
-      ]
+      ],
+      'react-compiler/react-compiler': 'warn'
     },
     settings: {
       react: {

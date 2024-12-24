@@ -42,7 +42,7 @@ pub struct Config {
     pub background: BackgroundConfig,
 }
 
-pub static CONFIG_FILE: &'static str = "data.json";
+pub static CONFIG_FILE: &str = "data.json";
 
 pub fn get_default_config() -> Config {
     Config {
