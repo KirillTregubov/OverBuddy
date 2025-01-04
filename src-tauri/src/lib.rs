@@ -17,7 +17,7 @@ use tauri::Manager;
 #[tauri::command]
 fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
     let mut config = helpers::read_config(&handle)?;
-    // println!("Launched with {:?}", config);
+    println!("Launched with {:?}", config);
 
     if config.is_setup {
         if config.battle_net.enabled {
@@ -94,7 +94,7 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
 
         if config.steam.enabled {
             // TODO: check for new configs, ensure current config exists, restore from backup?
-            return Err(Error::Custom("Steam is not supported yet.".into()));
+            // return Err(Error::Custom("Steam is not supported yet.".into()));
         }
     }
 
@@ -383,7 +383,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         // Check if Steam is installed
         if config.steam.install.is_none() {
             static LAUNCHER_PATH: &str = "Steam\\steam.exe";
-            if let Some(program_files_dir) = env::var_os("programfiles(x86)") {
+            if let Some(program_files_dir) = env::var_os("programfiless(x86)") {
                 let steam_install =
                     Path::new(program_files_dir.to_str().unwrap()).join(LAUNCHER_PATH);
                 if steam_install.exists() {
@@ -917,7 +917,7 @@ pub fn run() {
         ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::ScaleFactorChanged { .. } = event {
-                let _ = window.set_size(tauri::LogicalSize::new(1024, 768));
+                window.set_size(tauri::LogicalSize::new(1024, 768)).unwrap();
             }
         })
         .run(tauri::generate_context!())

@@ -56,7 +56,7 @@ type SettingsSearch = {
 export const Route = createFileRoute('/settings')({
   loaderDeps: ({ search: { update } }) => ({ update }),
   loader: async ({ context: { queryClient }, deps: { update } }) => {
-    queryClient.prefetchQuery(settingsQueryOptions)
+    queryClient.ensureQueryData(settingsQueryOptions)
     if (update) await queryClient.ensureQueryData(updateQueryOptions(true))
     else queryClient.removeQueries(updateQueryOptions(true))
   },
@@ -286,13 +286,12 @@ function Platforms() {
         return
       }
     },
-    onSuccess: (data) => {
-      if (data.config.steam.enabled && !data.config.steam.setup) {
+    onSuccess: ({ config }) => {
+      if (config.steam.enabled && !config.steam.setup) {
         router.navigate({
           to: '/setup/steam_setup',
           replace: true
         })
-        return
       }
     }
   })

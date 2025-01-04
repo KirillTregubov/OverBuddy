@@ -69,7 +69,7 @@ export function handleError(error: unknown) {
 // TODO: Add react query and rust function information
 export function getReportURL(error: Error) {
   const body = encodeURIComponent(
-    `**Describe your issue**\n\n<!--Please describe how you ran into this issue and leave any other comments.-->\n\n**What version of OverBuddy are you using?**\n\n\`\`\`Version ${import.meta.env.PACKAGE_VERSION} (${mode})\`\`\`\n\n**What was the error encountered?**\n\n\`\`\`\n${error}\n\`\`\``
+    `**Encountered Error**\n\`\`\`${error}\`\`\`\n\n**Describe your issue**\n\n<!--Please describe how you ran into this issue and leave any other comments.-->\n\n\n**App Context:**\n**OverBuddy Version:** \`\`\`Version ${import.meta.env.PACKAGE_VERSION} (${mode})\`\`\`\n**Route:** \`\`\`${window.location.pathname}\`\`\``
   )
   return `https://github.com/KirillTregubov/OverBuddy/issues/new?body=${body}`
 }

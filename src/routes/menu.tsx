@@ -31,24 +31,25 @@ const buttonTapAnimation = {
 }
 
 export const Route = createFileRoute('/menu')({
-  loader: async ({ context: { queryClient } }) => {
-    queryClient.ensureQueryData(updateQueryOptions(true))
-    await queryClient.ensureQueryData(backgroundsQueryOptions)
-  },
   beforeLoad: async ({ context: { queryClient } }) => {
-    const { is_setup, steam } = await queryClient
+    const config = await queryClient
       .fetchQuery(launchQueryOptions)
       .catch(() => {
         throw redirect({ to: '/' })
       })
 
-    if (!is_setup) {
+    if (!config.is_setup) {
       throw redirect({ to: '/setup' })
     }
 
-    if (steam.enabled && !steam.setup) {
+    if (config.steam.enabled && !config.steam.setup) {
       throw redirect({ to: '/setup/steam_setup' })
     }
+  },
+  loader: async ({ context: { queryClient } }) => {
+    queryClient.ensureQueryData(updateQueryOptions(true))
+    queryClient.ensureQueryData(activeBackgroundQueryOptions)
+    await queryClient.ensureQueryData(backgroundsQueryOptions)
   },
   component: Menu,
   pendingMs: 0

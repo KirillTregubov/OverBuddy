@@ -265,8 +265,8 @@ export const backgroundsQueryOptions = queryOptions({
 export const activeBackgroundQueryOptions = queryOptions({
   queryKey: ['active_background'],
   queryFn: async () => {
-    await queryClient.ensureQueryData(backgroundsQueryOptions)
     await queryClient.ensureQueryData(launchQueryOptions)
+    await queryClient.ensureQueryData(backgroundsQueryOptions)
 
     const backgrounds = queryClient.getQueryData(
       backgroundsQueryOptions.queryKey

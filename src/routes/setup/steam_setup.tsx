@@ -16,14 +16,14 @@ import {
 } from '@/lib/data'
 
 export const Route = createFileRoute('/setup/steam_setup')({
-  loader: ({ context: { queryClient } }) => {
-    return queryClient.ensureQueryData(steamQueryOptions)
-  },
   beforeLoad: async ({ context: { queryClient } }) => {
     const { is_setup, steam } = await queryClient.fetchQuery(launchQueryOptions)
     if (!is_setup || !steam.configs) {
       throw redirect({ to: '/' })
     }
+  },
+  loader: ({ context: { queryClient } }) => {
+    return queryClient.ensureQueryData(steamQueryOptions)
   },
   component: SteamSetup
 })

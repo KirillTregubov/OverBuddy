@@ -7,19 +7,19 @@ import { BookLockIcon, GlobeIcon, SparklesIcon } from 'lucide-react'
 import { motion } from 'motion/react'
 
 import logo from '@/assets/logo.svg'
-import { Button, ExternalLinkInline } from '@/components/Button'
+import { ExternalLinkInline, LinkButton } from '@/components/Button'
 import {
   fadeInVariants,
   moveInVariants,
   staggerChildrenVariants
 } from '@/lib/animations'
-import { updateQueryOptions, useSetupMutation } from '@/lib/data'
-import {
-  ConfigError,
-  ConfigErrors,
-  handleError,
-  SetupError
-} from '@/lib/errors'
+import { updateQueryOptions } from '@/lib/data' //useSetupMutation
+// import {
+//   ConfigError,
+//   ConfigErrors,
+//   handleError,
+//   SetupError
+// } from '@/lib/errors'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { toast } from 'sonner'
@@ -35,36 +35,36 @@ function SetupSplash() {
   const {
     data: { available: updateAvailable }
   } = useSuspenseQuery(updateQueryOptions(true))
-  const { status, mutate, reset } = useSetupMutation({
-    onError: (error) => {
-      if (error instanceof SetupError) {
-        handleError(error)
-        reset()
-      } else if (
-        error instanceof ConfigError &&
-        ConfigErrors.safeParse(error.error_key).success
-      ) {
-        navigate({
-          to: '/setup/$key',
-          params: {
-            key: error.error_key
-          },
-          search: {
-            message: error.message,
-            platforms: error.platforms
-          },
-          replace: true
-        })
-        return
-      }
-    },
-    onSuccess: () => {
-      navigate({
-        to: '/menu',
-        replace: true
-      })
-    }
-  })
+  // const { status, mutate, reset } = useSetupMutation({
+  //   onError: (error) => {
+  //     if (error instanceof SetupError) {
+  //       handleError(error)
+  //       reset()
+  //     } else if (
+  //       error instanceof ConfigError &&
+  //       ConfigErrors.safeParse(error.error_key).success
+  //     ) {
+  //       navigate({
+  //         to: '/setup/$key',
+  //         params: {
+  //           key: error.error_key
+  //         },
+  //         search: {
+  //           message: error.message,
+  //           platforms: error.platforms
+  //         },
+  //         replace: true
+  //       })
+  //       return
+  //     }
+  //   },
+  //   onSuccess: () => {
+  //     navigate({
+  //       to: '/menu',
+  //       replace: true
+  //     })
+  //   }
+  // })
 
   useEffect(() => {
     if (updateAvailable) {
@@ -171,22 +171,22 @@ function SetupSplash() {
           </motion.div>
         </div>
         <motion.div variants={moveInVariants} className="flex w-full">
-          {/* <LinkButton
+          <LinkButton
             primary
             className="w-full py-3"
             to="/setup/select"
             replace
           >
             Continue
-          </LinkButton> */}
-          <Button
+          </LinkButton>
+          {/* <Button
             primary
             className="w-full py-3"
             disabled={status !== 'idle'}
             onClick={() => mutate({ platforms: ['BattleNet'] })}
           >
             Continue
-          </Button>
+          </Button> */}
         </motion.div>
       </motion.div>
     </motion.div>
