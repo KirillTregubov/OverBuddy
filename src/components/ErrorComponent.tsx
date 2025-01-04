@@ -1,18 +1,15 @@
 import { useRouter, type ErrorComponentProps } from '@tanstack/react-router'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence } from 'motion/react'
 import { useCallback, useState } from 'react'
 
 import { FormattedError } from '@/components/Error'
-import {
-  fadeInVariants,
-  moveInVariants,
-  staggerChildrenVariants
-} from '@/lib/animations'
 import { useResetMutation } from '@/lib/data'
 import { useQueryClient } from '@tanstack/react-query'
+import clsx from 'clsx'
+import { LoaderPinwheel } from 'lucide-react'
 import { Button, MotionButton } from './Button'
+import ErrorWrapper from './ErrorWrapper'
 import { ReportButton } from './Reporter'
-import TracerImage from './TracerImage'
 
 export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter()
@@ -22,31 +19,17 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
     error = Error(error)
   }
 
+  /* <TanstackErrorComponent error={error} /> */
   return (
-    <motion.main
-      className="max-w-screen flex h-screen w-screen overflow-hidden"
-      variants={fadeInVariants}
-      initial="hidden"
-      animate="show"
-    >
-      <motion.div
-        className="flex w-full flex-col justify-center p-8 pr-0"
-        variants={staggerChildrenVariants}
-      >
-        {/* <TanstackErrorComponent error={error} /> */}
-        <motion.h1
-          className="mb-1 select-none text-xl font-medium"
-          variants={moveInVariants}
-        >
-          Oops! Something went wrong.
-        </motion.h1>
-        <motion.p
-          variants={moveInVariants}
-          className="text-balance leading-relaxed"
-        >
+    <ErrorWrapper
+      title="Oops! Something went wrong."
+      description={
+        <p className="text-balance leading-relaxed">
           <FormattedError text={error.message} />
-        </motion.p>
-        <motion.div className="mt-4 flex gap-2" variants={moveInVariants}>
+        </p>
+      }
+      buttons={
+        <>
           <Button
             primary
             onClick={() => {
@@ -58,35 +41,35 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
             Reload
           </Button>
           <ReportButton error={error} />
-          <ResetButton reset={reset} />
-        </motion.div>
-      </motion.div>
-      <TracerImage />
-    </motion.main>
+          <ResetButton
+            reset={async () => {
+              await router.invalidate()
+              reset()
+            }}
+          />
+        </>
+      }
+    />
   )
 }
 
+export type State = 'idle' | 'confirm' | 'pending'
+
 function ResetButton({ reset }: Omit<ErrorComponentProps, 'error'>) {
   const router = useRouter()
-  const {
-    status,
-    mutate,
-    reset: resetMutation
-  } = useResetMutation({
+  const { mutate, reset: resetMutation } = useResetMutation({
     onSuccess: () => {
-      reset()
       router.navigate({
         to: '/setup',
         replace: true
       })
+      reset()
     },
     onSettled: () => {
       resetMutation()
     }
   })
-  const [isConfirming, setIsConfirming] = useState<
-    'idle' | 'confirm' | 'pending'
-  >('idle')
+  const [isConfirming, setIsConfirming] = useState<State>('idle')
 
   const handleClick = useCallback(() => {
     if (isConfirming === 'idle') {
@@ -102,18 +85,23 @@ function ResetButton({ reset }: Omit<ErrorComponentProps, 'error'>) {
   return (
     <AnimatePresence mode="wait">
       <MotionButton
-        disabled={isConfirming === 'pending' || status !== 'idle'}
+        key={isConfirming}
+        className={clsx(isConfirming === 'pending' && 'pointer-events-none')}
+        disabled={isConfirming === 'pending'}
         destructive={isConfirming === 'confirm'}
         onClick={handleClick}
-        key={isConfirming}
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ opacity: { duration: 0.15 } }}
       >
-        {isConfirming === 'idle' && 'Reset Settings'}
-        {isConfirming === 'confirm' &&
-          'Confirm Reset Settings (Cannot be undone)'}
+        {isConfirming === 'idle' ? (
+          <span>Reset Settings</span>
+        ) : isConfirming === 'confirm' ? (
+          <span>Confirm Reset Settings (Cannot be undone)</span>
+        ) : (
+          <LoaderPinwheel className="mx-auto animate-spin" />
+        )}
       </MotionButton>
     </AnimatePresence>
   )

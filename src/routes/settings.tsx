@@ -26,6 +26,7 @@ import {
   AlertDialogTrigger
 } from '@/components/AlertDialog'
 import { ExternalLinkInline, MotionButton } from '@/components/Button'
+import type { State } from '@/components/ErrorComponent'
 import KeyboardButton from '@/components/KeyboardButton'
 import { LoadingInline } from '@/components/Loading'
 import { Progress } from '@/components/Progress'
@@ -748,8 +749,6 @@ function CheckForUpdates() {
   )
 }
 
-type State = 'idle' | 'confirm' | 'pending' | 'success'
-
 function ResetButton() {
   const router = useRouter()
   const { mutate, reset: resetMutation } = useResetMutation({
@@ -816,24 +815,24 @@ function ResetButton() {
             <AnimatePresence mode="wait">
               <MotionButton
                 key={isConfirming}
+                disabled={isConfirming === 'pending'}
+                destructive={isConfirming === 'confirm'}
+                onClick={handleClick}
                 className={clsx(
                   'w-fit min-w-[28rem]',
                   isConfirming === 'pending' && 'pointer-events-none'
                 )}
-                destructive={isConfirming === 'confirm'}
-                onClick={handleClick}
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ opacity: { duration: 0.15, ease: 'easeOut' } }}
               >
                 <AnimatePresence mode="wait">
-                  {isConfirming === 'confirm' && (
+                  {isConfirming === 'confirm' ? (
                     <span>
                       Confirm Reset Settings (This action cannot be undone)
                     </span>
-                  )}
-                  {isConfirming === 'pending' && (
+                  ) : (
                     <LoaderPinwheel className="mx-auto animate-spin" />
                   )}
                 </AnimatePresence>

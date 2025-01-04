@@ -1,29 +1,23 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { open } from '@tauri-apps/plugin-dialog'
-import { motion } from 'motion/react'
 import { toast } from 'sonner'
 
-import { MotionButton } from '@/components/Button'
+import { Button, MotionButton } from '@/components/Button'
 import { FormattedError } from '@/components/Error'
+import ErrorWrapper from '@/components/ErrorWrapper'
 import Highlight from '@/components/Highlight'
-import TracerImage from '@/components/TracerImage'
-import {
-  fadeInVariants,
-  moveInVariants,
-  staggerChildrenVariants
-} from '@/lib/animations'
 import { getSetupPath, useSetupErrorMutation } from '@/lib/data'
 import { ConfigError, ConfigErrors, handleError } from '@/lib/errors'
 import { type Platform } from '@/lib/schemas'
 
 export const Route = createFileRoute('/setup/$key')({
-  loader: ({ params: { key }, context: { queryClient } }) => {
+  loader: async ({ params: { key }, context: { queryClient } }) => {
     const result = ConfigErrors.safeParse(key)
     if (!result.success) {
       throw Error('Invalid key')
     }
-    queryClient.ensureQueryData(getSetupPath(result.data))
+    await queryClient.ensureQueryData(getSetupPath(result.data))
   },
   validateSearch: (search: Record<string, unknown>) => {
     return {
@@ -74,74 +68,52 @@ function ConfigureComponent() {
   })
 
   return (
-    <motion.div
-      className="mx-auto flex h-full w-full max-w-xl"
-      variants={fadeInVariants}
-      initial="hidden"
-      animate="show"
-    >
-      <motion.div
-        className="flex flex-col justify-center p-8 pr-0"
-        variants={staggerChildrenVariants}
-        initial="hidden"
-        animate="show"
-      >
-        <motion.h1
-          className="mb-1 select-none text-xl font-bold"
-          variants={moveInVariants}
-        >
-          Setup Incomplete
-        </motion.h1>
-        <motion.p
-          className="mb-2 text-pretty leading-7 text-zinc-400"
-          variants={moveInVariants}
-        >
-          <FormattedError text={message} />
-        </motion.p>
-        <motion.p
-          className="text-pretty leading-7 text-zinc-400"
-          variants={moveInVariants}
-        >
-          {key === 'BattleNetInstall' ? (
-            <>
-              {' '}
-              If you have Overwatch installed through Steam, please wait for a
-              future update.
-              <span className="mt-2 block">
-                If you do have Battle.net installed, please select the{' '}
-                <Highlight>Battle.net Launcher.exe</Highlight> file, which is
-                likely located in <Highlight>{path}</Highlight>.
-              </span>
-            </>
-          ) : key === 'BattleNetConfig' ? (
-            <>
-              {' '}
-              Please select the <Highlight>Battle.net.config</Highlight> file,
-              which is likely located in <Highlight>{path}</Highlight>.
-            </>
-          ) : key === 'SteamInstall' ? (
-            <>
-              {' '}
-              Please select the <Highlight>steam.exe</Highlight> file, which is
-              located in your Steam installation directory (defaults to{' '}
-              <Highlight>{path}</Highlight>).
-            </>
-          ) : (
-            key === 'SteamAccount' && (
+    <ErrorWrapper
+      title="Setup Incomplete"
+      description={
+        <>
+          <p className="mb-2 text-pretty leading-7 text-zinc-400">
+            <FormattedError text={message} />
+          </p>
+          <p className="text-pretty leading-7 text-zinc-400">
+            {key === 'BattleNetInstall' ? (
               <>
-                {' '}
-                Please ensure you have logged into an account on Steam. If you
-                have already done so, please select the correct{' '}
+                If you have Battle.net installed, please select the{' '}
+                <Highlight>Battle.net Launcher.exe</Highlight> file, which is
+                located in your Battle.net installation directory (defaults to{' '}
+                <Highlight>{path}</Highlight>).
+              </>
+            ) : key === 'BattleNetConfig' ? (
+              <>
+                Please select the <Highlight>Battle.net.config</Highlight> file,
+                which is expected to be located in <Highlight>{path}</Highlight>
+                .
+              </>
+            ) : key === 'SteamInstall' ? (
+              <>
+                If you have Steam installed, please select the{' '}
                 <Highlight>steam.exe</Highlight> file, which is located in your
                 Steam installation directory (defaults to{' '}
                 <Highlight>{path}</Highlight>).
               </>
-            )
-          )}
-        </motion.p>
-
-        <div className="mt-4 flex gap-2">
-          {key === 'SteamAccount' && (
+            ) : (
+              key === 'SteamAccount' && (
+                <>
+                  Please ensure you have logged into an account on Steam. If you
+                  have already done so, please select the correct{' '}
+                  <Highlight>steam.exe</Highlight> file, which is located in
+                  your Steam installation directory (defaults to{' '}
+                  <Highlight>{path}</Highlight>).
+                </>
+              )
+            )}
+          </p>
+        </>
+      }
+      buttons={
+        <>
+          {/* TODO: SteamAccount Untested */}
+          {key === 'SteamAccount' ? (
             <MotionButton
               primary
               onClick={() => {
@@ -151,12 +123,23 @@ function ConfigureComponent() {
                   platforms
                 })
               }}
-              variants={moveInVariants}
             >
               Retry
             </MotionButton>
+          ) : (
+            <Button
+              onClick={() => {
+                navigate({
+                  to: '/setup/select',
+                  replace: true
+                })
+              }}
+            >
+              Go Back
+            </Button>
           )}
           <MotionButton
+            primary
             onClick={async () => {
               const selected = await open({
                 filters: [
@@ -189,7 +172,6 @@ function ConfigureComponent() {
                 platforms
               })
             }}
-            variants={moveInVariants}
           >
             Select{' '}
             {key === 'BattleNetInstall'
@@ -199,9 +181,8 @@ function ConfigureComponent() {
                 : 'steam.exe'}
           </MotionButton>
           {/* TODO: report issue */}
-        </div>
-      </motion.div>
-      <TracerImage />
-    </motion.div>
+        </>
+      }
+    />
   )
 }

@@ -1,3 +1,18 @@
+#[derive(serde::Serialize)]
+pub enum ErrorKey {
+    NoOverwatch,
+    BattleNetInstall,
+    BattleNetConfig,
+    SteamInstall,
+    SteamAccount,
+}
+#[derive(serde::Serialize)]
+pub struct SetupError {
+    pub error_key: ErrorKey,
+    pub message: String,
+    pub platforms: Option<Vec<String>>,
+}
+
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct BattleNetConfig {
     pub enabled: bool,
