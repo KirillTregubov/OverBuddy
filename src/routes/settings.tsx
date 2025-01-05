@@ -40,7 +40,7 @@ import {
 } from '@/lib/animations'
 import {
   invalidateActiveBackground,
-  settingsQueryOptions,
+  launchQueryOptions,
   updateQueryOptions,
   useCheckUpdates,
   useResetMutation,
@@ -48,6 +48,7 @@ import {
   useUpdateMutation
 } from '@/lib/data'
 import { ConfigError, ConfigErrors, SetupError } from '@/lib/errors'
+import type { Platform } from '@/lib/schemas'
 import useKeyPress from '@/lib/useKeyPress'
 
 type SettingsSearch = {
@@ -57,7 +58,7 @@ type SettingsSearch = {
 export const Route = createFileRoute('/settings')({
   loaderDeps: ({ search: { update } }) => ({ update }),
   loader: async ({ context: { queryClient }, deps: { update } }) => {
-    queryClient.ensureQueryData(settingsQueryOptions)
+    queryClient.ensureQueryData(launchQueryOptions)
     if (update) await queryClient.ensureQueryData(updateQueryOptions(true))
     else queryClient.removeQueries(updateQueryOptions(true))
   },
@@ -253,7 +254,7 @@ function Settings() {
 
 function Platforms() {
   const router = useRouter()
-  const { data, isFetching } = useSuspenseQuery(settingsQueryOptions)
+  const { data, isFetching } = useSuspenseQuery(launchQueryOptions)
   const { mutate } = useSetupMutation({
     onError: async (error) => {
       if (error instanceof SetupError) {
@@ -285,6 +286,8 @@ function Platforms() {
           replace: true
         })
         return
+      } else {
+        throw error
       }
     },
     onSuccess: ({ config }) => {
@@ -294,7 +297,8 @@ function Platforms() {
           replace: true
         })
       }
-    }
+    },
+    throwOnError: false
   })
 
   return (
@@ -312,8 +316,7 @@ function Platforms() {
               <AlertDialogDescription>
                 You will no longer be able to change the background shown when
                 launching Overwatch through Battle.net.
-                {data.platforms.filter((p) => p !== 'BattleNet').length ===
-                  0 && (
+                {!data.steam.enabled && (
                   <>
                     {' '}
                     Since Battle.net is the only connected platform, this action
@@ -326,9 +329,10 @@ function Platforms() {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
-                  const newPlatforms = data.platforms.includes('BattleNet')
-                    ? data.platforms.filter((p) => p !== 'BattleNet')
-                    : data.platforms.concat('BattleNet')
+                  const newPlatforms: Platform[] = []
+                  if (data.steam.enabled) {
+                    newPlatforms.push('Steam')
+                  }
 
                   mutate({
                     platforms: newPlatforms,
@@ -343,22 +347,23 @@ function Platforms() {
           <AlertDialogTrigger
             className="group flex flex-col items-center gap-2 p-3 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
             onClick={(event) => {
-              if (data.platforms.includes('BattleNet')) {
+              if (data.battle_net.enabled) {
                 return
               } else {
                 event.preventDefault()
               }
 
-              const newPlatforms = data.platforms.includes('BattleNet')
-                ? data.platforms.filter((p) => p !== 'BattleNet')
-                : data.platforms.concat('BattleNet')
+              const newPlatforms: Platform[] = ['BattleNet']
+              if (data.steam.enabled) {
+                newPlatforms.push('Steam')
+              }
 
               mutate({
                 platforms: newPlatforms,
                 isInitialized: true
               })
             }}
-            title={`${data.platforms.includes('BattleNet') ? 'Disconnect' : 'Connect'} Battle.net`}
+            title={`${data.battle_net.enabled ? 'Disconnect' : 'Connect'} Battle.net`}
           >
             <img
               src={BattleNet}
@@ -368,7 +373,7 @@ function Platforms() {
               height="64px"
               className={clsx(
                 'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
-                data.platforms.includes('BattleNet')
+                data.battle_net.enabled
                   ? 'grayscale-0 group-active:grayscale'
                   : 'group-active:grayscale-0'
               )}
@@ -376,13 +381,13 @@ function Platforms() {
             <h2
               className={clsx(
                 'flex min-w-[6rem] select-none items-center gap-1.5 text-center font-medium leading-none transition',
-                data.platforms.includes('BattleNet')
+                data.battle_net.enabled
                   ? 'text-white group-active:text-zinc-400'
                   : 'text-zinc-400 group-active:text-white'
               )}
             >
               <AnimatePresence mode="wait">
-                {data.platforms.includes('BattleNet') ? (
+                {data.battle_net.enabled ? (
                   <motion.span
                     initial={{ opacity: 0.5 }}
                     animate={{ opacity: 1 }}
@@ -411,7 +416,7 @@ function Platforms() {
               <AlertDialogDescription>
                 You will no longer be able to change the background shown when
                 launching Overwatch through Steam.
-                {data.platforms.filter((p) => p !== 'Steam').length === 0 && (
+                {!data.battle_net.enabled && (
                   <>
                     {' '}
                     Since Steam is the only connected platform, this action will
@@ -424,9 +429,10 @@ function Platforms() {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
-                  const newPlatforms = data.platforms.includes('Steam')
-                    ? data.platforms.filter((p) => p !== 'Steam')
-                    : data.platforms.concat('Steam')
+                  const newPlatforms: Platform[] = []
+                  if (data.battle_net.enabled) {
+                    newPlatforms.push('BattleNet')
+                  }
 
                   mutate({
                     platforms: newPlatforms,
@@ -441,9 +447,7 @@ function Platforms() {
           <div
             className={clsx(
               "relative z-10 flex min-w-0 items-center justify-center gap-6 p-3 transition-[background-color,box-shadow] before:pointer-events-none before:absolute before:-left-3 before:-right-3 before:top-0 before:h-full before:rounded-md before:bg-zinc-700 before:shadow-inner before:shadow-zinc-800 before:transition-opacity before:delay-100 before:content-['']",
-              data.platforms.includes('Steam')
-                ? 'before:opacity-100'
-                : 'before:opacity-0'
+              data.steam.enabled ? 'before:opacity-100' : 'before:opacity-0'
             )}
             style={{
               transition: 'width 0s ease 0.15s'
@@ -452,28 +456,23 @@ function Platforms() {
             <AlertDialogTrigger
               className="group relative -m-3 flex flex-col items-center justify-center gap-2 p-3 outline-none transition-[background-color,transform] duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
               onClick={(event) => {
-                toast.warning('Steam compatibility is not ready yet.', {
-                  id: 'steam-support-warning'
+                if (data.steam.enabled) {
+                  return
+                } else {
+                  event.preventDefault()
+                }
+
+                const newPlatforms: Platform[] = ['Steam']
+                if (data.battle_net.enabled) {
+                  newPlatforms.push('BattleNet')
+                }
+
+                mutate({
+                  platforms: newPlatforms,
+                  isInitialized: true
                 })
-                event.preventDefault()
-                return
-
-                // if (data.platforms.includes('Steam')) {
-                //   return
-                // } else {
-                //   event.preventDefault()
-                // }
-
-                // const newPlatforms = data.platforms.includes('Steam')
-                //   ? data.platforms.filter((p) => p !== 'Steam')
-                //   : data.platforms.concat('Steam')
-
-                // mutate({
-                //   platforms: newPlatforms,
-                //   isInitialized: true
-                // })
               }}
-              title={`${data.platforms.includes('Steam') ? 'Disconnect' : 'Connect'} Steam`}
+              title={`${data.steam.enabled ? 'Disconnect' : 'Connect'} Steam`}
             >
               <img
                 src={Steam}
@@ -483,7 +482,7 @@ function Platforms() {
                 height="64px"
                 className={clsx(
                   'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
-                  data.platforms.includes('Steam')
+                  data.steam.enabled
                     ? 'grayscale-0 group-active:grayscale'
                     : 'group-active:grayscale-0'
                 )}
@@ -491,13 +490,13 @@ function Platforms() {
               <h2
                 className={clsx(
                   'flex min-w-[4.5rem] select-none items-center gap-1.5 text-center font-medium leading-none transition',
-                  data.platforms.includes('Steam')
+                  data.steam.enabled
                     ? 'text-white group-active:text-zinc-400'
                     : 'text-zinc-400 group-active:text-white'
                 )}
               >
                 <AnimatePresence mode="wait">
-                  {data.platforms.includes('Steam') ? (
+                  {data.steam.enabled ? (
                     <motion.span
                       initial={{ opacity: 0.5 }}
                       animate={{ opacity: 1 }}
@@ -522,9 +521,9 @@ function Platforms() {
               </div>
             </AlertDialogTrigger>
             <AnimatePresence mode="wait">
-              {data.platforms.includes('Steam') && data.steam_profiles && (
+              {data.steam.enabled && data.steam.profiles && (
                 <SteamProfileList
-                  steam_profiles={data.steam_profiles}
+                  steam_profiles={data.steam.profiles}
                   isFetching={isFetching}
                 />
               )}

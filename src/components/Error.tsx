@@ -1,9 +1,11 @@
 import Highlight from './Highlight'
 
 export function FormattedError({ text }: { text: string }) {
-  const regex = /\[\[(.*?)\]\]/g
+  const regex = /\[\[([\s\S]*?)\]\]/g
   const parts = []
   let lastIdx = 0
+
+  console.log('here', text)
 
   text.replace(regex, (match, captured, offset) => {
     parts.push(text.slice(lastIdx, offset))

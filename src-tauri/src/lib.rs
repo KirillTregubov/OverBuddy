@@ -13,12 +13,11 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use tauri::AppHandle;
-use tauri::Manager;
 
 #[tauri::command]
 fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
-    let mut config = helpers::read_config(&handle)?;
-    println!("Launched with {:?}", config);
+    let mut config = config::read_config(&handle)?;
+    // println!("Launched with {:?}", config);
 
     if config.is_setup {
         if config.battle_net.enabled {
@@ -99,6 +98,10 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
         if config.steam.enabled {
             // TODO: check for new configs, ensure current config exists, restore from backup?
             // return Err(Error::Custom("Steam is not supported yet.".into()));
+
+            if config.steam.setup {
+                config.steam.profiles = Some(steam::get_profiles(&config)?);
+            }
         }
     }
 
@@ -106,14 +109,14 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
         config.is_setup = false;
     }
 
-    helpers::write_config(&handle, &config)?;
+    config::write_config(&handle, &config)?;
 
     Ok(serde_json::to_string(&config)?)
 }
 
 #[tauri::command]
 fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Result<String, Error> {
-    let mut config = helpers::read_config(&handle)?;
+    let mut config = config::read_config(&handle)?;
 
     // 'battle_net: {
     if platforms.contains(&"BattleNet") {
@@ -142,25 +145,36 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         let battle_net_config = match &config.battle_net.config {
             Some(battle_net_config) => battle_net_config.clone(),
             None => {
-                let app_data_dir = handle.path().app_data_dir().unwrap();
-                let resource_path = app_data_dir.join("../Battle.net");
+                let path = env::var_os("appdata").map(|path| Path::new(&path).join("Battle.net"));
 
-                // Check if Battle.net AppData directory exists
-                if let Ok(entries) = fs::read_dir(&resource_path) {
-                    // Check if Battle.net.config exists in the directory
-                    if let Some(target_entry) = entries
-                        .filter_map(|entry| entry.ok())
-                        .find(|entry| entry.file_name().to_string_lossy() == CONFIG_FILE)
-                    {
-                        let display_path = helpers::display_path_string(&target_entry.path())?;
-                        config.battle_net.config = Some(display_path.clone());
-                        display_path
+                if let Some(resource_path) = path {
+                    // Check if Battle.net AppData directory exists
+                    if let Ok(entries) = fs::read_dir(&resource_path) {
+                        // Check if Battle.net.config exists in the directory
+                        if let Some(target_entry) = entries
+                            .filter_map(|entry| entry.ok())
+                            .find(|entry| entry.file_name().to_string_lossy() == CONFIG_FILE)
+                        {
+                            let display_path = helpers::display_path_string(&target_entry.path())?;
+                            config.battle_net.config = Some(display_path.clone());
+                            display_path
+                        } else {
+                            let display_path = helpers::display_path_string(&resource_path)?;
+                            return Err(Error::Custom(serde_json::to_string(&SetupError {
+                                error_key: ErrorKey::BattleNetConfig,
+                                message: format!(
+                                    "Failed to find [[{}]] file at [[{}]].",
+                                    CONFIG_FILE, display_path
+                                ),
+                                platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
+                            })?));
+                        }
                     } else {
                         let display_path = helpers::display_path_string(&resource_path)?;
                         return Err(Error::Custom(serde_json::to_string(&SetupError {
                             error_key: ErrorKey::BattleNetConfig,
                             message: format!(
-                                "Failed to find [[{}]] in [[{}]].",
+                                "Failed to read [[{}]] file at [[{}]].",
                                 CONFIG_FILE, display_path
                             ),
                             platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
@@ -248,7 +262,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
                     .unwrap()
                     .insert("AdditionalLaunchArguments".to_string(), json!(""));
 
-                battle_net_was_closed = helpers::close_battle_net();
+                battle_net_was_closed = battle_net::close_app();
 
                 overwatch_config.as_str()
             }
@@ -283,7 +297,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
                     .unwrap()
                     .insert("DefaultStartupScreen".to_string(), json!("1"));
 
-                battle_net_was_closed = helpers::close_battle_net();
+                battle_net_was_closed = battle_net::close_app();
             } else {
                 let startup_screen = client_config["DefaultStartupScreen"]
                     .as_str()
@@ -295,7 +309,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
                         .unwrap()
                         .insert("DefaultStartupScreen".to_string(), json!("1"));
 
-                    battle_net_was_closed = helpers::close_battle_net();
+                    battle_net_was_closed = battle_net::close_app();
                 }
             }
         }
@@ -441,7 +455,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         config.is_setup = true;
     }
 
-    helpers::write_config(&handle, &config)?;
+    config::write_config(&handle, &config)?;
 
     Ok(serde_json::to_string(&config)?)
 }
@@ -453,7 +467,7 @@ fn resolve_setup_error(
     path: &str,
     platforms: Vec<&str>,
 ) -> Result<String, Error> {
-    let mut config = helpers::read_config(&handle)?;
+    let mut config = config::read_config(&handle)?;
 
     match key {
         "BattleNetInstall" => {
@@ -472,26 +486,22 @@ fn resolve_setup_error(
         }
     };
 
-    helpers::write_config(&handle, &config)?;
+    config::write_config(&handle, &config)?;
 
     setup(handle, platforms, false)
 }
 
 #[tauri::command]
-fn get_setup_path(key: &str, handle: AppHandle) -> Result<String, Error> {
+fn get_setup_path(key: &str) -> Result<String, Error> {
     match key {
         "BattleNetInstall" => {
             let path = env::var_os("programfiles(x86)")
                 .map(|path| Path::new(&path).join("Battle.net"))
-                .filter(|path| path.exists())
-                .map(|path| path.to_string_lossy().to_string())
-                .unwrap_or_default();
+                .and_then(|path| helpers::display_path_string(&path).ok());
 
             let default_path = env::var_os("programfiles(x86)")
                 .map(|path| PathBuf::from(path))
-                .filter(|path| path.exists())
-                .map(|path| path.to_string_lossy().to_string())
-                .unwrap_or_default();
+                .and_then(|path| helpers::display_path_string(&path).ok());
 
             Ok(serde_json::to_string(&json!({
                 "path": path,
@@ -499,9 +509,9 @@ fn get_setup_path(key: &str, handle: AppHandle) -> Result<String, Error> {
             }))?)
         }
         "BattleNetConfig" => {
-            let path = helpers::display_path_string(
-                &handle.path().app_data_dir().unwrap().join("../Battle.net"),
-            )?;
+            let path = env::var_os("appdata")
+                .map(|path| PathBuf::from(path).join("Battle.net"))
+                .map(|path| path.to_string_lossy().to_string());
 
             Ok(serde_json::to_string(&json!({
                 "path": path,
@@ -511,15 +521,11 @@ fn get_setup_path(key: &str, handle: AppHandle) -> Result<String, Error> {
         "SteamInstall" | "SteamAccount" => {
             let path = env::var_os("programfiles(x86)")
                 .map(|path| Path::new(&path).join("Steam"))
-                .filter(|path| path.exists())
-                .map(|path| path.to_string_lossy().to_string())
-                .unwrap_or_default();
+                .and_then(|path| helpers::display_path_string(&path).ok());
 
             let default_path = env::var_os("programfiles(x86)")
                 .map(|path| PathBuf::from(path))
-                .filter(|path| path.exists())
-                .map(|path| path.to_string_lossy().to_string())
-                .unwrap_or_default();
+                .and_then(|path| helpers::display_path_string(&path).ok());
 
             Ok(serde_json::to_string(&json!({
                 "path": path,
@@ -534,15 +540,15 @@ fn get_setup_path(key: &str, handle: AppHandle) -> Result<String, Error> {
 
 #[tauri::command]
 fn get_steam_accounts(handle: AppHandle) -> Result<String, Error> {
-    let config = helpers::read_config(&handle)?;
-    let accounts = helpers::get_steam_profiles(&config)?;
+    let config = config::read_config(&handle)?;
+    let accounts = steam::get_profiles(&config)?;
 
     Ok(serde_json::to_string(&accounts)?)
 }
 
 #[tauri::command]
 fn confirm_steam_setup(handle: AppHandle) -> Result<String, Error> {
-    let mut config = helpers::read_config(&handle)?;
+    let mut config = config::read_config(&handle)?;
 
     if config.steam.configs.is_none() || config.steam.configs.as_ref().unwrap().is_empty() {
         return Err(Error::Custom(
@@ -550,9 +556,9 @@ fn confirm_steam_setup(handle: AppHandle) -> Result<String, Error> {
         ));
     }
 
-    config.steam.profiles = Some(helpers::get_steam_profiles(&config)?);
+    config.steam.profiles = Some(steam::get_profiles(&config)?);
     config.steam.setup = true;
-    helpers::write_config(&handle, &config)?;
+    config::write_config(&handle, &config)?;
 
     Ok(serde_json::to_string(&config)?)
 }
@@ -566,7 +572,7 @@ fn get_backgrounds() -> String {
 
 #[tauri::command]
 fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
-    let mut config = helpers::read_config(&handle)?;
+    let mut config = config::read_config(&handle)?;
     let mut battle_net_error: Option<Error> = None;
     let mut steam_error: Option<Error> = None;
 
@@ -610,14 +616,14 @@ fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
 
     config.background.current = Some(id.to_string());
     config.background.is_outdated = false;
-    helpers::write_config(&handle, &config)?;
+    config::write_config(&handle, &config)?;
 
     Ok(serde_json::to_string(&config)?)
 }
 
 #[tauri::command]
 fn reset_background(handle: AppHandle) -> Result<String, Error> {
-    let mut config = helpers::read_config(&handle)?;
+    let mut config = config::read_config(&handle)?;
     let mut battle_net_error: Option<Error> = None;
     let mut steam_error: Option<Error> = None;
 
@@ -662,49 +668,15 @@ fn reset_background(handle: AppHandle) -> Result<String, Error> {
 
     config.background.current = None;
     config.background.is_outdated = false;
-    helpers::write_config(&handle, &config)?;
+    config::write_config(&handle, &config)?;
 
     Ok(serde_json::to_string(&config)?)
-}
-
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
-struct SettingsData {
-    platforms: Vec<String>,
-    steam_profiles: Option<Vec<config::SteamProfile>>,
-}
-
-#[tauri::command]
-fn get_settings_data(handle: AppHandle) -> Result<String, Error> {
-    let mut config = helpers::read_config(&handle)?;
-
-    if config.steam.enabled && config.steam.setup {
-        config.steam.profiles = Some(helpers::get_steam_profiles(&config)?);
-        helpers::write_config(&handle, &config)?;
-    } else {
-        config.steam.profiles = None;
-    }
-
-    let mut platforms = vec![];
-    let mut steam_profiles = None;
-    if config.steam.enabled {
-        platforms.push("Steam".to_string());
-        steam_profiles = config.steam.profiles;
-    }
-    if config.battle_net.enabled {
-        platforms.push("BattleNet".to_string());
-    }
-    let settings = SettingsData {
-        platforms,
-        steam_profiles,
-    };
-
-    Ok(serde_json::to_string(&settings)?)
 }
 
 #[tauri::command]
 fn reset(handle: AppHandle) -> Result<String, Error> {
     let config = config::get_default_config();
-    helpers::write_config(&handle, &config)?;
+    config::write_config(&handle, &config)?;
 
     Ok(serde_json::to_string(&config)?)
 }
@@ -726,7 +698,6 @@ pub fn run() {
             get_backgrounds,
             set_background,
             reset_background,
-            get_settings_data,
             reset
         ])
         .on_window_event(|window, event| {

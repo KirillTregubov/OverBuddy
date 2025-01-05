@@ -43,8 +43,8 @@ export class SetupError extends Error {
 }
 
 export const SetupPathResponse = z.object({
-  path: z.string(),
-  defaultPath: z.string()
+  path: z.string().nullable(),
+  defaultPath: z.string().nullable()
 })
 export type SetupPathResponse = z.infer<typeof SetupPathResponse>
 

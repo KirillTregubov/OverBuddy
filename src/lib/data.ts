@@ -16,35 +16,20 @@ import {
   Background,
   BackgroundArray,
   LaunchConfig,
-  SettingsData,
   SteamProfile,
   type Platform
 } from '@/lib/schemas'
 import { queryClient } from '@/main'
 import { isDev } from './dev'
 
-const updateLaunchConfig = async (
-  config: LaunchConfig,
-  setLaunchQuery = true
-) => {
-  const settingsData = {} as SettingsData
-  settingsData.platforms = [
-    config.steam.enabled && ('Steam' as const),
-    config.battle_net.enabled && ('BattleNet' as const)
-  ].filter(Boolean)
-  if (config.steam.enabled && config.steam.setup) {
-    settingsData.steam_profiles = config.steam.profiles
-  }
-  queryClient.setQueryData(['settings'], settingsData)
-  queryClient.invalidateQueries({ queryKey: ['settings'] })
+const launchQueryKey = ['launch']
 
-  if (setLaunchQuery) {
-    queryClient.setQueryData(['launch'], config)
-  }
+const updateLaunchConfig = async (config: LaunchConfig) => {
+  queryClient.setQueryData(launchQueryKey, config)
 }
 
 export const launchQueryOptions = queryOptions({
-  queryKey: ['launch'],
+  queryKey: launchQueryKey,
   queryFn: async () => {
     const data = await invoke('get_launch_config').catch((error) => {
       if (typeof error !== 'string') throw error
@@ -55,7 +40,7 @@ export const launchQueryOptions = queryOptions({
       throw new Error(config.error.message)
     }
 
-    updateLaunchConfig(config.data, false)
+    updateLaunchConfig(config.data)
 
     return config.data
   },
@@ -111,7 +96,8 @@ const setupMutation = async ({
 
 export const useSetupMutation = ({
   onError,
-  onSuccess
+  onSuccess,
+  throwOnError = true
 }: {
   isInitialized?: boolean
   onError?: (error: Error | ConfigError) => void
@@ -121,7 +107,8 @@ export const useSetupMutation = ({
   useMutation({
     mutationFn: setupMutation,
     onError,
-    onSuccess
+    onSuccess,
+    throwOnError
   })
 
 export const getSetupPath = (key: ConfigErrors) =>
@@ -360,7 +347,7 @@ export const useResetMutation = ({
       if (!config.success) {
         throw new Error(`Failed to reset.`)
       }
-      queryClient.invalidateQueries({ queryKey: ['active_background'] })
+      invalidateActiveBackground()
       updateLaunchConfig(config.data)
     },
     onError: (error) => {
@@ -373,19 +360,6 @@ export const useResetMutation = ({
     },
     onSettled
   })
-
-export const settingsQueryOptions = queryOptions({
-  queryKey: ['settings'],
-  queryFn: async () => {
-    const data = await invoke('get_settings_data')
-    const settings = SettingsData.safeParse(JSON.parse(data as string))
-    if (!settings.success) {
-      throw new Error(`Failed to get settings. ${settings.error.message}`)
-    }
-    return settings.data
-  },
-  staleTime: 0
-})
 
 type useCheckUpdatesReturnType =
   | { available: false }

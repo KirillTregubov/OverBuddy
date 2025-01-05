@@ -80,13 +80,24 @@ function ConfigureComponent() {
               <>
                 If you have Battle.net installed, please select the{' '}
                 <Highlight>Battle.net Launcher.exe</Highlight> file, which is
-                located in your Battle.net installation directory (defaults to{' '}
-                <Highlight>{path}</Highlight>).
+                located in your Battle.net installation directory
+                {!!path && (
+                  <>
+                    {' '}
+                    (defaults to <Highlight>{path}</Highlight>)
+                  </>
+                )}
+                .
               </>
             ) : key === 'BattleNetConfig' ? (
               <>
-                Please select the <Highlight>Battle.net.config</Highlight> file,
-                which is expected to be located in <Highlight>{path}</Highlight>
+                Please select the <Highlight>Battle.net.config</Highlight> file
+                {!!path && (
+                  <>
+                    , which is expected to be located in{' '}
+                    <Highlight>{path}</Highlight>
+                  </>
+                )}
                 .
               </>
             ) : key === 'SteamInstall' ? (
@@ -153,7 +164,7 @@ function ConfigureComponent() {
                     extensions: [key.endsWith('Config') ? 'config' : 'exe']
                   }
                 ],
-                defaultPath
+                defaultPath: defaultPath || undefined
               })
               if (!selected) return
               const file =
