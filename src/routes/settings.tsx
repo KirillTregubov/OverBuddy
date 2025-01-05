@@ -516,9 +516,6 @@ function Platforms() {
                 </AnimatePresence>
                 Steam
               </h2>
-              <div className="absolute top-8 rotate-12 select-none text-nowrap rounded-full bg-gradient-to-br from-pink-500 to-orange-500 px-2 py-1 text-xs font-medium text-white">
-                Coming Soon
-              </div>
             </AlertDialogTrigger>
             <AnimatePresence mode="wait">
               {data.steam.enabled && data.steam.profiles && (

@@ -196,8 +196,6 @@ pub mod steam {
             }
         });
 
-        println!("Steam background set to id: {:?}", id);
-
         // Modify each Steam localconfig.vdf file
         for steam_config in steam_configs {
             println!("here {}", steam_config.id);

@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { HashIcon } from 'lucide-react'
 
+import Overwatch from '@/assets/Overwatch'
 import placeholder from '@/assets/placeholder_small.svg'
 import type { SteamProfile } from '@/lib/schemas'
 
@@ -19,27 +20,25 @@ export default function SteamProfileComponent({
           alt={account.name}
           onError={(e) => (e.currentTarget.src = placeholder)}
           className={clsx(
-            'block rounded',
-            large ? 'mb-1 max-h-28' : 'max-h-16'
+            'block rounded shadow-inner',
+            large ? 'mb-1 max-h-28 brightness-[0.35]' : 'max-h-16 brightness-50'
+            // !account.has_overwatch ? 'brightness-50' : 'brightness-[0.35]'
           )}
         />
+
         {account.has_overwatch && (
           <div
             className={clsx(
-              'absolute mx-auto flex w-fit items-center justify-center gap-1 rounded-xl bg-neutral-800/75 px-1 text-sm',
+              'absolute flex items-center rounded',
               large
-                ? 'bottom-1.5 left-1.5 right-1.5 py-0.5 pr-1.5'
-                : 'bottom-1 right-1 py-1'
+                ? 'inset-0 justify-center bg-orange-900/15'
+                : 'bottom-1 left-1 right-1 justify-end'
             )}
             title="Has Overwatch Installed"
           >
-            <img
-              src="/overwatch.png"
-              alt="logo"
-              className="size-4"
-              loading="eager"
+            <Overwatch
+              className={clsx(['drop-shadow', large ? 'size-12' : 'size-6'])}
             />
-            {large && <span>Detected</span>}
           </div>
         )}
       </div>

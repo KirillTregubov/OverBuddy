@@ -80,6 +80,7 @@ function SteamSetup() {
         >
           Confirm
         </MotionButton>
+        {/* TODO: Disconnect Steam? */}
       </motion.div>
     </motion.div>
   )
