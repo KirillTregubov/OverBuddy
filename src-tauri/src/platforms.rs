@@ -134,8 +134,6 @@ pub mod steam {
     pub fn get_profiles(config: &Config) -> Result<Vec<SteamProfile>, Error> {
         let mut profiles: Vec<SteamProfile> = vec![];
 
-        println!("Fetch steam profiles");
-
         if let Some(available_configs) = &config.steam.configs {
             for steam_config in available_configs {
                 let config_path = Path::new(&steam_config.file);
@@ -160,10 +158,7 @@ pub mod steam {
                     "friends",
                     steam_config.id.as_str(),
                 ) {
-                    Ok(profile) => {
-                        println!("{:?}", profile);
-                        profiles.push(profile)
-                    }
+                    Ok(profile) => profiles.push(profile),
                     Err(err) => {
                         return Err(Error::Custom(format!(
                             "{} while reading config file [[{}]] for Steam account [[{}]]",
@@ -171,6 +166,13 @@ pub mod steam {
                         )));
                     }
                 }
+            }
+
+            if profiles.len() < available_configs.len() {
+                return Err(Error::Custom(format!(
+                    "Failed to find all accounts in your Steam [[userdata]] folder at [[{}]].",
+                    config.steam.install.clone().unwrap()
+                )));
             }
         }
 
@@ -198,7 +200,10 @@ pub mod steam {
 
         // Modify each Steam localconfig.vdf file
         for steam_config in steam_configs {
-            println!("here {}", steam_config.id);
+            if !is_overwatch_installed(config, &steam_config.id)? {
+                continue;
+            }
+
             let result = set_config_background(steam_config.file.as_str(), id);
 
             if result.is_err() {
@@ -253,12 +258,12 @@ pub mod steam {
                                             ));
                                         }
 
-                                        let has_overwatch = is_steam_overwatch_installed(contents)?;
+                                        let has_overwatch = get_overwatch_installed(contents)?;
 
                                         return Ok(SteamProfile {
+                                            id: id.to_string(),
+                                            name: name.unwrap(),
                                             avatar,
-                                            name,
-                                            id: Some(id.to_string()),
                                             has_overwatch,
                                         });
                                     }
@@ -310,7 +315,7 @@ pub mod steam {
         None
     }
 
-    fn is_steam_overwatch_installed(contents: &str) -> Result<bool, Error> {
+    fn get_overwatch_installed(contents: &str) -> Result<bool, Error> {
         // Traverse config file to Overwatch entry
         let keys = vec![
             "UserLocalConfigStore",
@@ -375,6 +380,23 @@ pub mod steam {
         Ok(true)
     }
 
+    fn is_overwatch_installed(config: &Config, steam_id: &str) -> Result<bool, Error> {
+        if let Some(steam_profiles) = &config.steam.profiles {
+            if let Some(profile) = steam_profiles.iter().find(|profile| profile.id == steam_id) {
+                return Ok(profile.has_overwatch);
+            } else {
+                return Err(Error::Custom(format!(
+                    "Failed to find a Steam account with id [[{}]].",
+                    steam_id
+                )));
+            }
+        }
+
+        Err(Error::Custom(
+            "Failed to find any accounts in your Steam [[userdata]] folder.".to_string(),
+        ))
+    }
+
     fn verify_file_diff(file1: &str, file2: &str) -> Result<bool, String> {
         let read_lines = |filename: &str| -> io::Result<Vec<String>> {
             let file = File::open(filename)?;
@@ -426,63 +448,68 @@ pub mod steam {
     }
 
     fn set_config_background(config_filename: &str, id: Option<&str>) -> Result<(), Error> {
-        let mut file = fs::OpenOptions::new()
-            .read(true)
-            .open(config_filename)
-            .map_err(|_| {
+        let backup_path = format!("{}.backup", config_filename);
+
+        // Create scope to release config file lock
+        {
+            let mut file = fs::OpenOptions::new()
+                .read(true)
+                .write(true)
+                .open(config_filename)
+                .map_err(|_| {
+                    Error::Custom(format!(
+                        "Failed to open the Steam config file at [[{}]]",
+                        config_filename
+                    ))
+                })?;
+            let mut local_config = String::new();
+            file.read_to_string(&mut local_config).map_err(|_| {
                 Error::Custom(format!(
-                    "Failed to open the Steam config file at [[{}]]",
+                    "Failed to read Steam config file at [[{}]]",
                     config_filename
                 ))
             })?;
-        let mut local_config = String::new();
-        file.read_to_string(&mut local_config).map_err(|_| {
-            Error::Custom(format!(
-                "Failed to read Steam config file at [[{}]]",
-                config_filename
-            ))
-        })?;
 
-        // Traverse config file to Overwatch entry
-        let keys = vec![
-            "UserLocalConfigStore",
-            "Software",
-            "Valve",
-            "Steam",
-            "apps",
-            "2357570",
-        ];
+            // Traverse config file to Overwatch entry
+            let keys = vec![
+                "UserLocalConfigStore",
+                "Software",
+                "Valve",
+                "Steam",
+                "apps",
+                "2357570",
+            ];
 
-        let mut queue: VecDeque<&str> = VecDeque::from(keys);
-        let mut current_start = 0;
-        let mut current_end = local_config.len();
+            let mut queue: VecDeque<&str> = VecDeque::from(keys);
+            let mut current_start = 0;
+            let mut current_end = local_config.len();
 
-        while let Some(key) = queue.pop_front() {
-            if let Some(pos) = local_config[current_start..current_end].find(key) {
-                // Update start position
-                current_start += pos;
-                // Identify opening brace
-                let brace_pos = local_config[current_start..].find('{').ok_or_else(|| {
+            while let Some(key) = queue.pop_front() {
+                if let Some(pos) = local_config[current_start..current_end].find(key) {
+                    // Update start position
+                    current_start += pos;
+                    // Identify opening brace
+                    let brace_pos = local_config[current_start..].find('{').ok_or_else(|| {
                     Error::Custom(format!(
                         "Failed to find an opening brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
                         config_filename
                     ))
                 })?;
-                let block_start = current_start + brace_pos + 1;
-                // Identify closing brace
-                let current_indent = local_config[current_start..block_start]
-                    .rfind("\n")
-                    .and_then(|inner_pos| {
-                        local_config[current_start + inner_pos + 1..block_start]
-                            .chars()
-                            .take_while(|&c| c == '\t')
-                            .count()
-                            .into()
-                    })
-                    .unwrap_or(0);
-                let search_pattern = format!("\n{}{}", "\t".repeat(current_indent), "}");
-                // Update end position
-                current_end = local_config[block_start..]
+                    let block_start = current_start + brace_pos + 1;
+                    // Identify closing brace
+                    let current_indent = local_config[current_start..block_start]
+                        .rfind("\n")
+                        .and_then(|inner_pos| {
+                            local_config[current_start + inner_pos + 1..block_start]
+                                .chars()
+                                .take_while(|&c| c == '\t')
+                                .count()
+                                .into()
+                        })
+                        .unwrap_or(0);
+                    let search_pattern = format!("\n{}{}", "\t".repeat(current_indent), "}");
+                    // Update end position
+                    current_end = local_config[block_start..]
                     .find(&search_pattern)
                     .map(|i| block_start + i + 1)
                     .ok_or_else(|| {
@@ -490,131 +517,116 @@ pub mod steam {
                             "Failed to find the closing brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]].", config_filename
                         ))
                     })?;
-            } else {
-                if key == "2357570" {
-                    eprintln!("Overwatch not installed on {}", config_filename);
-                    return Ok(());
+                } else {
+                    if key == "2357570" {
+                        // Overwatch not installed on this account
+                        return Ok(());
+                    }
+                    return Err(Error::Custom(format!(
+                        "Failed to find the [[{}]] key in Steam config at [[{}]].",
+                        key, config_filename
+                    )));
                 }
-                return Err(Error::Custom(format!(
-                    "Failed to find the [[{}]] key in Steam config at [[{}]].",
-                    key, config_filename
-                )));
             }
-        }
 
-        // Get Overwatch config block
-        let brace_pos = local_config[current_start..].find('{').ok_or_else(|| {
-            Error::Custom(format!(
-                "Failed to find an opening brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
-                config_filename
-            ))
-        })?;
-        let block_start = current_start + brace_pos + 1;
-        // println!("Block start: {}", &local_config[block_start..]);
-        // println!("===");
-        // println!("Block start: {}", &local_config[block_start..current_end]);
-        let block_end = current_end;
-        // let current_indent = local_config[current_start..block_start]
-        //     .rfind("\n")
-        //     .and_then(|pos| {
-        //         local_config[current_start + pos + 1..block_start]
-        //             .chars()
-        //             .take_while(|&c| c == '\t')
-        //             .count()
-        //             .into()
-        //     })
-        //     .unwrap_or(5);
-        // local_config[block_start..]
-        //     .find(&format!("\n{}{}", "\t".repeat(current_indent), "}"))
-        //     .map(|i| block_start + i + 1)
-        //     .ok_or_else(|| {
-        //         Error::Custom(format!(
-        //             "Failed to find the closing brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]].", config_filename
-        //         ))
-        //     })?;
-
-        // Set LaunchOptions config to background
-        if let Some(launch_options_pos) =
-            local_config[block_start..block_end].find("\"LaunchOptions\"")
-        {
-            let value_start = block_start + launch_options_pos + "\"LaunchOptions\"".len() + 3;
-            let value_end = value_start
-                + local_config[value_start..block_end]
-                    .find('"')
-                    .unwrap_or(value_start);
-
-            if value_start >= value_end {
-                return Err(Error::Custom(format!(
-                    "Failed to read the [[LaunchOptions]] key, inside the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
+            // Get Overwatch config block
+            let brace_pos = local_config[current_start..].find('{').ok_or_else(|| {
+                Error::Custom(format!(
+                    "Failed to find an opening brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
                     config_filename
-                )));
+                ))
+            })?;
+            let block_start = current_start + brace_pos + 1;
+            let block_end = current_end;
+
+            // Set LaunchOptions config to background
+            if let Some(launch_options_pos) =
+                local_config[block_start..block_end].find("\"LaunchOptions\"")
+            {
+                let value_start = block_start + launch_options_pos + "\"LaunchOptions\"".len() + 3;
+                let value_end = value_start
+                    + local_config[value_start..block_end]
+                        .find('"')
+                        .unwrap_or(value_start);
+
+                if value_start >= value_end {
+                    return Err(Error::Custom(format!(
+                        "Failed to read the [[LaunchOptions]] key, inside the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
+                        config_filename
+                    )));
+                }
+
+                let launch_args = &local_config[value_start..value_end];
+                let new_launch_args = helpers::get_launch_args(Some(launch_args), id);
+                local_config.replace_range(value_start..value_end, &new_launch_args);
+            } else {
+                let new_launch_args = helpers::get_launch_args(None, id);
+
+                local_config.insert_str(
+                    block_start + 1,
+                    format!("\t\t\t\t\t\t\"LaunchOptions\"\t\t\"{}\"\n", new_launch_args).as_str(),
+                );
             }
 
-            let launch_args = &local_config[value_start..value_end];
-            let new_launch_args = helpers::get_launch_args(Some(launch_args), id);
-            local_config.replace_range(value_start..value_end, &new_launch_args);
-        } else {
-            let new_launch_args = helpers::get_launch_args(None, id);
+            // Backup config file
+            match fs::File::create(&backup_path) {
+                Ok(_) => {}
+                Err(_) => {
+                    return Err(Error::Custom(format!(
+                        "Failed to create backup of [[{}]]",
+                        config_filename
+                    )));
+                }
+            }
+            let mut file = match fs::OpenOptions::new()
+                .write(true)
+                .truncate(true)
+                .open(&backup_path)
+            {
+                Ok(file) => file,
+                Err(_) => {
+                    return Err(Error::Custom(format!(
+                        "Failed to open created backup file at [[{}]]",
+                        backup_path
+                    )));
+                }
+            };
+            match file.write_all(local_config.as_bytes()) {
+                Ok(_) => {}
+                Err(_) => {
+                    return Err(Error::Custom(format!(
+                        "Failed to write to the backup file at [[{}]]",
+                        backup_path
+                    )));
+                }
+            }
 
-            local_config.insert_str(
-                block_start + 1,
-                format!("\t\t\t\t\t\t\"LaunchOptions\"\t\t\"{}\"\n", new_launch_args).as_str(),
-            );
-        }
-
-        // Backup config file
-        let backup_path = format!("{}.backup", config_filename);
-        match fs::File::create(&backup_path) {
-            Ok(_) => {}
-            Err(_) => {
+            // Verify backup file
+            let config_changed = verify_file_diff(&config_filename, &backup_path);
+            if config_changed.is_err() {
                 return Err(Error::Custom(format!(
-                    "Failed to create backup of [[{}]]",
-                    config_filename
+                    "Failed to verify the backup file at [[{}]], {}.",
+                    backup_path,
+                    config_changed.unwrap_err()
                 )));
             }
-        }
-        let mut file = match fs::OpenOptions::new()
-            .write(true)
-            .truncate(true)
-            .open(&backup_path)
-        {
-            Ok(file) => file,
-            Err(_) => {
-                return Err(Error::Custom(format!(
-                    "Failed to open created backup file at [[{}]]",
-                    backup_path
-                )));
-            }
-        };
-        match file.write_all(local_config.as_bytes()) {
-            Ok(_) => {}
-            Err(_) => {
-                return Err(Error::Custom(format!(
-                    "Failed to write to the backup file at [[{}]]",
-                    backup_path
-                )));
-            }
-        }
 
-        // Verify backup file
-        let config_changed = verify_file_diff(&config_filename, &backup_path);
-        if config_changed.is_err() {
-            return Err(Error::Custom(format!(
-                "Failed to verify the backup file at [[{}]], {}.",
-                backup_path,
-                config_changed.unwrap_err()
-            )));
+            // Apply backup file
+            if !config_changed.unwrap() {
+                return Ok(());
+            }
         }
 
         // Apply backup file
-        if !config_changed.unwrap() {
-            return Ok(());
+        if let Err(e) = fs::rename(backup_path, config_filename) {
+            return Err(Error::Custom(format!(
+                "Failed to replace [[{}]] with backup file. {}",
+                config_filename, e
+            )));
         }
-        println!("Applying backup: {}", backup_path);
         // if fs::metadata(config_filename).is_ok() {
         //     fs::remove_file(config_filename)?;
         // }
-        // fs::rename(backup_path, format!("{}a", config_filename))?;
         return Ok(());
     }
 }

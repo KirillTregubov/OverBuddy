@@ -1,7 +1,6 @@
 import clsx from 'clsx'
-import { HashIcon } from 'lucide-react'
+import { BadgeXIcon, HashIcon } from 'lucide-react'
 
-import Overwatch from '@/assets/Overwatch'
 import placeholder from '@/assets/placeholder_small.svg'
 import type { SteamProfile } from '@/lib/schemas'
 
@@ -13,39 +12,67 @@ export default function SteamProfileComponent({
   large?: boolean
 }) {
   return (
-    <div key={account.id} className={clsx(!large && 'flex shrink-0 gap-2.5')}>
-      <div className="relative w-fit">
+    <div
+      key={account.id}
+      className={clsx(large ? 'flex flex-col gap-1' : 'flex shrink-0 gap-2.5')}
+    >
+      <div className="relative w-fit select-none">
         <img
           src={account.avatar || placeholder}
-          alt={account.name}
+          alt={`Avatar of ${account.name}`}
           onError={(e) => (e.currentTarget.src = placeholder)}
           className={clsx(
-            'block rounded shadow-inner',
-            large ? 'mb-1 max-h-28 brightness-[0.35]' : 'max-h-16 brightness-50'
-            // !account.has_overwatch ? 'brightness-50' : 'brightness-[0.35]'
+            'block rounded shadow-inner brightness-50',
+            large ? 'h-28 w-28' : 'max-h-16 max-w-16'
           )}
+          draggable={false}
         />
 
-        {account.has_overwatch && (
+        {account.has_overwatch ? (
           <div
             className={clsx(
               'absolute flex items-center rounded',
               large
-                ? 'inset-0 justify-center bg-orange-900/15'
+                ? 'inset-0 justify-center bg-orange-950/20'
                 : 'bottom-1 left-1 right-1 justify-end'
             )}
-            title="Has Overwatch Installed"
+            title="Overwatch Installed"
           >
-            <Overwatch
+            <img
+              src="/overwatch.png"
+              alt="logo"
               className={clsx(['drop-shadow', large ? 'size-12' : 'size-6'])}
+              loading="eager"
+              aria-label="Overwatch Installation Found on this account"
+            />
+          </div>
+        ) : (
+          <div
+            className={clsx(
+              'absolute flex items-center rounded',
+              large
+                ? 'inset-0 justify-center bg-neutral-950/20'
+                : 'bottom-1 left-1 right-1 justify-end'
+            )}
+            title="No Overwatch Data Found"
+          >
+            <BadgeXIcon
+              size={large ? 48 : 24}
+              className="drop-shadow"
+              aria-label="Overwatch Data Not Found for this account"
             />
           </div>
         )}
       </div>
 
       <div className="flex flex-col justify-center">
-        <h2 className="font-medium text-white">{account.name}</h2>
-        <h3 className="inline-flex items-center text-sm text-zinc-400">
+        <h2 className="font-medium text-white" aria-label="Steam Name">
+          {account.name}
+        </h2>
+        <h3
+          className="inline-flex items-center text-sm text-zinc-400"
+          aria-label="Steam ID"
+        >
           <HashIcon size={14} /> {account.id}
         </h3>
       </div>

@@ -3,7 +3,7 @@ import { z } from 'zod'
 export const Platform = z.enum(['BattleNet', 'Steam'])
 export type Platform = z.infer<typeof Platform>
 
-const SteamConfig = z.object({
+const SteamLocalconfig = z.object({
   id: z.string(),
   file: z.string()
 })
@@ -28,11 +28,14 @@ export const LaunchConfig = z.object({
     setup: z.boolean(),
     profiles: z.array(SteamProfile).nullable(),
     install: z.string().nullable(),
-    configs: z.array(SteamConfig).nullable()
+    configs: z.array(SteamLocalconfig).nullable()
   }),
   background: z.object({
     current: z.string().nullable(),
     is_outdated: z.boolean()
+  }),
+  additional: z.object({
+    console_enabled: z.boolean()
   })
 })
 export type LaunchConfig = z.infer<typeof LaunchConfig>

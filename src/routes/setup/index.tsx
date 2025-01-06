@@ -144,8 +144,8 @@ function SetupSplash() {
                   open source
                 </ExternalLinkInline>
                 . It operates independently and is not affiliated with Blizzard
-                Entertainment®{/*or Valve®*/}. You can undo the changes it
-                makes at any time by reverting to the default background.
+                Entertainment® or Valve®. You can undo the changes it makes at
+                any time by reverting to the default background.
               </motion.p>
             </motion.div>
           </motion.div>
@@ -162,10 +162,10 @@ function SetupSplash() {
               </motion.h2>
               <motion.p className="text-pretty">
                 To change the menu background, OverBuddy needs to read and write
-                your Battle.net® {/* or Steam® */}configuration files. It does{' '}
-                <span className="font-medium">NOT</span> modify any game files.
-                Your Battle.net {/*or Steam */}
-                client will be restarted to apply the changes.
+                your Battle.net® and/or Steam® configuration files. It does{' '}
+                <span className="font-medium text-zinc-300">NOT</span> modify
+                any game files. Your game client will be restarted to apply the
+                changes.
               </motion.p>
             </motion.div>
           </motion.div>

@@ -280,6 +280,8 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
                     }
                 });
 
+            // TODO: Decide how to handle saved background in OverBuddy config
+            // TODO: Decide how to handle conflicts between platforms (maybe option to select, shows what platform has it enabled)
             if let Some(ref current_background) = current_background {
                 config.background.current = Some(current_background.clone());
 

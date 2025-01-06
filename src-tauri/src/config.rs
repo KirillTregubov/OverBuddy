@@ -33,8 +33,8 @@ pub struct SteamLocalconfig {
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct SteamProfile {
-    pub id: Option<String>,
-    pub name: Option<String>,
+    pub id: String,
+    pub name: String,
     pub avatar: Option<String>,
     pub has_overwatch: bool,
 }
@@ -55,11 +55,17 @@ pub struct BackgroundConfig {
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
+pub struct AdditionalConfig {
+    pub console_enabled: bool,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct Config {
     pub is_setup: bool,
     pub battle_net: BattleNetConfig,
     pub steam: SteamConfig,
     pub background: BackgroundConfig,
+    pub additional: AdditionalConfig,
 }
 
 pub fn get_default_config() -> Config {
@@ -80,6 +86,9 @@ pub fn get_default_config() -> Config {
         background: BackgroundConfig {
             current: None,
             is_outdated: false,
+        },
+        additional: AdditionalConfig {
+            console_enabled: false,
         },
     }
 }

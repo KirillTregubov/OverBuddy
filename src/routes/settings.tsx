@@ -91,7 +91,7 @@ function Settings() {
 
   return (
     <motion.div
-      className="flex w-full flex-col p-6"
+      className="flex w-full flex-col p-6 pr-3"
       variants={fadeInFastVariants}
       initial="hidden"
       animate="show"
@@ -157,10 +157,13 @@ function Settings() {
               <p>
                 Blizzard Entertainment, Battle.net and Overwatch are trademarks
                 or registered trademarks of Blizzard Entertainment, Inc. in the
-                U.S. and/or other countries.{' '}
-                {/* Steam and the Steam logo are trademarks and/or registered trademarks of Valve Corporation in the U.S. and/or other countries. */}
-                All rights reserved.
+                U.S. and/or other countries. Steam and the Steam logo are
+                trademarks and/or registered trademarks of Valve Corporation in
+                the U.S. and/or other countries. All rights reserved.
               </p>
+            </div>
+            <div className="mt-0.5">
+              <CheckForUpdates />
             </div>
           </motion.div>
           <motion.div
@@ -172,7 +175,7 @@ function Settings() {
                 Platforms
               </h2>
               <p className="select-none">
-                Connected platform(s) you use to play Overwatch.
+                Connect platform(s) you use to play Overwatch.
               </p>
             </div>
             <Suspense
@@ -197,10 +200,10 @@ function Settings() {
             </div>
             <div className="flex flex-col gap-1.5 text-zinc-400">
               <div className="flex items-baseline gap-4">
-                <div className="flex items-baseline gap-2">
+                <div className="flex items-baseline">
                   <KeyboardButton>Esc</KeyboardButton>
                 </div>
-                <p className="select-none">Open/Close Settings</p>
+                <p className="select-none">Toggle Settings</p>
               </div>
               <div className="flex items-baseline gap-4">
                 <div className="flex items-baseline gap-2">
@@ -221,16 +224,17 @@ function Settings() {
             </div>
           </motion.div>
           <motion.div
-            className="flex flex-col gap-1.5"
+            className="flex flex-col gap-2"
             variants={moveInLessVariants}
           >
             <div className="flex items-baseline gap-2.5 text-zinc-400">
               <h2 className="select-none text-lg font-bold text-white">
-                Update
+                Utilities
               </h2>
-              <p className="select-none">Check for updates.</p>
+              <p className="select-none">Advanced tools.</p>
             </div>
-            <CheckForUpdates />
+            <ToggleConsole />
+            {/* TODO: Set custom background id (full and truncated) */}
           </motion.div>
           <motion.div
             className="flex flex-col gap-1.5"
@@ -241,7 +245,7 @@ function Settings() {
                 Reset
               </h2>
               <p className="select-none">
-                Reset all settings to their defaults.
+                Restore all settings to their defaults.
               </p>
             </div>
             <ResetButton />
@@ -709,7 +713,7 @@ function CheckForUpdates() {
       </AlertDialog>
       <div className="flex w-full items-center gap-4">
         <MotionButton
-          className="w-fit min-w-[10.5rem] disabled:pointer-events-none disabled:!opacity-100"
+          className="group grid w-fit min-w-[10.5rem] disabled:pointer-events-none disabled:!opacity-100"
           onClick={() => checkForUpdates()}
           disabled={checkStatus === 'pending'}
         >
@@ -781,7 +785,7 @@ function ResetButton() {
         {isConfirming === 'idle' && (
           <MotionButton
             key="idle"
-            className="w-fit min-w-36"
+            className="w-fit min-w-[8.375rem]"
             onClick={handleClick}
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -802,7 +806,7 @@ function ResetButton() {
           >
             <MotionButton
               key="idle"
-              className="w-fit min-w-36"
+              className="w-fit min-w-[8.375rem]"
               onClick={() => setIsConfirming('idle')}
               disabled={isConfirming !== 'confirm'}
             >
@@ -837,6 +841,56 @@ function ResetButton() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  )
+}
+
+// TODO: Implement
+function ToggleConsole() {
+  // const { data: consoleVisible } = useQuery(consoleQueryOptions)
+  const checkStatus = 'idle'
+  const status = false
+
+  return (
+    <div className="flex w-full items-baseline gap-4">
+      <MotionButton
+        className="w-fit min-w-[10.5rem] disabled:pointer-events-none disabled:!opacity-100"
+        onClick={() => console.log('Toggle Console')}
+        // disabled={checkStatus === 'pending'}
+      >
+        <AnimatePresence mode="wait">
+          {checkStatus === 'pending' ? (
+            <motion.span
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              key="pending"
+            >
+              <LoaderPinwheel className="mx-auto animate-spin" />
+            </motion.span>
+          ) : (
+            <motion.span
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              key="idle"
+            >
+              {status ? 'Disable' : 'Enable'} Debug Console
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </MotionButton>
+      <div className="flex select-none flex-wrap items-baseline gap-2 text-zinc-400">
+        <p>Allows you to access the Overwatch debug console.</p>
+        <div className="flex items-baseline gap-1">
+          <KeyboardButton>Alt</KeyboardButton>
+          <span className="select-none">+</span>
+          <KeyboardButton>~</KeyboardButton>
+        </div>
+        <p>In-Game</p>
+      </div>
     </div>
   )
 }
