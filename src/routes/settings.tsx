@@ -260,6 +260,7 @@ function Settings() {
           </motion.div>
         </motion.div>
       </motion.div>
+      <div className="fixed bottom-0 left-0 right-0 z-10 h-6 rounded-lg bg-easing-b-menu-top" />
     </motion.div>
   )
 }
@@ -311,7 +312,7 @@ function Platforms() {
   })
 
   return (
-    <motion.div className="rounded-lg bg-zinc-800 p-2 pr-6 shadow-inner shadow-zinc-900">
+    <motion.div className="rounded-lg bg-zinc-800 px-3 py-2 pr-4 shadow-inner shadow-zinc-900">
       <motion.div
         className="flex w-full gap-6"
         variants={fadeInVariants}
@@ -354,7 +355,7 @@ function Platforms() {
             </AlertDialogFooter>
           </AlertDialogContent>
           <AlertDialogTrigger
-            className="group flex flex-col items-center gap-2 p-3 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+            className="group flex flex-col items-center gap-2 p-2 py-3 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
             onClick={(event) => {
               if (data.battle_net.enabled) {
                 return
@@ -455,7 +456,7 @@ function Platforms() {
           </AlertDialogContent>
           <div
             className={clsx(
-              "relative z-10 flex min-w-0 items-center justify-center gap-6 p-3 transition-[background-color,box-shadow] before:pointer-events-none before:absolute before:-left-3 before:-right-3 before:top-0 before:h-full before:rounded-md before:bg-zinc-700 before:shadow-inner before:shadow-zinc-800 before:transition-opacity before:delay-100 before:content-['']",
+              "relative z-10 flex min-w-0 items-center justify-center gap-6 p-2 py-3 transition-[background-color,box-shadow] before:pointer-events-none before:absolute before:-left-3 before:-right-1 before:top-0 before:h-full before:rounded-md before:bg-zinc-700 before:shadow-inner before:shadow-zinc-800 before:transition-opacity before:delay-100 before:content-['']",
               data.steam.enabled ? 'before:opacity-100' : 'before:opacity-0'
             )}
             style={{
@@ -463,7 +464,7 @@ function Platforms() {
             }}
           >
             <AlertDialogTrigger
-              className="group relative -m-3 flex flex-col items-center justify-center gap-2 p-3 outline-none transition-[background-color,transform] duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+              className="group relative -m-3 -mx-2 flex flex-col items-center justify-center gap-2 p-2 py-3 outline-none transition-[background-color,transform] duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
               onClick={(event) => {
                 if (data.steam.enabled) {
                   return

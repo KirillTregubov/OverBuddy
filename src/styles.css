@@ -107,7 +107,12 @@ body.scroller {
     border: 2px solid var(--scrollbar-color-track);
     border-radius: 999px;
     background-color: var(--scrollbar-color-thumb);
+    cursor: grab;
   }
+  .scroller::-webkit-scrollbar-thumb:active {
+    cursor: grabbing;
+  }
+
   .scroller::-webkit-scrollbar-track {
     border-radius: 999px;
     background-color: var(--scrollbar-color-track);
@@ -118,8 +123,7 @@ body.scroller {
   }
 
   .scroller-settings::-webkit-scrollbar-track {
-    margin-left: -0.0625rem;
-    margin-right: 0.6875rem;
+    margin-right: 0.75rem;
   }
 
   body.scroller::-webkit-scrollbar-thumb {
