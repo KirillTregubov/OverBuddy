@@ -9,7 +9,7 @@ import {
   XIcon
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Suspense, useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import BattleNet from '@/assets/BattleNet.svg'
@@ -28,7 +28,6 @@ import {
 import { ExternalLinkInline, MotionButton } from '@/components/Button'
 import type { State } from '@/components/ErrorComponent'
 import KeyboardButton from '@/components/KeyboardButton'
-import { LoadingInline } from '@/components/Loading'
 import { Progress } from '@/components/Progress'
 import SteamProfileList from '@/components/SteamProfileList'
 import Version from '@/components/Version'
@@ -43,6 +42,7 @@ import {
   launchQueryOptions,
   updateQueryOptions,
   useCheckUpdates,
+  useDebugConsoleMutation,
   useResetMutation,
   useSetupMutation,
   useUpdateMutation
@@ -58,9 +58,17 @@ type SettingsSearch = {
 export const Route = createFileRoute('/settings')({
   loaderDeps: ({ search: { update } }) => ({ update }),
   loader: async ({ context: { queryClient }, deps: { update } }) => {
-    queryClient.ensureQueryData(launchQueryOptions)
-    if (update) await queryClient.ensureQueryData(updateQueryOptions(true))
-    else queryClient.removeQueries(updateQueryOptions(true))
+    const promises: Promise<unknown>[] = [
+      queryClient.ensureQueryData(launchQueryOptions)
+    ]
+
+    if (update) {
+      promises.push(queryClient.ensureQueryData(updateQueryOptions(true)))
+    } else {
+      queryClient.removeQueries(updateQueryOptions(true))
+    }
+
+    await Promise.allSettled(promises)
   },
   validateSearch: (search: Record<string, unknown>): SettingsSearch => {
     return {
@@ -178,15 +186,15 @@ function Settings() {
                 Connect platform(s) you use to play Overwatch.
               </p>
             </div>
-            <Suspense
+            {/* <Suspense
               fallback={
                 <div className="flex h-[8.25rem] w-full items-center justify-center rounded-lg bg-zinc-800 p-2 pr-6 shadow-inner shadow-zinc-900">
                   <LoadingInline />
                 </div>
               }
-            >
-              <Platforms />
-            </Suspense>
+            > */}
+            <Platforms />
+            {/* </Suspense> */}
           </motion.div>
           <motion.div
             className="flex flex-col gap-1.5"
@@ -263,10 +271,7 @@ function Platforms() {
     onError: async (error) => {
       if (error instanceof SetupError) {
         toast.warning(
-          'All platforms were disconnected. You have been returned to the setup page.',
-          {
-            duration: 5000
-          }
+          'All platforms were disconnected. You have been returned to the welcome page.'
         )
         invalidateActiveBackground()
         router.navigate({
@@ -562,7 +567,9 @@ function CheckForUpdates() {
       setIsOpen(data.available)
 
       if (data.available === false) {
-        toast.success('You are using the latest version of OverBuddy.')
+        toast.success('You are using the latest version of OverBuddy.', {
+          id: 'update-available'
+        })
       }
     }
   })
@@ -847,19 +854,20 @@ function ResetButton() {
 
 // TODO: Implement
 function ToggleConsole() {
-  // const { data: consoleVisible } = useQuery(consoleQueryOptions)
-  const checkStatus = 'idle'
-  const status = false
+  const { data: config } = useSuspenseQuery(launchQueryOptions)
+  const { mutate, status } = useDebugConsoleMutation()
 
   return (
-    <div className="flex w-full items-baseline gap-4">
+    <div className="flex w-full items-center gap-4">
       <MotionButton
-        className="w-fit min-w-[10.5rem] disabled:pointer-events-none disabled:!opacity-100"
-        onClick={() => console.log('Toggle Console')}
-        // disabled={checkStatus === 'pending'}
+        className="w-fit min-w-[12.5625rem] disabled:pointer-events-none disabled:!opacity-100"
+        onClick={() =>
+          mutate({ enableConsole: !config.additional.console_enabled })
+        }
+        disabled={status === 'pending'}
       >
         <AnimatePresence mode="wait">
-          {checkStatus === 'pending' ? (
+          {status === 'pending' ? (
             <motion.span
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
@@ -869,27 +877,44 @@ function ToggleConsole() {
             >
               <LoaderPinwheel className="mx-auto animate-spin" />
             </motion.span>
+          ) : config.additional.console_enabled ? (
+            <motion.span
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              key="disable"
+            >
+              Disable Debug Console
+            </motion.span>
           ) : (
             <motion.span
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              key="idle"
+              key="enable"
             >
-              {status ? 'Disable' : 'Enable'} Debug Console
+              Enable Debug Console
             </motion.span>
           )}
         </AnimatePresence>
       </MotionButton>
-      <div className="flex select-none flex-wrap items-baseline gap-2 text-zinc-400">
+      <div className="mt-1 flex select-none items-baseline gap-2 text-zinc-400">
         <p>Allows you to access the Overwatch debug console.</p>
-        <div className="flex items-baseline gap-1">
-          <KeyboardButton>Alt</KeyboardButton>
-          <span className="select-none">+</span>
-          <KeyboardButton>~</KeyboardButton>
+        <div
+          className={clsx(
+            'flex select-none items-baseline gap-2 transition-colors',
+            !config.additional.console_enabled && 'text-zinc-600'
+          )}
+        >
+          <div className="flex items-baseline gap-1">
+            <KeyboardButton>Alt</KeyboardButton>
+            <span className="select-none">+</span>
+            <KeyboardButton>~</KeyboardButton>
+          </div>
+          <p>In-Game</p>
         </div>
-        <p>In-Game</p>
       </div>
     </div>
   )

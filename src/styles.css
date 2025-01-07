@@ -129,19 +129,3 @@ body.scroller {
     border-radius: 0;
   }
 }
-
-/* TODO: delete */
-.mask-linear {
-  border-radius: 0.5rem;
-  display: inline-flex;
-  min-width: 6rem;
-  min-height: 6rem;
-  background: repeating-linear-gradient(
-    45deg,
-    theme('colors.zinc.800') 10px,
-    theme('colors.orange.500') 10px,
-    theme('colors.orange.500') 11px,
-    theme('colors.zinc.800') 11px,
-    theme('colors.zinc.800') 26px
-  );
-}

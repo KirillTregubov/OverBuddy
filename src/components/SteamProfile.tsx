@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { BadgeXIcon, HashIcon } from 'lucide-react'
+import { CircleXIcon, HashIcon } from 'lucide-react'
 
 import placeholder from '@/assets/placeholder_small.svg'
 import type { SteamProfile } from '@/lib/schemas'
@@ -56,8 +56,9 @@ export default function SteamProfileComponent({
             )}
             title="No Overwatch Data Found"
           >
-            <BadgeXIcon
+            <CircleXIcon
               size={large ? 48 : 24}
+              strokeWidth={3}
               className="drop-shadow"
               aria-label="Overwatch Data Not Found for this account"
             />

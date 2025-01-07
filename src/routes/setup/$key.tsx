@@ -174,7 +174,9 @@ function ConfigureComponent() {
                     ? 'Battle.net.config'
                     : 'steam.exe'
               if (selected.indexOf(file) === -1) {
-                toast.error(`Please select the "${file}" file.`)
+                toast.error(`Please select the "${file}" file.`, {
+                  closeButton: false
+                })
                 return
               }
               mutate({

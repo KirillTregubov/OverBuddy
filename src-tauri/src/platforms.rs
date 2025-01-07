@@ -1,13 +1,12 @@
 pub mod battle_net {
+    use crate::backgrounds;
     use crate::config::Config;
     use crate::helpers::{self, Error};
     use serde_json::json;
-    use std::fs;
-    use std::io::Read;
     use std::process::Command;
     use sysinfo::System;
 
-    const CONFIG_FILE: &str = "Battle.net.config";
+    pub static CONFIG_FILE: &str = "Battle.net.config";
 
     pub fn close_app() -> bool {
         let mut flag = false;
@@ -21,7 +20,14 @@ pub mod battle_net {
         flag
     }
 
-    pub fn set_background(config: &Config, id: Option<&str>) -> Result<(), Error> {
+    pub fn set_launch_args<F, P>(
+        config: &Config,
+        params: P,
+        generate_launch_args: F,
+    ) -> Result<(), Error>
+    where
+        F: Fn(Option<&str>, P) -> String,
+    {
         let battle_net_was_closed = close_app();
         let battle_net_config = config.battle_net.config.clone().unwrap();
         let battle_net_cleanup: Box<dyn FnOnce()> = Box::new(move || {
@@ -32,43 +38,8 @@ pub mod battle_net {
             }
         });
 
-        // Open Battle.net.config file
-        let mut file = match fs::OpenOptions::new()
-            .read(true)
-            .open(battle_net_config.clone())
-        {
-            Ok(file) => file,
-            Err(e) => {
-                battle_net_cleanup();
-                return Err(Error::Custom(format!(
-                    "Failed to open the [[{}]] file at [[{}]]: {}",
-                    CONFIG_FILE, battle_net_config, e
-                )));
-            }
-        };
-        let mut contents = String::new();
-        match file.read_to_string(&mut contents) {
-            Ok(_) => {}
-            Err(e) => {
-                battle_net_cleanup();
-                return Err(Error::Custom(format!(
-                    "Failed to read [[{}]] file at [[{}]]: {}",
-                    CONFIG_FILE, battle_net_config, e
-                )));
-            }
-        }
-
-        // Parse Battle.net.config file
-        let mut json: serde_json::Value = match serde_json::from_str(&contents) {
-            Ok(json) => json,
-            Err(e) => {
-                battle_net_cleanup();
-                return Err(Error::Custom(format!(
-                    "Failed to parse [[{}]] file at [[{}]]: {}",
-                    CONFIG_FILE, battle_net_config, e
-                )));
-            }
-        };
+        // Read config file
+        let mut json = read_config(&config)?;
 
         // Check Overwatch installation on Battle.net
         let overwatch_config = match json
@@ -79,7 +50,7 @@ pub mod battle_net {
             None => {
                 battle_net_cleanup();
                 return Err(Error::Custom(
-                    "Unable to find an Overwatch installation on Battle.net.".to_string(),
+                    "Unable to find an Overwatch installation on Battle.net. If you have changed your Battle.net installation, please reset settings.".to_string(),
                 ));
             }
         };
@@ -97,7 +68,7 @@ pub mod battle_net {
         };
 
         // Set launch arguments
-        let new_launch_args = helpers::get_launch_args(launch_args, id);
+        let new_launch_args = generate_launch_args(launch_args, params);
         json["Games"]["prometheus"]["AdditionalLaunchArguments"] = json!(new_launch_args);
 
         helpers::safe_json_write(battle_net_config, &json)?;
@@ -105,11 +76,103 @@ pub mod battle_net {
 
         Ok(())
     }
+
+    /// Updates OverBuddy configuration with the current state of the Battle.net.config file.
+    ///
+    /// This function modifies the following configuration fields:
+    /// - `config.background.current`
+    /// - `config.background.is_outdated`
+    /// - `config.additional.console_enabled`
+    pub fn update_config(config: &mut Config) -> Result<(), Error> {
+        let json = read_config(config)?;
+
+        if let Some(launch_args) = json
+            .get("Games")
+            .and_then(|games| games.get("prometheus"))
+            .and_then(|overwatch| overwatch.get("AdditionalLaunchArguments"))
+            .and_then(|launch_args| launch_args.as_str())
+        {
+            // Get current background from launch arguments
+            let current_background = launch_args
+                .split_whitespace()
+                .find(|s| s.starts_with(format!("{}=", helpers::BACKGROUND_LAUNCH_ARG).as_str()))
+                .and_then(|s| s.split('=').nth(1))
+                .and_then(|s| {
+                    if s.is_empty() {
+                        None
+                    } else {
+                        Some(String::from(s))
+                    }
+                });
+
+            // TODO: Refactor adding custom
+            // if let Some(ref current_background) = current_background {
+            //     config.background.current = Some(current_background.clone());
+
+            //     // TODO: When adding custom, check if it was set by the user
+            //     if backgrounds::find_background_by_id(current_background).is_none() {
+            //         config.background.is_outdated = true;
+            //     }
+            // }
+
+            // Save current background
+            config.background.current =
+                current_background
+                    .as_ref()
+                    .and_then(|current_background_id| {
+                        backgrounds::find_background_by_id(current_background_id)
+                            .map(|background| background.id.to_string())
+                    });
+            config.background.is_outdated =
+                config.background.current.is_none() && current_background.is_some();
+
+            // Save debug console state
+            config.additional.console_enabled = launch_args
+                .split_whitespace()
+                .any(|s| s == helpers::CONSOLE_LAUNCH_ARG);
+        } else {
+            // Reset current background
+            config.background.current = None;
+            config.background.is_outdated = false;
+            // Reset debug console state
+            config.additional.console_enabled = false;
+        }
+
+        Ok(())
+    }
+
+    fn read_config(config: &Config) -> Result<serde_json::Value, Error> {
+        let battle_net_config = config.battle_net.config.clone().unwrap();
+
+        // Read and parse Battle.net.config file
+        let file = match std::fs::File::open(&battle_net_config) {
+            Ok(file) => file,
+            Err(e) => {
+                return Err(Error::Custom(format!(
+                    "Failed to open [[{}]] file at [[{}]]: {}. If you have changed your Battle.net installation, please reset settings.",
+                    CONFIG_FILE,
+                    battle_net_config,
+                    e
+                )));
+            }
+        };
+        let json: serde_json::Value = match serde_json::from_reader(file) {
+            Ok(json) => json,
+            Err(e) => {
+                return Err(Error::Custom(format!(
+                    "Failed to read [[{}]] file at [[{}]]: {}",
+                    CONFIG_FILE, battle_net_config, e
+                )));
+            }
+        };
+
+        Ok(json)
+    }
 }
 
 pub mod steam {
     use crate::config::{Config, SteamProfile};
-    use crate::helpers::{self, Error};
+    use crate::helpers::Error;
     use similar::{ChangeTag, TextDiff};
     use std::collections::VecDeque;
     use std::fs::{self, File};
@@ -179,7 +242,15 @@ pub mod steam {
         Ok(profiles)
     }
 
-    pub fn set_background(config: &Config, id: Option<&str>) -> Result<(), Error> {
+    pub fn set_launch_args<F, P>(
+        config: &Config,
+        params: P,
+        generate_launch_args: F,
+    ) -> Result<(), Error>
+    where
+        F: Fn(Option<&str>, P) -> String,
+        P: Clone,
+    {
         let steam_configs = config.steam.configs.clone().unwrap();
         if steam_configs.is_empty() {
             return Err(Error::Custom(
@@ -204,7 +275,11 @@ pub mod steam {
                 continue;
             }
 
-            let result = set_config_background(steam_config.file.as_str(), id);
+            let result = set_config_launch_args(
+                steam_config.file.as_str(),
+                params.clone(),
+                &generate_launch_args,
+            );
 
             if result.is_err() {
                 steam_cleanup();
@@ -216,8 +291,20 @@ pub mod steam {
         Ok(())
     }
 
-    const STEAM_AVATAR_URL: &str = "https://avatars.akamai.steamstatic.com";
+    /// Updates OverBuddy configuration with the current state of the Battle.net.config file.
+    ///
+    /// This function modifies the following configuration fields:
+    /// - `config.background.current`
+    /// - `config.background.is_outdated`
+    /// - `config.additional.console_enabled`
+    pub fn update_config(config: &mut Config) -> Result<(), Error> {
+        // TODO: Not implemented
+        println!("Updating config {:?}", config);
 
+        Ok(())
+    }
+
+    const STEAM_AVATAR_URL: &str = "https://avatars.akamai.steamstatic.com";
     fn extract_steam_user_info(
         contents: &str,
         outer_key: &str,
@@ -447,7 +534,14 @@ pub mod steam {
         Ok(true)
     }
 
-    fn set_config_background(config_filename: &str, id: Option<&str>) -> Result<(), Error> {
+    fn set_config_launch_args<F, P>(
+        config_filename: &str,
+        params: P,
+        generate_launch_args: &F,
+    ) -> Result<(), Error>
+    where
+        F: Fn(Option<&str>, P) -> String,
+    {
         let backup_path = format!("{}.backup", config_filename);
 
         // Create scope to release config file lock
@@ -543,13 +637,13 @@ pub mod steam {
             if let Some(launch_options_pos) =
                 local_config[block_start..block_end].find("\"LaunchOptions\"")
             {
-                let value_start = block_start + launch_options_pos + "\"LaunchOptions\"".len() + 3;
+                let value_start = block_start + launch_options_pos + "\"LaunchOptions\"".len() + 3; // Skip the key, quotes, and tab
                 let value_end = value_start
                     + local_config[value_start..block_end]
                         .find('"')
                         .unwrap_or(value_start);
 
-                if value_start >= value_end {
+                if value_start > value_end {
                     return Err(Error::Custom(format!(
                         "Failed to read the [[LaunchOptions]] key, inside the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
                         config_filename
@@ -557,10 +651,10 @@ pub mod steam {
                 }
 
                 let launch_args = &local_config[value_start..value_end];
-                let new_launch_args = helpers::get_launch_args(Some(launch_args), id);
+                let new_launch_args = generate_launch_args(Some(launch_args), params);
                 local_config.replace_range(value_start..value_end, &new_launch_args);
             } else {
-                let new_launch_args = helpers::get_launch_args(None, id);
+                let new_launch_args = generate_launch_args(None, params);
 
                 local_config.insert_str(
                     block_start + 1,
@@ -624,9 +718,6 @@ pub mod steam {
                 config_filename, e
             )));
         }
-        // if fs::metadata(config_filename).is_ok() {
-        //     fs::remove_file(config_filename)?;
-        // }
         return Ok(());
     }
 }

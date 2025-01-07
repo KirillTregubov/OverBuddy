@@ -5,8 +5,6 @@ export function FormattedError({ text }: { text: string }) {
   const parts = []
   let lastIdx = 0
 
-  console.log('here', text)
-
   text.replace(regex, (match, captured, offset) => {
     parts.push(text.slice(lastIdx, offset))
     parts.push(<Highlight key={offset}>{captured}</Highlight>)

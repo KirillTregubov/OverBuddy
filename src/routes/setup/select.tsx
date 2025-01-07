@@ -80,7 +80,7 @@ function SetupSelect() {
           >
             Connect your Platform(s)
           </motion.h1>
-          <motion.p variants={moveInVariants}>
+          <motion.p variants={moveInVariants} className="text-balance">
             Select the platform(s) you use to play Overwatch™. OverBuddy will
             automatically detect installations and required configurations.
           </motion.p>
@@ -88,7 +88,10 @@ function SetupSelect() {
             You can change this later in the settings.
           </motion.p>
         </div>
-        <motion.div className="flex gap-4" variants={moveInVariants}>
+        <motion.div
+          className="grid grid-cols-2 gap-4"
+          variants={moveInVariants}
+        >
           <button
             className="group flex flex-col items-center gap-2 p-3 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95 disabled:pointer-events-none"
             onClick={() => {
@@ -207,7 +210,9 @@ function SetupSelect() {
             disabled={status !== 'idle'}
             onClick={() => {
               if (platforms.length === 0) {
-                toast.warning('You must select at least one platform.')
+                toast.warning('You must select at least one platform.', {
+                  id: 'select-at-least-one'
+                })
                 return
               }
               mutate({ platforms })

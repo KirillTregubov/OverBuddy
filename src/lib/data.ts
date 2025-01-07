@@ -20,6 +20,7 @@ import {
   type Platform
 } from '@/lib/schemas'
 import { queryClient } from '@/main'
+import { useState } from 'react'
 import { isDev } from './dev'
 
 const launchQueryKey = ['launch']
@@ -286,12 +287,16 @@ export const useActiveBackgroundMutation = () =>
 export const invalidateActiveBackground = () =>
   queryClient.invalidateQueries(activeBackgroundQueryOptions)
 
+const toastIds = ['background-1', 'background-2']
+
 export const useBackgroundMutation = ({
   onError
 }: {
   onError?: (error: Error) => void
-} = {}) =>
-  useMutation({
+} = {}) => {
+  const [toastIndex, setToastIndex] = useState(0)
+
+  return useMutation({
     mutationFn: async (background: { id: string }) => {
       const data = (await invoke('set_background', background)) as string
       const config = LaunchConfig.safeParse(JSON.parse(data))
@@ -302,10 +307,20 @@ export const useBackgroundMutation = ({
       }
       updateLaunchConfig(config.data)
     },
+    onSuccess: () => {
+      toast.dismiss(toastIds[toastIndex])
+      const newIndex = (toastIndex + 1) % toastIds.length
+
+      toast.success(`Successfully applied this background.`, {
+        id: toastIds[newIndex]
+      })
+      setToastIndex(newIndex)
+    },
     onError: (error) => {
       onError?.(error)
     }
   })
+}
 
 export const useResetBackgroundMutation = ({
   onSuccess,
@@ -329,6 +344,36 @@ export const useResetBackgroundMutation = ({
       onSuccess?.()
     },
     onSettled
+  })
+
+export const useDebugConsoleMutation = () =>
+  useMutation({
+    mutationFn: async (data: { enableConsole: boolean }) => {
+      const query = (await invoke('set_debug_console', data)) as string
+      const config = LaunchConfig.safeParse(JSON.parse(query))
+      if (!config.success) {
+        throw new Error(
+          `Failed to save debug console change. ${config.error.message}`
+        )
+      }
+      updateLaunchConfig(config.data)
+      return data.enableConsole
+    },
+    onError: (error) => handleError(error),
+    onSuccess: (enableConsole) => {
+      const id = enableConsole ? 'debug-console' : 'debug-console-disabled'
+      const prevId = !enableConsole ? 'debug-console' : 'debug-console-disabled'
+      toast.dismiss(prevId)
+      if (enableConsole) {
+        toast.success('The Overwatch debug console has been enabled.', {
+          id: id
+        })
+      } else {
+        toast.warning('The Overwatch debug console has been disabled.', {
+          id: id
+        })
+      }
+    }
   })
 
 export const useResetMutation = ({
@@ -355,7 +400,7 @@ export const useResetMutation = ({
       onError?.(error)
     },
     onSuccess: () => {
-      toast.success('Successfully reset to default settings.')
+      toast.success('All settings have been reset to default.')
       onSuccess?.()
     },
     onSettled

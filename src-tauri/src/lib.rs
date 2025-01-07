@@ -6,10 +6,8 @@ mod platforms;
 use config::{ErrorKey, SetupError};
 use helpers::Error;
 use platforms::{battle_net, steam};
-use serde_json::{from_reader, json};
 use std::env;
-use std::fs::{self, File};
-use std::io::Read;
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use tauri::AppHandle;
@@ -35,74 +33,24 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
                 let _ = fs::remove_file(&backup_path);
             }
 
-            let file = match File::open(&battle_net_config) {
-                Ok(file) => file,
-                Err(_) => {
-                    return Err(Error::Custom(format!(
-                        "Failed to open the [[{}]] file at [[{}]]. If you have changed your Battle.net installation, please reset settings.",
-                        helpers::get_file_name_from_path(&battle_net_config).unwrap_or("unknown"),
-                        battle_net_config
-                    )));
-                }
-            };
-            let json: serde_json::Value = match from_reader(file) {
-                Ok(json) => json,
-                Err(_) => {
-                    return Err(Error::Custom(format!(
-                        "Failed to read [[{}]] file at [[{}]]",
-                        helpers::get_file_name_from_path(&battle_net_config).unwrap_or("unknown"),
-                        battle_net_config
-                    )));
-                }
-            };
-
-            if json
-                .get("Games")
-                .and_then(|games| games.get("prometheus"))
-                .is_none()
-            {
-                config.battle_net.enabled = false;
-                config.battle_net.install = None;
-                config.battle_net.config = None;
-            } else if let Some(launch_args) =
-                json["Games"]["prometheus"]["AdditionalLaunchArguments"].as_str()
-            {
-                let current_background = launch_args
-                    .split_whitespace()
-                    .find(|s| s.starts_with("--lobbyMap="))
-                    .and_then(|s| s.split('=').nth(1))
-                    .and_then(|s| {
-                        if s.is_empty() {
-                            None
-                        } else {
-                            Some(String::from(s))
-                        }
-                    });
-
-                config.background.current =
-                    current_background
-                        .as_ref()
-                        .and_then(|current_background_id| {
-                            backgrounds::find_background_by_id(current_background_id)
-                                .map(|background| background.id.to_string())
-                        });
-
-                config.background.is_outdated =
-                    config.background.current.is_none() && current_background.is_some();
-            } else {
-                config.background.current = None;
-                config.background.is_outdated = false;
-            }
+            battle_net::update_config(&mut config)?;
         }
 
         if config.steam.enabled {
-            // TODO: check for new configs, ensure current config exists, restore from backup?
-            // return Err(Error::Custom("Steam is not supported yet.".into()));
+            // TODO: Restore backup configuration if it exists
 
             if config.steam.setup {
                 config.steam.profiles = Some(steam::get_profiles(&config)?);
+
+                // TODO: check for new configs, ensure current config exists, restore from backup?
+                steam::update_config(&mut config)?;
             }
         }
+
+        // merge configs
+        // config.background.current
+        // config.background.is_outdated
+        // config.additional.console_enabled
     }
 
     if !config.battle_net.enabled && !config.steam.enabled {
@@ -118,7 +66,6 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
 fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Result<String, Error> {
     let mut config = config::read_config(&handle)?;
 
-    // 'battle_net: {
     if platforms.contains(&"BattleNet") {
         // Check if Battle.net is installed
         if config.battle_net.install.is_none() {
@@ -141,7 +88,6 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         }
 
         // Check if Battle.net config exists
-        static CONFIG_FILE: &str = "Battle.net.config";
         let battle_net_config = match &config.battle_net.config {
             Some(battle_net_config) => battle_net_config.clone(),
             None => {
@@ -151,9 +97,10 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
                     // Check if Battle.net AppData directory exists
                     if let Ok(entries) = fs::read_dir(&resource_path) {
                         // Check if Battle.net.config exists in the directory
-                        if let Some(target_entry) = entries
-                            .filter_map(|entry| entry.ok())
-                            .find(|entry| entry.file_name().to_string_lossy() == CONFIG_FILE)
+                        if let Some(target_entry) =
+                            entries.filter_map(|entry| entry.ok()).find(|entry| {
+                                entry.file_name().to_string_lossy() == battle_net::CONFIG_FILE
+                            })
                         {
                             let display_path = helpers::display_path_string(&target_entry.path())?;
                             config.battle_net.config = Some(display_path.clone());
@@ -164,7 +111,8 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
                                 error_key: ErrorKey::BattleNetConfig,
                                 message: format!(
                                     "Failed to find [[{}]] file at [[{}]].",
-                                    CONFIG_FILE, display_path
+                                    battle_net::CONFIG_FILE,
+                                    display_path
                                 ),
                                 platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
                             })?));
@@ -175,7 +123,8 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
                             error_key: ErrorKey::BattleNetConfig,
                             message: format!(
                                 "Failed to read [[{}]] file at [[{}]].",
-                                CONFIG_FILE, display_path
+                                battle_net::CONFIG_FILE,
+                                display_path
                             ),
                             platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
                         })?));
@@ -190,47 +139,32 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
             }
         };
 
-        // Open Battle.net.config file
-        let mut file = match fs::OpenOptions::new()
-            .read(true)
-            .open(battle_net_config.clone())
-        {
+        // Read and parse Battle.net.config file
+        let file = match std::fs::File::open(&battle_net_config) {
             Ok(file) => file,
             Err(e) => {
                 return Err(Error::Custom(serde_json::to_string(&SetupError {
                     error_key: ErrorKey::BattleNetConfig,
                     message: format!(
                         "Failed to open the [[{}]] file at [[{}]]: {}",
-                        CONFIG_FILE, battle_net_config, e
+                        battle_net::CONFIG_FILE,
+                        battle_net_config,
+                        e
                     ),
                     platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
                 })?));
             }
         };
-        let mut contents = String::new();
-        match file.read_to_string(&mut contents) {
-            Ok(_) => {}
-            Err(e) => {
-                return Err(Error::Custom(serde_json::to_string(&SetupError {
-                    error_key: ErrorKey::BattleNetConfig,
-                    message: format!(
-                        "Failed to read [[{}]] file at [[{}]]: {}",
-                        CONFIG_FILE, battle_net_config, e
-                    ),
-                    platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
-                })?));
-            }
-        };
-
-        // Parse Battle.net.config file
-        let mut json: serde_json::Value = match serde_json::from_str(&contents) {
+        let mut json: serde_json::Value = match serde_json::from_reader(file) {
             Ok(json) => json,
             Err(e) => {
                 return Err(Error::Custom(serde_json::to_string(&SetupError {
                     error_key: ErrorKey::BattleNetConfig,
                     message: format!(
-                        "Failed to parse [[{}]] file at [[{}]]: {}",
-                        CONFIG_FILE, battle_net_config, e
+                        "Failed to read [[{}]] file at [[{}]]: {}",
+                        battle_net::CONFIG_FILE,
+                        battle_net_config,
+                        e
                     ),
                     platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
                 })?));
@@ -254,41 +188,17 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
 
         // Check and create AdditionalLaunchArguments if it doesn't exist
         let mut battle_net_was_closed = false;
-        let launch_args = match overwatch_config.get_mut("AdditionalLaunchArguments") {
-            Some(launch_args) => launch_args.as_str(),
-            None => {
-                overwatch_config
-                    .as_object_mut()
-                    .unwrap()
-                    .insert("AdditionalLaunchArguments".to_string(), json!(""));
+        if let None = overwatch_config.get_mut("AdditionalLaunchArguments") {
+            // Some(launch_args) => launch_args.as_str(),
+            // None => {
+            overwatch_config.as_object_mut().unwrap().insert(
+                "AdditionalLaunchArguments".to_string(),
+                serde_json::json!(""),
+            );
 
-                battle_net_was_closed = battle_net::close_app();
-
-                overwatch_config.as_str()
-            }
-        };
-        if let Some(arguments) = launch_args {
-            let current_background = arguments
-                .split_whitespace()
-                .find(|s| s.starts_with("--lobbyMap="))
-                .and_then(|s| s.split('=').nth(1))
-                .and_then(|s| {
-                    if s.is_empty() {
-                        None
-                    } else {
-                        Some(String::from(s))
-                    }
-                });
-
-            // TODO: Decide how to handle saved background in OverBuddy config
-            // TODO: Decide how to handle conflicts between platforms (maybe option to select, shows what platform has it enabled)
-            if let Some(ref current_background) = current_background {
-                config.background.current = Some(current_background.clone());
-
-                if backgrounds::find_background_by_id(current_background).is_none() {
-                    config.background.is_outdated = true;
-                }
-            }
+            battle_net_was_closed = battle_net::close_app();
+            // overwatch_config.as_str()
+            // }
         }
 
         // Check and create DefaultStartupScreen if it doesn't exist
@@ -297,7 +207,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
                 client_config
                     .as_object_mut()
                     .unwrap()
-                    .insert("DefaultStartupScreen".to_string(), json!("1"));
+                    .insert("DefaultStartupScreen".to_string(), serde_json::json!("1"));
 
                 battle_net_was_closed = battle_net::close_app();
             } else {
@@ -309,12 +219,15 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
                     client_config
                         .as_object_mut()
                         .unwrap()
-                        .insert("DefaultStartupScreen".to_string(), json!("1"));
+                        .insert("DefaultStartupScreen".to_string(), serde_json::json!("1"));
 
                     battle_net_was_closed = battle_net::close_app();
                 }
             }
         }
+
+        // Update config
+        battle_net::update_config(&mut config)?;
 
         // Cleanup: Reopen Battle.net if it was closed
         if battle_net_was_closed {
@@ -333,11 +246,17 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         config.battle_net.enabled = true;
     } else {
         if config.battle_net.enabled && config.background.current.is_some() {
-            match battle_net::set_background(&config, None) {
+            match battle_net::set_launch_args(
+                &config,
+                None,
+                helpers::generate_background_launch_args,
+            ) {
                 Ok(_) => {}
                 Err(_) => {}
             }
         }
+
+        // TODO: Re-visit debug console
 
         config.battle_net.enabled = false;
     }
@@ -429,7 +348,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         config.steam.enabled = true;
     } else {
         if config.steam.enabled && config.background.current.is_some() {
-            match steam::set_background(&config, None) {
+            match steam::set_launch_args(&config, None, helpers::generate_background_launch_args) {
                 Ok(_) => {}
                 Err(_) => {}
             }
@@ -453,6 +372,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
 
         config.background.current = None;
         config.background.is_outdated = false;
+        config.additional.console_enabled = false;
     } else {
         config.is_setup = true;
     }
@@ -505,7 +425,7 @@ fn get_setup_path(key: &str) -> Result<String, Error> {
                 .map(|path| PathBuf::from(path))
                 .and_then(|path| helpers::display_path_string(&path).ok());
 
-            Ok(serde_json::to_string(&json!({
+            Ok(serde_json::to_string(&serde_json::json!({
                 "path": path,
                 "defaultPath": default_path
             }))?)
@@ -515,7 +435,7 @@ fn get_setup_path(key: &str) -> Result<String, Error> {
                 .map(|path| PathBuf::from(path).join("Battle.net"))
                 .map(|path| path.to_string_lossy().to_string());
 
-            Ok(serde_json::to_string(&json!({
+            Ok(serde_json::to_string(&serde_json::json!({
                 "path": path,
                 "defaultPath": path
             }))?)
@@ -529,7 +449,7 @@ fn get_setup_path(key: &str) -> Result<String, Error> {
                 .map(|path| PathBuf::from(path))
                 .and_then(|path| helpers::display_path_string(&path).ok());
 
-            Ok(serde_json::to_string(&json!({
+            Ok(serde_json::to_string(&serde_json::json!({
                 "path": path,
                 "defaultPath": default_path
             }))?)
@@ -559,6 +479,9 @@ fn confirm_steam_setup(handle: AppHandle) -> Result<String, Error> {
     }
 
     config.steam.profiles = Some(steam::get_profiles(&config)?);
+
+    // TODO: fetch steam current background and debug console state
+
     config.steam.setup = true;
     config::write_config(&handle, &config)?;
 
@@ -579,7 +502,11 @@ fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
     let mut steam_error: Option<Error> = None;
 
     if config.battle_net.enabled {
-        match battle_net::set_background(&config, Some(id)) {
+        match battle_net::set_launch_args(
+            &config,
+            Some(id),
+            helpers::generate_background_launch_args,
+        ) {
             Ok(_) => {}
             Err(error) => {
                 battle_net_error = Some(error);
@@ -588,7 +515,7 @@ fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
     }
 
     if config.steam.enabled {
-        match steam::set_background(&config, Some(id)) {
+        match steam::set_launch_args(&config, Some(id), helpers::generate_background_launch_args) {
             Ok(_) => {}
             Err(error) => {
                 steam_error = Some(error);
@@ -599,7 +526,7 @@ fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
     if steam_error.is_some() {
         if battle_net_error.is_some() {
             return Err(Error::Custom(format!(
-                "Failed to apply background on Battle.net: {}\nFailed to apply background on Steam: {}",
+                "Failed to apply background on Battle.net: {}\nAlso failed to apply background on Steam: {}",
                 battle_net_error.unwrap(),
                 steam_error.unwrap(),
             )));
@@ -630,7 +557,7 @@ fn reset_background(handle: AppHandle) -> Result<String, Error> {
     let mut steam_error: Option<Error> = None;
 
     if config.battle_net.enabled {
-        match battle_net::set_background(&config, None) {
+        match battle_net::set_launch_args(&config, None, helpers::generate_background_launch_args) {
             Ok(_) => {}
             Err(error) => {
                 battle_net_error = Some(error);
@@ -638,9 +565,8 @@ fn reset_background(handle: AppHandle) -> Result<String, Error> {
         }
     }
 
-    // TODO: Test Steam compatibility
     if config.steam.enabled {
-        match steam::set_background(&config, None) {
+        match steam::set_launch_args(&config, None, helpers::generate_background_launch_args) {
             Ok(_) => {}
             Err(error) => {
                 steam_error = Some(error);
@@ -651,7 +577,7 @@ fn reset_background(handle: AppHandle) -> Result<String, Error> {
     if let Some(error) = steam_error {
         if battle_net_error.is_some() {
             return Err(Error::Custom(format!(
-                "Failed to reset background on Battle.net: {}\nFailed to apply background on Steam: {}",
+                "Failed to reset background on Battle.net: {}\nAlso failed to apply background on Steam: {}",
                 battle_net_error.unwrap(),
                 error
             )));
@@ -670,6 +596,64 @@ fn reset_background(handle: AppHandle) -> Result<String, Error> {
 
     config.background.current = None;
     config.background.is_outdated = false;
+    config::write_config(&handle, &config)?;
+
+    Ok(serde_json::to_string(&config)?)
+}
+
+#[tauri::command]
+fn set_debug_console(handle: AppHandle, enable_console: bool) -> Result<String, Error> {
+    let mut config = config::read_config(&handle)?;
+    let mut battle_net_error: Option<Error> = None;
+    let mut steam_error: Option<Error> = None;
+
+    if config.battle_net.enabled {
+        match battle_net::set_launch_args(
+            &config,
+            enable_console,
+            helpers::generate_console_launch_args,
+        ) {
+            Ok(_) => {}
+            Err(error) => {
+                battle_net_error = Some(error);
+            }
+        }
+    }
+
+    if config.steam.enabled {
+        match steam::set_launch_args(
+            &config,
+            enable_console,
+            helpers::generate_console_launch_args,
+        ) {
+            Ok(_) => {}
+            Err(error) => {
+                steam_error = Some(error);
+            }
+        }
+    }
+
+    if steam_error.is_some() {
+        if battle_net_error.is_some() {
+            return Err(Error::Custom(format!(
+                    "Failed to apply debug console on Battle.net: {}\nAlso failed to apply debug console on Steam: {}",
+                    battle_net_error.unwrap(),
+                    steam_error.unwrap(),
+                )));
+        } else {
+            return Err(Error::Custom(format!(
+                "Failed to apply debug console: {}",
+                steam_error.unwrap()
+            )));
+        }
+    } else if let Some(error) = battle_net_error {
+        return Err(Error::Custom(format!(
+            "Failed to apply debug console: {}",
+            error
+        )));
+    }
+
+    config.additional.console_enabled = enable_console;
     config::write_config(&handle, &config)?;
 
     Ok(serde_json::to_string(&config)?)
@@ -700,6 +684,7 @@ pub fn run() {
             get_backgrounds,
             set_background,
             reset_background,
+            set_debug_console,
             reset
         ])
         .on_window_event(|window, event| {

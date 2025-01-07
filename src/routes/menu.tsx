@@ -47,9 +47,11 @@ export const Route = createFileRoute('/menu')({
     }
   },
   loader: async ({ context: { queryClient } }) => {
-    queryClient.ensureQueryData(updateQueryOptions(true))
-    queryClient.ensureQueryData(activeBackgroundQueryOptions)
-    await queryClient.ensureQueryData(backgroundsQueryOptions)
+    return Promise.allSettled([
+      queryClient.ensureQueryData(updateQueryOptions(true)),
+      queryClient.ensureQueryData(activeBackgroundQueryOptions),
+      queryClient.ensureQueryData(backgroundsQueryOptions)
+    ])
   },
   component: Menu,
   pendingMs: 0
@@ -99,7 +101,7 @@ function Menu() {
             })
           }
         },
-        duration: 5000
+        duration: Infinity
       })
     }
   }, [updateAvailable, navigate])
@@ -192,7 +194,7 @@ function Menu() {
           label: 'Revert to Default',
           onClick: () => resetBackground()
         },
-        duration: 5000
+        closeButton: false
       }
     )
   }, [config.background.is_outdated, resetBackground])

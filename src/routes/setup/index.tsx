@@ -81,7 +81,7 @@ function SetupSplash() {
             })
           }
         },
-        duration: 5000
+        duration: Infinity
       })
     }
   }, [updateAvailable, navigate])

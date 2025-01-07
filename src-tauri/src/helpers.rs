@@ -45,35 +45,51 @@ pub fn get_file_name_from_path(path: &str) -> Option<&str> {
 
 // Background helpers
 
-// Update launch arguments
-pub fn get_launch_args(launch_args: Option<&str>, id: Option<&str>) -> String {
-    let new_arg: Option<String> = if id.is_some() {
-        Some(format!("--lobbyMap={}", id.unwrap()))
+// Generate background launch arguments
+pub const BACKGROUND_LAUNCH_ARG: &str = "--lobbyMap";
+pub fn generate_background_launch_args(launch_args: Option<&str>, id: Option<&str>) -> String {
+    let new_arg = id.map(|id| format!("{}={}", BACKGROUND_LAUNCH_ARG, id));
+
+    let filtered_args = launch_args
+        .map(|args| {
+            args.split_whitespace()
+                .filter(|&part| !part.starts_with(BACKGROUND_LAUNCH_ARG))
+                .collect::<Vec<_>>()
+                .join(" ")
+        })
+        .unwrap_or_default();
+
+    match (filtered_args.is_empty(), new_arg) {
+        (true, Some(arg)) => arg,
+        (false, Some(arg)) => format!("{} {}", filtered_args, arg),
+        (false, None) => filtered_args,
+        (true, None) => String::new(),
+    }
+}
+
+// Generate debug console launch arguments
+pub const CONSOLE_LAUNCH_ARG: &str = "--tank_Console";
+pub fn generate_console_launch_args(launch_args: Option<&str>, enable_console: bool) -> String {
+    let new_arg = if enable_console {
+        Some(CONSOLE_LAUNCH_ARG.to_string())
     } else {
         None
     };
 
-    if launch_args.is_some() {
-        let filtered_args = launch_args
-            .unwrap()
-            .split_whitespace()
-            .filter(|&part| !part.starts_with("--lobbyMap"))
-            .collect::<Vec<&str>>()
-            .join(" ");
+    let filtered_args = launch_args
+        .map(|args| {
+            args.split_whitespace()
+                .filter(|&part| part != CONSOLE_LAUNCH_ARG)
+                .collect::<Vec<_>>()
+                .join(" ")
+        })
+        .unwrap_or_default();
 
-        if !filtered_args.is_empty() {
-            if new_arg.is_some() {
-                return format!("{} {}", filtered_args, new_arg.unwrap());
-            } else {
-                return filtered_args;
-            }
-        }
-    }
-
-    if let Some(arg) = new_arg {
-        arg
-    } else {
-        String::new()
+    match (filtered_args.is_empty(), new_arg) {
+        (true, Some(arg)) => arg,
+        (false, Some(arg)) => format!("{} {}", filtered_args, arg),
+        (false, None) => filtered_args,
+        (true, None) => String::new(),
     }
 }
 

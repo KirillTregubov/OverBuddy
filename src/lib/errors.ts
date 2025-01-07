@@ -53,9 +53,7 @@ export type SetupPathResponse = z.infer<typeof SetupPathResponse>
 export function handleError(error: unknown) {
   if (error instanceof Error) error = error.message
   else if (typeof error !== 'string') error = 'An unknown error occurred.'
-  toast.error((error as string).replaceAll(/\[\[|\]\]/g, '"'), {
-    duration: 5000
-  })
+  toast.error((error as string).replaceAll(/\[\[|\]\]/g, '"'))
   // , {
   //   action: reportable
   //     ? {
