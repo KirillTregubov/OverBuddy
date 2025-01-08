@@ -15,13 +15,11 @@ use tauri::AppHandle;
 #[tauri::command]
 fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
     let mut config = config::read_config(&handle)?;
-    // println!("Launched with {:?}", config);
 
     if config.is_setup {
         if config.battle_net.enabled {
-            let battle_net_config = config.battle_net.config.clone().unwrap();
-
             // Restore backup configuration if it exists
+            let battle_net_config = config.battle_net.config.clone().unwrap();
             let backup_path = format!("{}.backup", battle_net_config);
             if Path::new(&backup_path).exists() {
                 fs::copy(&backup_path, &battle_net_config).map_err(|_| {
@@ -39,22 +37,27 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
         if config.steam.enabled {
             // TODO: Restore backup configuration if it exists
 
-            if config.steam.setup {
-                config.steam.profiles = Some(steam::get_profiles(&config)?);
-
-                // TODO: check for new configs, ensure current config exists, restore from backup?
+            if !config.steam.in_setup {
                 steam::update_config(&mut config)?;
             }
         }
 
         // merge configs
-        // config.background.current
-        // config.background.is_outdated
-        // config.additional.console_enabled
+        // config.shared.background.current
+        // config.shared.background.is_outdated
+        // config.shared.additional.console_enabled
     }
 
     if !config.battle_net.enabled && !config.steam.enabled {
         config.is_setup = false;
+    }
+
+    // TODO: temporarily advertise steam support
+    if config.steam.advertised < 4
+        && config.is_setup
+        && (!config.steam.enabled || !config.steam.in_setup)
+    {
+        config.steam.advertised += 1;
     }
 
     config::write_config(&handle, &config)?;
@@ -245,7 +248,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         // Enable Battle.net
         config.battle_net.enabled = true;
     } else {
-        if config.battle_net.enabled && config.background.current.is_some() {
+        if config.battle_net.enabled && config.shared.background.current.is_some() {
             match battle_net::set_launch_args(
                 &config,
                 None,
@@ -345,9 +348,10 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         }
 
         // Enable Steam
+        config.steam.in_setup = true;
         config.steam.enabled = true;
     } else {
-        if config.steam.enabled && config.background.current.is_some() {
+        if config.steam.enabled && config.shared.background.current.is_some() {
             match steam::set_launch_args(&config, None, helpers::generate_background_launch_args) {
                 Ok(_) => {}
                 Err(_) => {}
@@ -356,7 +360,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
 
         config.steam.profiles = None;
         config.steam.configs = None;
-        config.steam.setup = false;
+        config.steam.in_setup = false;
         config.steam.enabled = false;
     }
 
@@ -370,9 +374,9 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
             )));
         }
 
-        config.background.current = None;
-        config.background.is_outdated = false;
-        config.additional.console_enabled = false;
+        config.shared.background.current = None;
+        config.shared.background.is_outdated = false;
+        config.shared.additional.console_enabled = false;
     } else {
         config.is_setup = true;
     }
@@ -472,17 +476,11 @@ fn get_steam_accounts(handle: AppHandle) -> Result<String, Error> {
 fn confirm_steam_setup(handle: AppHandle) -> Result<String, Error> {
     let mut config = config::read_config(&handle)?;
 
-    if config.steam.configs.is_none() || config.steam.configs.as_ref().unwrap().is_empty() {
-        return Err(Error::Custom(
-            "Failed to find any accounts in your Steam userdata folder.".to_string(),
-        ));
-    }
+    steam::update_config(&mut config)?;
+    config.steam.in_setup = false;
 
-    config.steam.profiles = Some(steam::get_profiles(&config)?);
+    // TODO: merge shared configs
 
-    // TODO: fetch steam current background and debug console state
-
-    config.steam.setup = true;
     config::write_config(&handle, &config)?;
 
     Ok(serde_json::to_string(&config)?)
@@ -543,8 +541,8 @@ fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
         )));
     }
 
-    config.background.current = Some(id.to_string());
-    config.background.is_outdated = false;
+    config.shared.background.current = Some(id.to_string());
+    config.shared.background.is_outdated = false;
     config::write_config(&handle, &config)?;
 
     Ok(serde_json::to_string(&config)?)
@@ -594,8 +592,8 @@ fn reset_background(handle: AppHandle) -> Result<String, Error> {
         )));
     }
 
-    config.background.current = None;
-    config.background.is_outdated = false;
+    config.shared.background.current = None;
+    config.shared.background.is_outdated = false;
     config::write_config(&handle, &config)?;
 
     Ok(serde_json::to_string(&config)?)
@@ -653,7 +651,7 @@ fn set_debug_console(handle: AppHandle, enable_console: bool) -> Result<String, 
         )));
     }
 
-    config.additional.console_enabled = enable_console;
+    config.shared.additional.console_enabled = enable_console;
     config::write_config(&handle, &config)?;
 
     Ok(serde_json::to_string(&config)?)

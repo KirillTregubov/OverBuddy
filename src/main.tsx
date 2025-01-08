@@ -9,6 +9,7 @@ import Loading from '@/components/Loading'
 import Toaster from '@/components/Toaster'
 import { routeTree } from '@/routeTree.gen'
 import '@/styles.css'
+import NotFound from './components/NotFound'
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,6 +34,7 @@ const router = createRouter({
   // This will ensure that the loader is always called when the route is preloaded or visited
   defaultPreloadStaleTime: 0,
   notFoundMode: 'root',
+  defaultNotFoundComponent: NotFound,
   defaultErrorComponent: ErrorComponent,
   defaultPendingComponent: Loading
 })
@@ -57,6 +59,7 @@ declare module '@tanstack/react-router' {
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
+    <Toaster />
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
       {/* <React.Suspense>
@@ -64,6 +67,5 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       </React.Suspense> */}
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
-    <Toaster />
   </React.StrictMode>
 )

@@ -36,7 +36,7 @@ export default function SteamProfileComponent({
                 ? 'inset-0 justify-center bg-orange-950/20'
                 : 'bottom-1 left-1 right-1 justify-end'
             )}
-            title="Overwatch Installed"
+            title="Found Overwatch Data"
           >
             <img
               src="/overwatch.png"

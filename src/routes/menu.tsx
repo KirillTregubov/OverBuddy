@@ -18,9 +18,11 @@ import {
   activeBackgroundQueryOptions,
   backgroundsQueryOptions,
   launchQueryOptions,
+  shouldAdvertiseQueryOptions,
   updateQueryOptions,
   useActiveBackgroundMutation,
   useBackgroundMutation,
+  useDismissAdMutation,
   useResetBackgroundMutation
 } from '@/lib/data'
 import { linkFix } from '@/lib/linkFix'
@@ -42,12 +44,13 @@ export const Route = createFileRoute('/menu')({
       throw redirect({ to: '/setup' })
     }
 
-    if (config.steam.enabled && !config.steam.setup) {
+    if (config.steam.enabled && config.steam.in_setup) {
       throw redirect({ to: '/setup/steam_setup' })
     }
   },
   loader: async ({ context: { queryClient } }) => {
     return Promise.allSettled([
+      queryClient.ensureQueryData(shouldAdvertiseQueryOptions),
       queryClient.ensureQueryData(updateQueryOptions(true)),
       queryClient.ensureQueryData(activeBackgroundQueryOptions),
       queryClient.ensureQueryData(backgroundsQueryOptions)
@@ -65,7 +68,13 @@ const onImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
 function Menu() {
   const navigate = useNavigate()
   const { data: backgrounds } = useSuspenseQuery(backgroundsQueryOptions)
+  const { data: activeBackground } = useSuspenseQuery(
+    activeBackgroundQueryOptions
+  )
   const { data: config } = useSuspenseQuery(launchQueryOptions)
+  const { data: shouldAdvertise } = useSuspenseQuery(
+    shouldAdvertiseQueryOptions
+  )
   const { data: updateAvailable } = useQuery(updateQueryOptions(true))
   const {
     status: setStatus,
@@ -81,30 +90,8 @@ function Menu() {
     onSettled: () => reset()
   })
   const backgroundRefs = useRef<HTMLButtonElement[]>([])
-  const { data: activeBackground } = useSuspenseQuery(
-    activeBackgroundQueryOptions
-  )
   const { mutate: setActiveBackground } = useActiveBackgroundMutation()
-
-  useEffect(() => {
-    if (updateAvailable?.available) {
-      toast.warning('There is a new version of OverBuddy available.', {
-        id: 'update-available',
-        action: {
-          label: 'View Update',
-          onClick: () => {
-            navigate({
-              to: '/settings',
-              search: {
-                update: true
-              }
-            })
-          }
-        },
-        duration: Infinity
-      })
-    }
-  }, [updateAvailable, navigate])
+  const { mutate: dismissAd } = useDismissAdMutation()
 
   const prevButtonRef = useRef<HTMLButtonElement>(null)
   const prevButtonAnimation = useAnimation()
@@ -184,20 +171,78 @@ function Menu() {
     onPress: onEscapePress
   })
 
+  // Update toast
   useEffect(() => {
-    if (!config.background.is_outdated) return
-    toast.error(
-      'Your background is outdated. This may result in a black screen in game.',
-      {
-        id: 'reset-background',
+    if (updateAvailable?.available) {
+      toast.warning('There is a new version of OverBuddy available.', {
+        id: 'update-available',
         action: {
-          label: 'Revert to Default',
-          onClick: () => resetBackground()
+          label: 'View Update',
+          onClick: () => {
+            navigate({
+              to: '/settings',
+              search: {
+                update: true
+              }
+            })
+          }
         },
-        closeButton: false
-      }
-    )
-  }, [config.background.is_outdated, resetBackground])
+        duration: Infinity
+      })
+    }
+
+    return () => {
+      toast.dismiss('update-available')
+    }
+  }, [updateAvailable, navigate])
+  // Outdated background toast
+  useEffect(() => {
+    if (config.shared.background.is_outdated) {
+      toast.warning(
+        'Your background is outdated. This may result in a black screen in game.',
+        {
+          id: 'outdated-background',
+          action: {
+            label: 'Revert to Default',
+            onClick: () => resetBackground()
+          },
+          classNames: {
+            toast: '!max-w-none'
+          },
+          duration: Infinity
+        }
+      )
+    }
+
+    return () => {
+      toast.dismiss('outdated-background')
+    }
+  }, [config.shared.background.is_outdated, resetBackground])
+  // Advertise Steam feature
+  useEffect(() => {
+    if (shouldAdvertise && config.steam.advertised < 4) {
+      toast.info('OverBuddy now supports Steam. Enable it in the settings.', {
+        id: 'advertise-steam',
+        action: {
+          label: 'Open Settings',
+          onClick: () =>
+            navigate({
+              to: '/settings',
+              replace: true
+            })
+        },
+        onDismiss: () => dismissAd(),
+        classNames: {
+          toast: '!max-w-none'
+        },
+        duration: 10000
+      })
+    }
+
+    return () => {
+      toast.dismiss('advertise-steam')
+    }
+  }, [shouldAdvertise, config.steam.advertised, navigate, dismissAd])
 
   useLayoutEffect(() => {
     if (!activeBackground) return
@@ -254,7 +299,10 @@ function Menu() {
       animate="show"
     >
       <div className="relative">
-        <div className="scrollbar-hide -mx-3 flex h-48 flex-shrink-0 items-center gap-3 overflow-x-auto scroll-smooth px-14 before:pointer-events-none before:absolute before:-left-3 before:z-10 before:h-full before:w-6 before:content-[''] before:bg-easing-l-menu-top after:pointer-events-none after:absolute after:-right-3 after:z-10 after:h-full after:w-6 after:content-[''] after:bg-easing-r-menu-top">
+        <div
+          tabIndex={-1}
+          className="scrollbar-hide -mx-3 flex h-48 flex-shrink-0 items-center gap-3 overflow-x-auto scroll-smooth px-14 outline-none before:pointer-events-none before:absolute before:-left-3 before:z-10 before:h-full before:w-6 before:content-[''] before:bg-easing-l-menu-top after:pointer-events-none after:absolute after:-right-3 after:z-10 after:h-full after:w-6 after:content-[''] after:bg-easing-r-menu-top"
+        >
           {backgrounds.map((background, index) => (
             <motion.button
               key={background.id}
@@ -451,8 +499,8 @@ function Menu() {
               </motion.div>
             </AnimatePresence>
 
-            {(config.background.is_outdated ||
-              config.background.current !== null) && (
+            {(config.shared.background.is_outdated ||
+              config.shared.background.current !== null) && (
               <button
                 className={clsx(
                   'relative h-14 w-48 select-none text-center text-lg font-medium uppercase tracking-wider transition-[color,transform] will-change-transform hover:text-zinc-300 focus-visible:text-zinc-300 focus-visible:outline-none active:scale-95 disabled:pointer-events-none',
@@ -504,13 +552,13 @@ function Menu() {
                 setBackground({ id: activeBackground.id })
               }}
               disabled={
-                config.background.current === activeBackground.id ||
+                config.shared.background.current === activeBackground.id ||
                 setStatus === 'success'
               }
               key={activeBackground.id}
             >
               <AnimatePresence mode="wait" initial={false}>
-                {config.background.current === activeBackground.id ||
+                {config.shared.background.current === activeBackground.id ||
                 setStatus === 'success' ? (
                   <motion.span
                     className="text-orange-100"

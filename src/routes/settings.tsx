@@ -48,14 +48,15 @@ import {
   useUpdateMutation
 } from '@/lib/data'
 import { ConfigError, ConfigErrors, SetupError } from '@/lib/errors'
+import preventReload from '@/lib/preventReload'
 import type { Platform } from '@/lib/schemas'
 import useKeyPress from '@/lib/useKeyPress'
-
-type SettingsSearch = {
-  update: boolean
-}
+import { z } from 'zod'
 
 export const Route = createFileRoute('/settings')({
+  validateSearch: z.object({
+    update: z.boolean().default(false)
+  }),
   loaderDeps: ({ search: { update } }) => ({ update }),
   loader: async ({ context: { queryClient }, deps: { update } }) => {
     const promises: Promise<unknown>[] = [
@@ -69,11 +70,6 @@ export const Route = createFileRoute('/settings')({
     }
 
     await Promise.allSettled(promises)
-  },
-  validateSearch: (search: Record<string, unknown>): SettingsSearch => {
-    return {
-      update: (search.update as boolean) || false
-    }
   },
   component: Settings
 })
@@ -99,7 +95,7 @@ function Settings() {
 
   return (
     <motion.div
-      className="flex w-full flex-col p-6 pr-3"
+      className="flex w-full flex-col overflow-y-auto p-6 pr-3"
       variants={fadeInFastVariants}
       initial="hidden"
       animate="show"
@@ -260,7 +256,7 @@ function Settings() {
           </motion.div>
         </motion.div>
       </motion.div>
-      <div className="fixed bottom-0 left-0 right-0 z-10 h-6 rounded-lg bg-easing-b-menu-top" />
+      <div className="fixed bottom-0 left-0 right-3 z-10 h-6 rounded-lg bg-easing-b-menu-top" />
     </motion.div>
   )
 }
@@ -291,7 +287,8 @@ function Platforms() {
           },
           search: {
             message: error.message,
-            platforms: error.platforms
+            platforms: error.platforms,
+            redirect: '/settings'
           },
           replace: true
         })
@@ -301,9 +298,12 @@ function Platforms() {
       }
     },
     onSuccess: ({ config }) => {
-      if (config.steam.enabled && !config.steam.setup) {
+      if (config.steam.enabled && config.steam.in_setup) {
         router.navigate({
           to: '/setup/steam_setup',
+          search: {
+            redirect: '/settings'
+          },
           replace: true
         })
       }
@@ -542,22 +542,11 @@ function Platforms() {
   )
 }
 
-// Prevent F5, Ctrl+R (Windows/Linux), Command+R (Mac) from refreshing the page
-function preventReload(event: KeyboardEvent) {
-  if (
-    event.key === 'F5' ||
-    (event.ctrlKey && event.key === 'r')
-    // || (event.metaKey && event.key === 'r') // macOS
-  ) {
-    event.preventDefault()
-  }
-}
-
 function CheckForUpdates() {
   const { update } = Route.useSearch()
+  const [progress, setProgress] = useState(0)
   const { data: checkData2 } = useQuery(updateQueryOptions(update))
   const [isOpen, setIsOpen] = useState(checkData2?.available ?? false)
-  const [progress, setProgress] = useState(0)
   const {
     status: checkStatus,
     data: checkData,
@@ -863,7 +852,7 @@ function ToggleConsole() {
       <MotionButton
         className="w-fit min-w-[12.5625rem] disabled:pointer-events-none disabled:!opacity-100"
         onClick={() =>
-          mutate({ enableConsole: !config.additional.console_enabled })
+          mutate({ enableConsole: !config.shared.additional.console_enabled })
         }
         disabled={status === 'pending'}
       >
@@ -878,7 +867,7 @@ function ToggleConsole() {
             >
               <LoaderPinwheel className="mx-auto animate-spin" />
             </motion.span>
-          ) : config.additional.console_enabled ? (
+          ) : config.shared.additional.console_enabled ? (
             <motion.span
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
@@ -906,7 +895,7 @@ function ToggleConsole() {
         <div
           className={clsx(
             'flex select-none items-baseline gap-2 transition-colors',
-            !config.additional.console_enabled && 'text-zinc-600'
+            !config.shared.additional.console_enabled && 'text-zinc-600'
           )}
         >
           <div className="flex items-baseline gap-1">

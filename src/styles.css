@@ -74,7 +74,7 @@ button.highlight-base {
 .scroller {
   /* --scrollbar-color-thumb: theme('colors.zinc.600');
   --scrollbar-color-track: theme('colors.zinc.800'); */
-  --scrollbar-width-legacy: 8px;
+  --scrollbar-width: 8px;
 
   transition:
     --scrollbar-color-thumb 0.15s ease-in-out,
@@ -98,8 +98,8 @@ button.highlight-base {
   --scrollbar-color-track: transparent;
 }
 
-body.scroller {
-  --scrollbar-width-legacy: 12px;
+.page-scroller {
+  --scrollbar-width: 12px;
 }
 
 @supports selector(::-webkit-scrollbar) {
@@ -107,29 +107,59 @@ body.scroller {
     border: 2px solid var(--scrollbar-color-track);
     border-radius: 999px;
     background-color: var(--scrollbar-color-thumb);
-    cursor: grab;
+    /* cursor: grab; */
   }
-  .scroller::-webkit-scrollbar-thumb:active {
+  /* .scroller::-webkit-scrollbar-thumb:active {
     cursor: grabbing;
-  }
+  } */
 
   .scroller::-webkit-scrollbar-track {
     border-radius: 999px;
     background-color: var(--scrollbar-color-track);
   }
   .scroller::-webkit-scrollbar {
-    max-width: var(--scrollbar-width-legacy);
-    max-height: var(--scrollbar-width-legacy);
+    max-width: var(--scrollbar-width);
+    max-height: var(--scrollbar-width);
   }
 
   .scroller-settings::-webkit-scrollbar-track {
     margin-right: 0.75rem;
   }
 
-  body.scroller::-webkit-scrollbar-thumb {
+  .page-scroller::-webkit-scrollbar-thumb {
     border-left: 3px solid var(--scrollbar-color-track);
   }
-  body.scroller::-webkit-scrollbar-track {
+  .page-scroller::-webkit-scrollbar-track {
     border-radius: 0;
   }
+}
+
+[data-sonner-toast][data-styled='true'][data-type='warning'] [data-button] {
+  @apply bg-amber-800 text-amber-100 !shadow-none transition-[background-color,box-shadow,transform] will-change-transform hover:bg-amber-900 focus-visible:ring focus-visible:ring-amber-500/75 active:scale-95 active:bg-amber-900;
+}
+
+[data-sonner-toast][data-styled='true'][data-type='warning']
+  [data-close-button] {
+  @apply outline-none transition-shadow focus-visible:ring focus-visible:ring-amber-500/85;
+}
+
+[data-sonner-toast][data-styled='true'][data-type='error'] [data-button] {
+  @apply bg-red-800 text-red-100 !shadow-none transition-[background-color,box-shadow,transform] will-change-transform hover:bg-red-900 focus-visible:ring focus-visible:ring-red-500/75 active:scale-95 active:bg-red-900;
+}
+
+[data-sonner-toast][data-styled='true'][data-type='error'] [data-close-button] {
+  @apply outline-none transition-shadow focus-visible:ring focus-visible:ring-red-500/85;
+}
+
+[data-sonner-toast][data-styled='true'][data-type='info'] [data-button] {
+  @apply bg-blue-800 text-blue-100 !shadow-none transition-[background-color,box-shadow,transform] will-change-transform hover:bg-blue-900 focus-visible:ring focus-visible:ring-blue-500/75 active:scale-95 active:bg-blue-900;
+}
+
+[data-sonner-toast][data-styled='true'][data-type='info'] [data-close-button] {
+  @apply outline-none transition-shadow focus-visible:ring focus-visible:ring-blue-500/85;
+}
+
+[data-sonner-toast][data-styled='true'][data-type='success']
+  [data-close-button] {
+  @apply outline-none transition-shadow focus-visible:ring focus-visible:ring-green-500/85;
 }

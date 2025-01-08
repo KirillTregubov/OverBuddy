@@ -25,7 +25,7 @@ pub struct BattleNetConfig {
     pub install: Option<String>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct SteamLocalconfig {
     pub id: String,
     pub file: String,
@@ -42,7 +42,8 @@ pub struct SteamProfile {
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct SteamConfig {
     pub enabled: bool,
-    pub setup: bool,
+    pub in_setup: bool,
+    pub advertised: u8,
     pub install: Option<String>,
     pub configs: Option<Vec<SteamLocalconfig>>,
     pub profiles: Option<Vec<SteamProfile>>,
@@ -60,12 +61,17 @@ pub struct AdditionalConfig {
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
+pub struct SharedConfig {
+    pub background: BackgroundConfig,
+    pub additional: AdditionalConfig,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct Config {
     pub is_setup: bool,
     pub battle_net: BattleNetConfig,
     pub steam: SteamConfig,
-    pub background: BackgroundConfig,
-    pub additional: AdditionalConfig,
+    pub shared: SharedConfig,
 }
 
 pub fn get_default_config() -> Config {
@@ -78,17 +84,20 @@ pub fn get_default_config() -> Config {
         },
         steam: SteamConfig {
             enabled: false,
-            setup: false,
+            in_setup: false,
+            advertised: 0,
             configs: None,
             profiles: None,
             install: None,
         },
-        background: BackgroundConfig {
-            current: None,
-            is_outdated: false,
-        },
-        additional: AdditionalConfig {
-            console_enabled: false,
+        shared: SharedConfig {
+            background: BackgroundConfig {
+                current: None,
+                is_outdated: false,
+            },
+            additional: AdditionalConfig {
+                console_enabled: false,
+            },
         },
     }
 }

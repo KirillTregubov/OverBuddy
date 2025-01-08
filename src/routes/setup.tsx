@@ -6,14 +6,17 @@ import { fadeInVariants } from '@/lib/animations'
 import { launchQueryOptions } from '@/lib/data'
 
 export const Route = createFileRoute('/setup')({
-  beforeLoad: async ({ context: { queryClient } }) => {
-    const { is_setup, steam } = await queryClient
+  beforeLoad: async ({ location, context: { queryClient } }) => {
+    const { is_setup } = await queryClient
       .fetchQuery(launchQueryOptions)
       .catch(() => {
         throw redirect({ to: '/' })
       })
 
-    if (is_setup && (!steam.enabled || steam.setup)) {
+    if (
+      is_setup &&
+      (location.pathname === '/setup' || location.pathname === '/setup/select')
+    ) {
       throw redirect({ to: '/menu' })
     }
   },

@@ -19,15 +19,10 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
     error = Error(error)
   }
 
-  /* <TanstackErrorComponent error={error} /> */
   return (
     <ErrorWrapper
       title="Oops! Something went wrong."
-      description={
-        <p className="text-balance leading-relaxed">
-          <FormattedError text={error.message} />
-        </p>
-      }
+      description={<FormattedError text={error.message} />}
       buttons={
         <>
           <Button

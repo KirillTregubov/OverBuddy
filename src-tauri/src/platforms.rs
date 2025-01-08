@@ -79,10 +79,7 @@ pub mod battle_net {
 
     /// Updates OverBuddy configuration with the current state of the Battle.net.config file.
     ///
-    /// This function modifies the following configuration fields:
-    /// - `config.background.current`
-    /// - `config.background.is_outdated`
-    /// - `config.additional.console_enabled`
+    /// **Warning**: This function modifies the shared configuration fields.
     pub fn update_config(config: &mut Config) -> Result<(), Error> {
         let json = read_config(config)?;
 
@@ -107,35 +104,35 @@ pub mod battle_net {
 
             // TODO: Refactor adding custom
             // if let Some(ref current_background) = current_background {
-            //     config.background.current = Some(current_background.clone());
+            //     config.shared.background.current = Some(current_background.clone());
 
             //     // TODO: When adding custom, check if it was set by the user
             //     if backgrounds::find_background_by_id(current_background).is_none() {
-            //         config.background.is_outdated = true;
+            //         config.shared.background.is_outdated = true;
             //     }
             // }
 
             // Save current background
-            config.background.current =
+            config.shared.background.current =
                 current_background
                     .as_ref()
                     .and_then(|current_background_id| {
                         backgrounds::find_background_by_id(current_background_id)
                             .map(|background| background.id.to_string())
                     });
-            config.background.is_outdated =
-                config.background.current.is_none() && current_background.is_some();
+            config.shared.background.is_outdated =
+                config.shared.background.current.is_none() && current_background.is_some();
 
             // Save debug console state
-            config.additional.console_enabled = launch_args
+            config.shared.additional.console_enabled = launch_args
                 .split_whitespace()
                 .any(|s| s == helpers::CONSOLE_LAUNCH_ARG);
         } else {
             // Reset current background
-            config.background.current = None;
-            config.background.is_outdated = false;
+            config.shared.background.current = None;
+            config.shared.background.is_outdated = false;
             // Reset debug console state
-            config.additional.console_enabled = false;
+            config.shared.additional.console_enabled = false;
         }
 
         Ok(())
@@ -251,7 +248,7 @@ pub mod steam {
         F: Fn(Option<&str>, P) -> String,
         P: Clone,
     {
-        let steam_configs = config.steam.configs.clone().unwrap();
+        let steam_configs = config.steam.configs.as_ref().unwrap();
         if steam_configs.is_empty() {
             return Err(Error::Custom(
                 "Failed to find any accounts in your Steam userdata folder.".into(),
@@ -293,13 +290,23 @@ pub mod steam {
 
     /// Updates OverBuddy configuration with the current state of the Battle.net.config file.
     ///
-    /// This function modifies the following configuration fields:
-    /// - `config.background.current`
-    /// - `config.background.is_outdated`
-    /// - `config.additional.console_enabled`
+    /// **Warning**: This function modifies the shared configuration fields.
     pub fn update_config(config: &mut Config) -> Result<(), Error> {
+        // Update config files
+        if config.steam.configs.is_none() || config.steam.configs.as_ref().unwrap().is_empty() {
+            return Err(Error::Custom(
+                "Failed to find any accounts in your Steam userdata folder.".to_string(),
+            ));
+        }
+        // TODO: check for new configs, ensure current config exists
+
+        // Update profiles
+        config.steam.profiles = Some(get_profiles(&config)?);
+
+        // TODO: fetch steam current background and debug console state
+
         // TODO: Not implemented
-        println!("Updating config {:?}", config);
+        println!("Updating config for steam");
 
         Ok(())
     }

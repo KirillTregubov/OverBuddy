@@ -7,23 +7,27 @@ import { Button, MotionButton } from '@/components/Button'
 import { FormattedError } from '@/components/Error'
 import ErrorWrapper from '@/components/ErrorWrapper'
 import Highlight from '@/components/Highlight'
-import { getSetupPath, useSetupErrorMutation } from '@/lib/data'
+import {
+  getSetupPath,
+  launchQueryOptions,
+  useSetupErrorMutation
+} from '@/lib/data'
 import { ConfigError, ConfigErrors, handleError } from '@/lib/errors'
-import { type Platform } from '@/lib/schemas'
+import { Platform } from '@/lib/schemas'
+import { z } from 'zod'
 
 export const Route = createFileRoute('/setup/$key')({
+  validateSearch: z.object({
+    message: z.string(),
+    platforms: z.array(Platform).default([]),
+    redirect: z.string().optional()
+  }),
   loader: async ({ params: { key }, context: { queryClient } }) => {
     const result = ConfigErrors.safeParse(key)
     if (!result.success) {
       throw Error('Invalid key')
     }
     await queryClient.ensureQueryData(getSetupPath(result.data))
-  },
-  validateSearch: (search: Record<string, unknown>) => {
-    return {
-      message: search.message as string,
-      platforms: (search.platforms as Platform[]) || []
-    }
   },
   staleTime: Infinity,
   component: ConfigureComponent
@@ -32,17 +36,27 @@ export const Route = createFileRoute('/setup/$key')({
 function ConfigureComponent() {
   const navigate = useNavigate()
   const { key } = Route.useParams() as { key: ConfigErrors }
-  const { message, platforms } = Route.useSearch()
+  const { message, platforms, redirect } = Route.useSearch()
   const {
     data: { path, defaultPath }
   } = useSuspenseQuery(getSetupPath(key))
+  const {
+    data: { is_setup }
+  } = useSuspenseQuery(launchQueryOptions)
 
   const { mutate, reset } = useSetupErrorMutation({
     onSuccess: async () => {
-      navigate({
-        to: '/menu',
-        replace: true
-      })
+      if (redirect) {
+        navigate({
+          to: redirect,
+          replace: true
+        })
+      } else {
+        navigate({
+          to: '/menu',
+          replace: true
+        })
+      }
     },
     onError: (error) => {
       if (
@@ -72,10 +86,10 @@ function ConfigureComponent() {
       title="Setup Incomplete"
       description={
         <>
-          <p className="mb-2 text-pretty leading-7 text-zinc-400">
+          <p className="mb-2 leading-7">
             <FormattedError text={message} />
           </p>
-          <p className="text-pretty leading-7 text-zinc-400">
+          <p className="leading-7">
             {key === 'BattleNetInstall' ? (
               <>
                 If you have Battle.net installed, please select the{' '}
@@ -140,10 +154,24 @@ function ConfigureComponent() {
           ) : (
             <Button
               onClick={() => {
-                navigate({
-                  to: '/setup/select',
-                  replace: true
-                })
+                if (is_setup) {
+                  if (redirect) {
+                    navigate({
+                      to: redirect,
+                      replace: true
+                    })
+                  } else {
+                    navigate({
+                      to: '/menu',
+                      replace: true
+                    })
+                  }
+                } else {
+                  navigate({
+                    to: '/setup/select',
+                    replace: true
+                  })
+                }
               }}
             >
               Go Back

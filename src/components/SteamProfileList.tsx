@@ -55,7 +55,7 @@ export default function SteamProfileList({
           <motion.div
             key="fetching"
             aria-live="polite"
-            className="right absolute -right-1 top-1 z-30 flex animate-pulse items-center gap-1 text-sm text-zinc-400"
+            className="right absolute right-1 top-1 z-30 flex animate-pulse items-center gap-1 text-sm text-zinc-400"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             exit={{ opacity: 0 }}

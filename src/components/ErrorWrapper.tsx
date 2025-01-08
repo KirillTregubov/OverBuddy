@@ -33,7 +33,12 @@ export default function ErrorWrapper({
         >
           {title}
         </motion.h1>
-        <motion.div variants={moveInVariants}>{description}</motion.div>
+        <motion.div
+          variants={moveInVariants}
+          className="text-pretty text-zinc-400"
+        >
+          {description}
+        </motion.div>
         <motion.div className="mt-4 flex gap-2" variants={moveInVariants}>
           {buttons}
         </motion.div>

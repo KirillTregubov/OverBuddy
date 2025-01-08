@@ -25,17 +25,20 @@ export const LaunchConfig = z.object({
   }),
   steam: z.object({
     enabled: z.boolean(),
-    setup: z.boolean(),
+    in_setup: z.boolean(),
+    advertised: z.number(),
     profiles: z.array(SteamProfile).nullable(),
     install: z.string().nullable(),
     configs: z.array(SteamLocalconfig).nullable()
   }),
-  background: z.object({
-    current: z.string().nullable(),
-    is_outdated: z.boolean()
-  }),
-  additional: z.object({
-    console_enabled: z.boolean()
+  shared: z.object({
+    background: z.object({
+      current: z.string().nullable(),
+      is_outdated: z.boolean()
+    }),
+    additional: z.object({
+      console_enabled: z.boolean()
+    })
   })
 })
 export type LaunchConfig = z.infer<typeof LaunchConfig>

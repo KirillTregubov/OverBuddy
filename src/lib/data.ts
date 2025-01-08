@@ -261,7 +261,7 @@ export const activeBackgroundQueryOptions = queryOptions({
     )!
     const defaultBackground = backgrounds[0]
     const current = queryClient.getQueryData(launchQueryOptions.queryKey)!
-      .background.current
+      .shared.background.current
     if (current !== null) {
       const index = backgrounds.findIndex((bg) => bg.id === current)
       if (index === -1) return defaultBackground
@@ -494,4 +494,17 @@ export const updateQueryOptions = (enabled: boolean = false) =>
     queryKey: ['check_for_update'],
     queryFn: checkUpdate,
     enabled
+  })
+
+export const shouldAdvertiseQueryOptions = queryOptions({
+  queryKey: ['advertisement'],
+  queryFn: () => true,
+  staleTime: Infinity
+})
+
+export const useDismissAdMutation = () =>
+  useMutation({
+    mutationFn: async () => {
+      queryClient.setQueryData(shouldAdvertiseQueryOptions.queryKey, false)
+    }
   })

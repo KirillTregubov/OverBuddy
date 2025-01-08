@@ -14,8 +14,12 @@ import {
   steamQueryOptions,
   useSteamConfirmMutation
 } from '@/lib/data'
+import { z } from 'zod'
 
 export const Route = createFileRoute('/setup/steam_setup')({
+  validateSearch: z.object({
+    redirect: z.string().optional()
+  }),
   beforeLoad: async ({ context: { queryClient } }) => {
     const { is_setup, steam } = await queryClient.fetchQuery(launchQueryOptions)
     if (!is_setup || !steam.configs) {
@@ -29,14 +33,22 @@ export const Route = createFileRoute('/setup/steam_setup')({
 })
 
 function SteamSetup() {
+  const { redirect } = Route.useSearch()
   const navigate = useNavigate()
   const { data: profiles } = useSuspenseQuery(steamQueryOptions)
   const { mutate, status } = useSteamConfirmMutation({
     onSuccess: () => {
-      navigate({
-        to: '/menu',
-        replace: true
-      })
+      if (redirect) {
+        navigate({
+          to: redirect,
+          replace: true
+        })
+      } else {
+        navigate({
+          to: '/menu',
+          replace: true
+        })
+      }
     }
   })
 
