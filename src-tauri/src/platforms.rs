@@ -250,7 +250,7 @@ pub mod steam {
         let steam_configs = config.steam.configs.as_ref().unwrap();
         if steam_configs.is_empty() {
             return Err(Error::Custom(
-                "Failed to find any accounts in your Steam userdata folder".into(),
+                "Failed to find any accounts in your Steam [[userdata]] folder".into(),
             ));
         }
 
@@ -292,12 +292,13 @@ pub mod steam {
     /// **Warning**: This function modifies the shared configuration fields.
     pub fn update_config(config: &mut Config) -> Result<Option<config::SharedConfig>, Error> {
         // Update config files
+        config.steam.configs = Some(get_configs(config)?);
+
         if config.steam.configs.is_none() || config.steam.configs.as_ref().unwrap().is_empty() {
             return Err(Error::Custom(
-                "Failed to find any accounts in your Steam userdata folder".to_string(),
+                "Failed to find any accounts in your Steam [[userdata]] folder".to_string(),
             ));
         }
-        // TODO: check for new configs, ensure current config exists
 
         // Update profiles
         config.steam.profiles = Some(get_profiles(&config)?);
@@ -365,6 +366,41 @@ pub mod steam {
         Ok(Some(shared_config))
     }
 
+    pub fn get_configs(config: &Config) -> Result<Vec<config::SteamLocalconfig>, Error> {
+        let mut configs: Vec<config::SteamLocalconfig> = vec![];
+
+        // Get Steam path
+        let steam_install =
+            config.steam.install.clone().ok_or_else(|| {
+                Error::Custom("Failed to find your Steam installation".to_string())
+            })?;
+        let steam_path = Path::new(&steam_install).parent().ok_or_else(|| {
+            Error::Custom(
+                "Failed to read the parent directory of your Steam installation".to_string(),
+            )
+        })?;
+
+        // Fetch Steam userdata
+        static CONFIG_FILE: &str = "localconfig.vdf";
+        let userdata_path = steam_path.join("userdata");
+        if userdata_path.exists() && userdata_path.is_dir() {
+            if let Ok(entries) = fs::read_dir(&userdata_path) {
+                for entry in entries.filter_map(Result::ok) {
+                    let config_path = entry.path().join("config");
+                    let config_file_path = config_path.join(CONFIG_FILE);
+                    if config_file_path.exists() && config_file_path.is_file() {
+                        configs.push(config::SteamLocalconfig {
+                            id: entry.file_name().to_string_lossy().to_string(),
+                            file: config_file_path.to_string_lossy().to_string(),
+                        });
+                    }
+                }
+            }
+        }
+
+        Ok(configs)
+    }
+
     const STEAM_AVATAR_URL: &str = "https://avatars.akamai.steamstatic.com";
     fn extract_steam_user_info(
         contents: &str,
@@ -425,7 +461,7 @@ pub mod steam {
             }
         }
         Err(Error::Custom(
-            "Reached the end of file without finding target".into(),
+            "Reached the end of file without finding target".to_string(),
         ))
     }
 

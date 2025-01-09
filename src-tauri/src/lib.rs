@@ -317,39 +317,24 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
             )
         })?;
 
-        // Fetch Steam userdata
-        static CONFIG_FILE: &str = "localconfig.vdf";
         let userdata_path = steam_path.join("userdata");
-        if userdata_path.exists() && userdata_path.is_dir() {
-            if let Ok(entries) = fs::read_dir(&userdata_path) {
-                for entry in entries.filter_map(Result::ok) {
-                    let config_path = entry.path().join("config");
-                    let config_file_path = config_path.join(CONFIG_FILE);
-                    if config_file_path.exists() && config_file_path.is_file() {
-                        let new_config = config::SteamLocalconfig {
-                            id: entry.file_name().to_string_lossy().to_string(),
-                            file: config_file_path.to_string_lossy().to_string(),
-                        };
-
-                        if config.steam.configs.is_none() {
-                            config.steam.configs = Some(vec![new_config]);
-                        } else {
-                            let available_configs = config.steam.configs.as_mut().unwrap();
-                            if !available_configs
-                                .iter()
-                                .any(|config| config.id == new_config.id)
-                            {
-                                available_configs.push(new_config);
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
+        if !userdata_path.exists() || !userdata_path.is_dir() {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
                 error_key: ErrorKey::SteamInstall,
                 message: format!(
                     "Failed to read Steam [[userdata]] folder, located at [[{}]]",
+                    userdata_path.to_string_lossy()
+                ),
+                platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
+            })?));
+        }
+
+        config.steam.configs = Some(steam::get_configs(&config)?);
+        if config.steam.configs.as_ref().unwrap().is_empty() {
+            return Err(Error::Custom(serde_json::to_string(&SetupError {
+                error_key: ErrorKey::SteamInstall,
+                message: format!(
+                    "Failed to find any accounts in your Steam [[userdata]] folder at [[{}]]",
                     userdata_path.to_string_lossy()
                 ),
                 platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
