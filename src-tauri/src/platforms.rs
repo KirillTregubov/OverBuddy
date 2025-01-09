@@ -1,7 +1,7 @@
 pub mod battle_net {
-    use crate::backgrounds;
     use crate::config::Config;
     use crate::helpers::{self, Error};
+    use crate::{backgrounds, config};
     use serde_json::json;
     use std::process::Command;
     use sysinfo::System;
@@ -80,8 +80,17 @@ pub mod battle_net {
     /// Updates OverBuddy configuration with the current state of the Battle.net.config file.
     ///
     /// **Warning**: This function modifies the shared configuration fields.
-    pub fn update_config(config: &mut Config) -> Result<(), Error> {
+    pub fn update_config(config: &Config) -> Result<Option<config::SharedConfig>, Error> {
         let json = read_config(config)?;
+        let mut shared_config = config::SharedConfig {
+            background: config::BackgroundConfig {
+                current: None,
+                is_outdated: false,
+            },
+            additional: config::AdditionalConfig {
+                console_enabled: false,
+            },
+        };
 
         if let Some(launch_args) = json
             .get("Games")
@@ -90,17 +99,7 @@ pub mod battle_net {
             .and_then(|launch_args| launch_args.as_str())
         {
             // Get current background from launch arguments
-            let current_background = launch_args
-                .split_whitespace()
-                .find(|s| s.starts_with(format!("{}=", helpers::BACKGROUND_LAUNCH_ARG).as_str()))
-                .and_then(|s| s.split('=').nth(1))
-                .and_then(|s| {
-                    if s.is_empty() {
-                        None
-                    } else {
-                        Some(String::from(s))
-                    }
-                });
+            let current_background = helpers::get_background(launch_args);
 
             // TODO: Refactor adding custom
             // if let Some(ref current_background) = current_background {
@@ -113,29 +112,28 @@ pub mod battle_net {
             // }
 
             // Save current background
-            config.shared.background.current =
+            shared_config.background.current =
                 current_background
                     .as_ref()
                     .and_then(|current_background_id| {
                         backgrounds::find_background_by_id(current_background_id)
                             .map(|background| background.id.to_string())
                     });
-            config.shared.background.is_outdated =
-                config.shared.background.current.is_none() && current_background.is_some();
+            shared_config.background.is_outdated =
+                shared_config.background.current.is_none() && current_background.is_some();
 
             // Save debug console state
-            config.shared.additional.console_enabled = launch_args
-                .split_whitespace()
-                .any(|s| s == helpers::CONSOLE_LAUNCH_ARG);
-        } else {
-            // Reset current background
-            config.shared.background.current = None;
-            config.shared.background.is_outdated = false;
-            // Reset debug console state
-            config.shared.additional.console_enabled = false;
+            shared_config.additional.console_enabled = helpers::get_console_enabled(launch_args);
         }
+        //  else {
+        //     // Reset current background
+        //     shared_config.background.current = None;
+        //     shared_config.background.is_outdated = false;
+        //     // Reset debug console state
+        //     shared_config.additional.console_enabled = false;
+        // }
 
-        Ok(())
+        Ok(Some(shared_config))
     }
 
     fn read_config(config: &Config) -> Result<serde_json::Value, Error> {
@@ -168,8 +166,9 @@ pub mod battle_net {
 }
 
 pub mod steam {
-    use crate::config::{Config, SteamProfile};
-    use crate::helpers::Error;
+    use crate::backgrounds;
+    use crate::config::{self, Config, SteamProfile};
+    use crate::helpers::{self, Error};
     use similar::{ChangeTag, TextDiff};
     use std::collections::VecDeque;
     use std::fs::{self, File};
@@ -291,7 +290,7 @@ pub mod steam {
     /// Updates OverBuddy configuration with the current state of the Battle.net.config file.
     ///
     /// **Warning**: This function modifies the shared configuration fields.
-    pub fn update_config(config: &mut Config) -> Result<(), Error> {
+    pub fn update_config(config: &mut Config) -> Result<Option<config::SharedConfig>, Error> {
         // Update config files
         if config.steam.configs.is_none() || config.steam.configs.as_ref().unwrap().is_empty() {
             return Err(Error::Custom(
@@ -303,12 +302,67 @@ pub mod steam {
         // Update profiles
         config.steam.profiles = Some(get_profiles(&config)?);
 
-        // TODO: fetch steam current background and debug console state
+        // Update configuration state
+        let mut shared_config = config::SharedConfig {
+            background: config::BackgroundConfig {
+                current: None,
+                is_outdated: false,
+            },
+            additional: config::AdditionalConfig {
+                console_enabled: false,
+            },
+        };
+        let mut background_conflicts = false;
 
-        // TODO: Not implemented
-        println!("Updating config for steam");
+        // Update shared state
+        if let Some(available_configs) = &config.steam.configs {
+            for steam_config in available_configs {
+                if !is_overwatch_installed(config, &steam_config.id)? {
+                    continue;
+                }
 
-        Ok(())
+                let launch_args = get_config_launch_args(&steam_config.file)?;
+
+                if let Some(launch_args) = launch_args {
+                    // Save current background
+                    if !background_conflicts {
+                        let current_background = helpers::get_background(&launch_args);
+
+                        let resolved_background =
+                            current_background
+                                .as_ref()
+                                .and_then(|current_background_id| {
+                                    backgrounds::find_background_by_id(current_background_id)
+                                        .map(|background| background.id.to_string())
+                                });
+
+                        if resolved_background.is_some() {
+                            if shared_config.background.current.is_some() {
+                                if resolved_background.unwrap()
+                                    != shared_config.background.current.clone().unwrap()
+                                {
+                                    shared_config.background.current = None;
+                                    shared_config.background.is_outdated = false;
+
+                                    background_conflicts = true;
+                                }
+                            } else {
+                                shared_config.background.current = resolved_background;
+                                shared_config.background.is_outdated =
+                                    shared_config.background.current.is_none()
+                                        && current_background.is_some();
+                            }
+                        }
+                    }
+
+                    // Save debug console state
+                    shared_config.additional.console_enabled =
+                        helpers::get_console_enabled(&launch_args);
+                }
+            }
+        }
+
+        Ok(Some(shared_config))
     }
 
     const STEAM_AVATAR_URL: &str = "https://avatars.akamai.steamstatic.com";
@@ -539,6 +593,118 @@ pub mod steam {
             return Ok(false);
         }
         Ok(true)
+    }
+
+    fn get_config_launch_args(config_filename: &str) -> Result<Option<String>, Error> {
+        let mut file = fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open(config_filename)
+            .map_err(|_| {
+                Error::Custom(format!(
+                    "Failed to open the Steam config file at [[{}]]",
+                    config_filename
+                ))
+            })?;
+        let mut local_config = String::new();
+        file.read_to_string(&mut local_config).map_err(|_| {
+            Error::Custom(format!(
+                "Failed to read Steam config file at [[{}]]",
+                config_filename
+            ))
+        })?;
+
+        // Traverse config file to Overwatch entry
+        let keys = vec![
+            "UserLocalConfigStore",
+            "Software",
+            "Valve",
+            "Steam",
+            "apps",
+            "2357570",
+        ];
+
+        let mut queue: VecDeque<&str> = VecDeque::from(keys);
+        let mut current_start = 0;
+        let mut current_end = local_config.len();
+
+        while let Some(key) = queue.pop_front() {
+            if let Some(pos) = local_config[current_start..current_end].find(key) {
+                // Update start position
+                current_start += pos;
+                // Identify opening brace
+                let brace_pos = local_config[current_start..].find('{').ok_or_else(|| {
+                    Error::Custom(format!(
+                        "Failed to find an opening brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
+                        config_filename
+                    ))
+                })?;
+                let block_start = current_start + brace_pos + 1;
+                // Identify closing brace
+                let current_indent = local_config[current_start..block_start]
+                    .rfind("\n")
+                    .and_then(|inner_pos| {
+                        local_config[current_start + inner_pos + 1..block_start]
+                            .chars()
+                            .take_while(|&c| c == '\t')
+                            .count()
+                            .into()
+                    })
+                    .unwrap_or(0);
+                let search_pattern = format!("\n{}{}", "\t".repeat(current_indent), "}");
+                // Update end position
+                current_end = local_config[block_start..]
+                    .find(&search_pattern)
+                    .map(|i| block_start + i + 1)
+                    .ok_or_else(|| {
+                        Error::Custom(format!(
+                            "Failed to find the closing brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]].", config_filename
+                        ))
+                    })?;
+            } else {
+                if key == "2357570" {
+                    // Overwatch not installed on this account
+                    return Ok(None);
+                }
+                return Err(Error::Custom(format!(
+                    "Failed to find the [[{}]] key in Steam config at [[{}]].",
+                    key, config_filename
+                )));
+            }
+        }
+
+        // Get Overwatch config block
+        let brace_pos = local_config[current_start..].find('{').ok_or_else(|| {
+                Error::Custom(format!(
+                    "Failed to find an opening brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
+                    config_filename
+                ))
+            })?;
+        let block_start = current_start + brace_pos + 1;
+        let block_end = current_end;
+
+        // Set LaunchOptions config to background
+        if let Some(launch_options_pos) =
+            local_config[block_start..block_end].find("\"LaunchOptions\"")
+        {
+            let value_start = block_start + launch_options_pos + "\"LaunchOptions\"".len() + 3; // Skip the key, quotes, and tab
+            let value_end = value_start
+                + local_config[value_start..block_end]
+                    .find('"')
+                    .unwrap_or(value_start);
+
+            if value_start > value_end {
+                return Err(Error::Custom(format!(
+                        "Failed to read the [[LaunchOptions]] key, inside the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
+                        config_filename
+                    )));
+            }
+
+            let launch_args = &local_config[value_start..value_end];
+            return Ok(Some(launch_args.to_string()));
+        } else {
+            return Ok(Some(String::new()));
+        }
     }
 
     fn set_config_launch_args<F, P>(

@@ -1,8 +1,9 @@
+import { createLink, Link } from '@tanstack/react-router'
+import { motion, type HTMLMotionProps } from 'motion/react'
+
 import { buttonClasses } from '@/lib/button'
 import { anchorLinkFix } from '@/lib/linkFix'
 import { cn } from '@/lib/utils'
-import { createLink, Link } from '@tanstack/react-router'
-import { motion, type HTMLMotionProps } from 'motion/react'
 
 type ButtonProps = {
   children: React.ReactNode

@@ -15,44 +15,61 @@ use tauri::AppHandle;
 #[tauri::command]
 fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
     let mut config = config::read_config(&handle)?;
+    let mut battle_net_shared: Option<config::SharedConfig> = None;
+    let mut steam_shared: Option<config::SharedConfig> = None;
 
     if config.is_setup {
+        // TODO: Show user a warning if the backup file exists
+
         if config.battle_net.enabled {
-            // Restore backup configuration if it exists
-            let battle_net_config = config.battle_net.config.clone().unwrap();
-            let backup_path = format!("{}.backup", battle_net_config);
-            if Path::new(&backup_path).exists() {
-                fs::copy(&backup_path, &battle_net_config).map_err(|_| {
-                    Error::Custom(format!(
-                        "Failed to restore backup of [[{}]]",
-                        helpers::get_file_name_from_path(&battle_net_config).unwrap_or("unknown")
-                    ))
-                })?;
-                let _ = fs::remove_file(&backup_path);
-            }
-
-            battle_net::update_config(&mut config)?;
+            battle_net_shared = battle_net::update_config(&config)?;
         }
 
-        if config.steam.enabled {
-            // TODO: Restore backup configuration if it exists
-
-            if !config.steam.in_setup {
-                steam::update_config(&mut config)?;
-            }
+        if config.steam.enabled && !config.steam.in_setup {
+            steam_shared = steam::update_config(&mut config)?;
         }
 
-        // merge configs
-        // config.shared.background.current
-        // config.shared.background.is_outdated
-        // config.shared.additional.console_enabled
+        // Merge shared config
+        if let Some(battle_net_shared) = battle_net_shared {
+            if let Some(steam_shared) = steam_shared {
+                let battle_net_background = battle_net_shared.background.current;
+                let steam_background = steam_shared.background.current;
+                if battle_net_background.is_some() && steam_background.is_some() {
+                    let battle_net_background_value = battle_net_background.unwrap();
+                    if battle_net_background_value == steam_background.unwrap() {
+                        config.shared.background.current = Some(battle_net_background_value);
+                        config.shared.background.is_outdated = false;
+                    } else {
+                        config.shared.background.current = None;
+                        config.shared.background.is_outdated = false;
+                    }
+                }
+
+                if battle_net_shared.additional.console_enabled
+                    && steam_shared.additional.console_enabled
+                {
+                    config.shared.additional.console_enabled = true;
+                }
+            } else {
+                config.shared.background.current = battle_net_shared.background.current;
+                config.shared.background.is_outdated = battle_net_shared.background.is_outdated;
+                config.shared.additional.console_enabled =
+                    battle_net_shared.additional.console_enabled;
+            }
+        } else {
+            if let Some(steam_shared) = steam_shared {
+                config.shared.background.current = steam_shared.background.current;
+                config.shared.background.is_outdated = steam_shared.background.is_outdated;
+                config.shared.additional.console_enabled = steam_shared.additional.console_enabled;
+            }
+        }
     }
 
     if !config.battle_net.enabled && !config.steam.enabled {
         config.is_setup = false;
     }
 
-    // TODO: temporarily advertise steam support
+    //NOTE: Temporarily advertise Steam support
     if config.steam.advertised < 4
         && config.is_setup
         && (!config.steam.enabled || !config.steam.in_setup)
@@ -230,7 +247,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         }
 
         // Update config
-        battle_net::update_config(&mut config)?;
+        battle_net::update_config(&config)?;
 
         // Cleanup: Reopen Battle.net if it was closed
         if battle_net_was_closed {
@@ -348,7 +365,9 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         }
 
         // Enable Steam
-        config.steam.in_setup = true;
+        if !config.steam.enabled {
+            config.steam.in_setup = true;
+        }
         config.steam.enabled = true;
     } else {
         if config.steam.enabled && config.shared.background.current.is_some() {
@@ -379,6 +398,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         config.shared.additional.console_enabled = false;
     } else {
         config.is_setup = true;
+        config.steam.advertised = 4; // Do not advertise to new users
     }
 
     config::write_config(&handle, &config)?;
@@ -476,12 +496,28 @@ fn get_steam_accounts(handle: AppHandle) -> Result<String, Error> {
 fn confirm_steam_setup(handle: AppHandle) -> Result<String, Error> {
     let mut config = config::read_config(&handle)?;
 
-    steam::update_config(&mut config)?;
+    let steam_shared = steam::update_config(&mut config)?;
     config.steam.in_setup = false;
 
-    // TODO: merge shared configs
+    println!("config: {:?}", config);
 
-    config::write_config(&handle, &config)?;
+    if let Some(steam_shared) = steam_shared {
+        if let (Some(battle_net_background), Some(steam_background)) = (
+            &config.shared.background.current,
+            &steam_shared.background.current,
+        ) {
+            if battle_net_background == steam_background {
+                config.shared.background.is_outdated = false;
+            } else {
+                config.shared.background.current = None;
+                config.shared.background.is_outdated = false;
+            }
+        }
+
+        if config.shared.additional.console_enabled && steam_shared.additional.console_enabled {
+            config.shared.additional.console_enabled = true;
+        }
+    }
 
     Ok(serde_json::to_string(&config)?)
 }

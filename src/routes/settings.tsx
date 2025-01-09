@@ -11,6 +11,7 @@ import {
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { z } from 'zod'
 
 import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
@@ -51,7 +52,6 @@ import { ConfigError, ConfigErrors, SetupError } from '@/lib/errors'
 import preventReload from '@/lib/preventReload'
 import type { Platform } from '@/lib/schemas'
 import useKeyPress from '@/lib/useKeyPress'
-import { z } from 'zod'
 
 export const Route = createFileRoute('/settings')({
   validateSearch: z.object({
@@ -299,6 +299,7 @@ function Platforms() {
     },
     onSuccess: ({ config }) => {
       if (config.steam.enabled && config.steam.in_setup) {
+        console.log('WHY', config)
         router.navigate({
           to: '/setup/steam_setup',
           search: {

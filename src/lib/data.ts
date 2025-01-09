@@ -311,7 +311,7 @@ export const useBackgroundMutation = ({
       toast.dismiss(toastIds[toastIndex])
       const newIndex = (toastIndex + 1) % toastIds.length
 
-      toast.success(`Successfully applied this background.`, {
+      toast.success(`Successfully applied background.`, {
         id: toastIds[newIndex]
       })
       setToastIndex(newIndex)

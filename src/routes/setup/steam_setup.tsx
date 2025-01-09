@@ -1,6 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { motion } from 'motion/react'
+import { z } from 'zod'
 
 import { MotionButton } from '@/components/Button'
 import SteamProfileComponent from '@/components/SteamProfile'
@@ -14,7 +15,6 @@ import {
   steamQueryOptions,
   useSteamConfirmMutation
 } from '@/lib/data'
-import { z } from 'zod'
 
 export const Route = createFileRoute('/setup/steam_setup')({
   validateSearch: z.object({

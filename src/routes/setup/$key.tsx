@@ -2,6 +2,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { open } from '@tauri-apps/plugin-dialog'
 import { toast } from 'sonner'
+import { z } from 'zod'
 
 import { Button, MotionButton } from '@/components/Button'
 import { FormattedError } from '@/components/Error'
@@ -14,7 +15,6 @@ import {
 } from '@/lib/data'
 import { ConfigError, ConfigErrors, handleError } from '@/lib/errors'
 import { Platform } from '@/lib/schemas'
-import { z } from 'zod'
 
 export const Route = createFileRoute('/setup/$key')({
   validateSearch: z.object({

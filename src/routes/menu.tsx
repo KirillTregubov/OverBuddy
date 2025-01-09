@@ -120,7 +120,7 @@ function Menu() {
   useKeyPress({
     keys: ['ArrowLeft', 'a'],
     onPress: onLeftPress,
-    debounce: 100,
+    debounce: 50,
     sharedTimer: sharedTimerRef,
     avoidModifiers: true,
     capture: true
@@ -145,7 +145,7 @@ function Menu() {
   useKeyPress({
     keys: ['ArrowRight', 'd'],
     onPress: onRightPress,
-    debounce: 100,
+    debounce: 50,
     sharedTimer: sharedTimerRef,
     avoidModifiers: true,
     capture: true

@@ -46,7 +46,7 @@ pub fn get_file_name_from_path(path: &str) -> Option<&str> {
 // Background helpers
 
 // Generate background launch arguments
-pub const BACKGROUND_LAUNCH_ARG: &str = "--lobbyMap";
+const BACKGROUND_LAUNCH_ARG: &str = "--lobbyMap";
 pub fn generate_background_launch_args(launch_args: Option<&str>, id: Option<&str>) -> String {
     let new_arg = id.map(|id| format!("{}={}", BACKGROUND_LAUNCH_ARG, id));
 
@@ -68,7 +68,7 @@ pub fn generate_background_launch_args(launch_args: Option<&str>, id: Option<&st
 }
 
 // Generate debug console launch arguments
-pub const CONSOLE_LAUNCH_ARG: &str = "--tank_Console";
+const CONSOLE_LAUNCH_ARG: &str = "--tank_Console";
 pub fn generate_console_launch_args(launch_args: Option<&str>, enable_console: bool) -> String {
     let new_arg = if enable_console {
         Some(CONSOLE_LAUNCH_ARG.to_string())
@@ -177,4 +177,24 @@ pub fn safe_json_write(path: String, json: &serde_json::Value) -> Result<(), Err
             )))
         }
     }
+}
+
+pub fn get_background(launch_args: &str) -> Option<String> {
+    launch_args
+        .split_whitespace()
+        .find(|s| s.starts_with(format!("{}=", BACKGROUND_LAUNCH_ARG).as_str()))
+        .and_then(|s| s.split('=').nth(1))
+        .and_then(|s| {
+            if s.is_empty() {
+                None
+            } else {
+                Some(String::from(s))
+            }
+        })
+}
+
+pub fn get_console_enabled(launch_args: &str) -> bool {
+    launch_args
+        .split_whitespace()
+        .any(|s| s == CONSOLE_LAUNCH_ARG)
 }
