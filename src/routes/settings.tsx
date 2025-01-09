@@ -299,7 +299,6 @@ function Platforms() {
     },
     onSuccess: ({ config }) => {
       if (config.steam.enabled && config.steam.in_setup) {
-        console.log('WHY', config)
         router.navigate({
           to: '/setup/steam_setup',
           search: {

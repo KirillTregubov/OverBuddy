@@ -30,38 +30,37 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
         }
 
         // Merge shared config
-        if let Some(battle_net_shared) = battle_net_shared {
-            if let Some(steam_shared) = steam_shared {
-                let battle_net_background = battle_net_shared.background.current;
-                let steam_background = steam_shared.background.current;
-                if battle_net_background.is_some() && steam_background.is_some() {
-                    let battle_net_background_value = battle_net_background.unwrap();
-                    if battle_net_background_value == steam_background.unwrap() {
-                        config.shared.background.current = Some(battle_net_background_value);
-                        config.shared.background.is_outdated = false;
-                    } else {
-                        config.shared.background.current = None;
-                        config.shared.background.is_outdated = false;
-                    }
+        if let (Some(battle_net_shared), Some(steam_shared)) = (&battle_net_shared, &steam_shared) {
+            if let (Some(battle_net_bg), Some(steam_bg)) = (
+                &battle_net_shared.background.current,
+                &steam_shared.background.current,
+            ) {
+                if battle_net_bg == steam_bg {
+                    config.shared.background.current = Some(battle_net_bg.clone());
+                    config.shared.background.is_outdated = false;
+                } else {
+                    config.shared.background.current = None;
+                    config.shared.background.is_outdated = false;
                 }
+            }
 
-                if battle_net_shared.additional.console_enabled
-                    && steam_shared.additional.console_enabled
-                {
-                    config.shared.additional.console_enabled = true;
-                }
-            } else {
-                config.shared.background.current = battle_net_shared.background.current;
-                config.shared.background.is_outdated = battle_net_shared.background.is_outdated;
-                config.shared.additional.console_enabled =
-                    battle_net_shared.additional.console_enabled;
+            if battle_net_shared.additional.console_enabled
+                && steam_shared.additional.console_enabled
+            {
+                config.shared.additional.console_enabled = true;
             }
+        } else if let Some(battle_net_shared) = &battle_net_shared {
+            config.shared.background.current = battle_net_shared.background.current.clone();
+            config.shared.background.is_outdated = battle_net_shared.background.is_outdated;
+            config.shared.additional.console_enabled = battle_net_shared.additional.console_enabled;
+        } else if let Some(steam_shared) = &steam_shared {
+            config.shared.background.current = steam_shared.background.current.clone();
+            config.shared.background.is_outdated = steam_shared.background.is_outdated;
+            config.shared.additional.console_enabled = steam_shared.additional.console_enabled;
         } else {
-            if let Some(steam_shared) = steam_shared {
-                config.shared.background.current = steam_shared.background.current;
-                config.shared.background.is_outdated = steam_shared.background.is_outdated;
-                config.shared.additional.console_enabled = steam_shared.additional.console_enabled;
-            }
+            config.shared.background.current = None;
+            config.shared.background.is_outdated = false;
+            config.shared.additional.console_enabled = false;
         }
     }
 
@@ -102,7 +101,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         if config.battle_net.install.is_none() {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
                 error_key: ErrorKey::BattleNetInstall,
-                message: "Failed to find your Battle.net installation.".to_string(),
+                message: "Failed to find your Battle.net installation".to_string(),
                 platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
             })?));
         }
@@ -130,7 +129,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
                             return Err(Error::Custom(serde_json::to_string(&SetupError {
                                 error_key: ErrorKey::BattleNetConfig,
                                 message: format!(
-                                    "Failed to find [[{}]] file at [[{}]].",
+                                    "Failed to find [[{}]] file at [[{}]]",
                                     battle_net::CONFIG_FILE,
                                     display_path
                                 ),
@@ -142,7 +141,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
                         return Err(Error::Custom(serde_json::to_string(&SetupError {
                             error_key: ErrorKey::BattleNetConfig,
                             message: format!(
-                                "Failed to read [[{}]] file at [[{}]].",
+                                "Failed to read [[{}]] file at [[{}]]",
                                 battle_net::CONFIG_FILE,
                                 display_path
                             ),
@@ -152,7 +151,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
                 } else {
                     return Err(Error::Custom(serde_json::to_string(&SetupError {
                         error_key: ErrorKey::BattleNetConfig,
-                        message: "Failed to find the Battle.net AppData directory.".to_string(),
+                        message: "Failed to find the Battle.net AppData directory".to_string(),
                         platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
                     })?));
                 }
@@ -200,7 +199,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
             None => {
                 return Err(Error::Custom(serde_json::to_string(&SetupError {
                     error_key: ErrorKey::NoOverwatch,
-                    message: "Unable to find an Overwatch installation on Battle.net.".to_string(),
+                    message: "Unable to find an Overwatch installation on Battle.net".to_string(),
                     platforms: None,
                 })?));
             }
@@ -247,7 +246,10 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         }
 
         // Update config
-        battle_net::update_config(&config)?;
+        let battle_net_shared = battle_net::update_config(&config)?;
+        if let Some(battle_net_shared) = battle_net_shared {
+            config.shared = battle_net_shared;
+        }
 
         // Cleanup: Reopen Battle.net if it was closed
         if battle_net_was_closed {
@@ -256,7 +258,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
                 .spawn()
                 .map_err(|_| {
                     Error::Custom(format!(
-                        "Failed to open Battle.net at [[{}]].",
+                        "Failed to open Battle.net at [[{}]]",
                         config.battle_net.install.clone().unwrap()
                     ))
                 })?;
@@ -296,7 +298,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         if config.steam.install.is_none() {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
                 error_key: ErrorKey::SteamInstall,
-                message: "Failed to find your Steam installation.".to_string(),
+                message: "Failed to find your Steam installation".to_string(),
                 platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
             })?));
         }
@@ -307,7 +309,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
             Error::Custom(
                 serde_json::to_string(&SetupError {
                     error_key: ErrorKey::SteamInstall,
-                    message: "Failed to read the parent directory of your Steam installation."
+                    message: "Failed to read the parent directory of your Steam installation"
                         .to_string(),
                     platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
                 })
@@ -347,7 +349,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
             return Err(Error::Custom(serde_json::to_string(&SetupError {
                 error_key: ErrorKey::SteamInstall,
                 message: format!(
-                    "Failed to read Steam [[userdata]] folder, located at [[{}]].",
+                    "Failed to read Steam [[userdata]] folder, located at [[{}]]",
                     userdata_path.to_string_lossy()
                 ),
                 platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
@@ -358,7 +360,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         if config.steam.configs.is_none() || config.steam.configs.as_ref().unwrap().is_empty() {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
                 error_key: ErrorKey::SteamAccount,
-                message: "Failed to find any accounts in your Steam [[userdata]] folder."
+                message: "Failed to find any accounts in your Steam [[userdata]] folder"
                     .to_string(),
                 platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
             })?));
@@ -388,7 +390,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         config.is_setup = false;
         if !is_initialized {
             return Err(Error::Custom(format!(
-                "Failed to setup one of your requested platforms: [[{}]].",
+                "Failed to setup one of your requested platforms: [[{}]]",
                 platforms.join("]], [[").replace("BattleNet", "Battle.net")
             )));
         }
@@ -427,7 +429,7 @@ fn resolve_setup_error(
         }
         _ => {
             return Err(Error::Custom(format!(
-                "Encountered incorrect setup resolution key [[{}]]. Please report this issue to the developer.", key
+                "Encountered incorrect setup resolution key [[{}]]. Please report this issue to the developer", key
             )));
         }
     };
@@ -479,7 +481,7 @@ fn get_setup_path(key: &str) -> Result<String, Error> {
             }))?)
         }
         _ => Err(Error::Custom(
-            "Encountered an incorrect setup key. Please report this issue to the developer.".into(),
+            "Encountered an incorrect setup key. Please report this issue to the developer".into(),
         )),
     }
 }
@@ -497,27 +499,31 @@ fn confirm_steam_setup(handle: AppHandle) -> Result<String, Error> {
     let mut config = config::read_config(&handle)?;
 
     let steam_shared = steam::update_config(&mut config)?;
-    config.steam.in_setup = false;
-
-    println!("config: {:?}", config);
 
     if let Some(steam_shared) = steam_shared {
-        if let (Some(battle_net_background), Some(steam_background)) = (
-            &config.shared.background.current,
-            &steam_shared.background.current,
-        ) {
-            if battle_net_background == steam_background {
-                config.shared.background.is_outdated = false;
-            } else {
-                config.shared.background.current = None;
-                config.shared.background.is_outdated = false;
+        if config.battle_net.enabled {
+            if let (Some(battle_net_background), Some(steam_background)) = (
+                &config.shared.background.current,
+                &steam_shared.background.current,
+            ) {
+                if battle_net_background != steam_background {
+                    config.shared.background.current = None;
+                    config.shared.background.is_outdated = false;
+                }
             }
-        }
 
-        if config.shared.additional.console_enabled && steam_shared.additional.console_enabled {
-            config.shared.additional.console_enabled = true;
+            if config.shared.additional.console_enabled && steam_shared.additional.console_enabled {
+                config.shared.additional.console_enabled = true;
+            }
+        } else {
+            config.shared.background.current = steam_shared.background.current;
+            config.shared.background.is_outdated = steam_shared.background.is_outdated;
+            config.shared.additional.console_enabled = steam_shared.additional.console_enabled;
         }
     }
+
+    config.steam.in_setup = false;
+    config::write_config(&handle, &config)?;
 
     Ok(serde_json::to_string(&config)?)
 }

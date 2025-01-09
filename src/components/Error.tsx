@@ -16,5 +16,7 @@ export function FormattedError({ text }: { text: string }) {
     parts.push(text.slice(lastIdx))
   }
 
+  parts.push('.')
+
   return parts
 }

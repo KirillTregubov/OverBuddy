@@ -50,7 +50,7 @@ pub mod battle_net {
             None => {
                 battle_net_cleanup();
                 return Err(Error::Custom(
-                    "Unable to find an Overwatch installation on Battle.net. If you have changed your Battle.net installation, please reset settings.".to_string(),
+                    "Unable to find an Overwatch installation on Battle.net. If you have changed your Battle.net installation, please reset settings".to_string(),
                 ));
             }
         };
@@ -105,7 +105,7 @@ pub mod battle_net {
             // if let Some(ref current_background) = current_background {
             //     config.shared.background.current = Some(current_background.clone());
 
-            //     // TODO: When adding custom, check if it was set by the user
+            //     // NOTE: When adding custom, check if it was set by the user
             //     if backgrounds::find_background_by_id(current_background).is_none() {
             //         config.shared.background.is_outdated = true;
             //     }
@@ -144,7 +144,7 @@ pub mod battle_net {
             Ok(file) => file,
             Err(e) => {
                 return Err(Error::Custom(format!(
-                    "Failed to open [[{}]] file at [[{}]]: {}. If you have changed your Battle.net installation, please reset settings.",
+                    "Failed to open [[{}]] file at [[{}]]: {}. If you have changed your Battle.net installation, please reset settings",
                     CONFIG_FILE,
                     battle_net_config,
                     e
@@ -229,7 +229,7 @@ pub mod steam {
 
             if profiles.len() < available_configs.len() {
                 return Err(Error::Custom(format!(
-                    "Failed to find all accounts in your Steam [[userdata]] folder at [[{}]].",
+                    "Failed to find all accounts in your Steam [[userdata]] folder at [[{}]]",
                     config.steam.install.clone().unwrap()
                 )));
             }
@@ -250,7 +250,7 @@ pub mod steam {
         let steam_configs = config.steam.configs.as_ref().unwrap();
         if steam_configs.is_empty() {
             return Err(Error::Custom(
-                "Failed to find any accounts in your Steam userdata folder.".into(),
+                "Failed to find any accounts in your Steam userdata folder".into(),
             ));
         }
 
@@ -294,7 +294,7 @@ pub mod steam {
         // Update config files
         if config.steam.configs.is_none() || config.steam.configs.as_ref().unwrap().is_empty() {
             return Err(Error::Custom(
-                "Failed to find any accounts in your Steam userdata folder.".to_string(),
+                "Failed to find any accounts in your Steam userdata folder".to_string(),
             ));
         }
         // TODO: check for new configs, ensure current config exists
@@ -534,14 +534,14 @@ pub mod steam {
                 return Ok(profile.has_overwatch);
             } else {
                 return Err(Error::Custom(format!(
-                    "Failed to find a Steam account with id [[{}]].",
+                    "Failed to find a Steam account with id [[{}]]",
                     steam_id
                 )));
             }
         }
 
         Err(Error::Custom(
-            "Failed to find any accounts in your Steam [[userdata]] folder.".to_string(),
+            "Failed to find any accounts in your Steam [[userdata]] folder".to_string(),
         ))
     }
 
@@ -635,7 +635,7 @@ pub mod steam {
                 // Identify opening brace
                 let brace_pos = local_config[current_start..].find('{').ok_or_else(|| {
                     Error::Custom(format!(
-                        "Failed to find an opening brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
+                        "Failed to find an opening brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]]",
                         config_filename
                     ))
                 })?;
@@ -658,7 +658,7 @@ pub mod steam {
                     .map(|i| block_start + i + 1)
                     .ok_or_else(|| {
                         Error::Custom(format!(
-                            "Failed to find the closing brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]].", config_filename
+                            "Failed to find the closing brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]]", config_filename
                         ))
                     })?;
             } else {
@@ -667,7 +667,7 @@ pub mod steam {
                     return Ok(None);
                 }
                 return Err(Error::Custom(format!(
-                    "Failed to find the [[{}]] key in Steam config at [[{}]].",
+                    "Failed to find the [[{}]] key in Steam config at [[{}]]",
                     key, config_filename
                 )));
             }
@@ -676,7 +676,7 @@ pub mod steam {
         // Get Overwatch config block
         let brace_pos = local_config[current_start..].find('{').ok_or_else(|| {
                 Error::Custom(format!(
-                    "Failed to find an opening brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
+                    "Failed to find an opening brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]]",
                     config_filename
                 ))
             })?;
@@ -695,7 +695,7 @@ pub mod steam {
 
             if value_start > value_end {
                 return Err(Error::Custom(format!(
-                        "Failed to read the [[LaunchOptions]] key, inside the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
+                        "Failed to read the [[LaunchOptions]] key, inside the [[2357570]] (Overwatch) key in Steam config at [[{}]]",
                         config_filename
                     )));
             }
@@ -758,7 +758,7 @@ pub mod steam {
                     // Identify opening brace
                     let brace_pos = local_config[current_start..].find('{').ok_or_else(|| {
                     Error::Custom(format!(
-                        "Failed to find an opening brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
+                        "Failed to find an opening brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]]",
                         config_filename
                     ))
                 })?;
@@ -781,7 +781,7 @@ pub mod steam {
                     .map(|i| block_start + i + 1)
                     .ok_or_else(|| {
                         Error::Custom(format!(
-                            "Failed to find the closing brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]].", config_filename
+                            "Failed to find the closing brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]]", config_filename
                         ))
                     })?;
                 } else {
@@ -790,7 +790,7 @@ pub mod steam {
                         return Ok(());
                     }
                     return Err(Error::Custom(format!(
-                        "Failed to find the [[{}]] key in Steam config at [[{}]].",
+                        "Failed to find the [[{}]] key in Steam config at [[{}]]",
                         key, config_filename
                     )));
                 }
@@ -799,7 +799,7 @@ pub mod steam {
             // Get Overwatch config block
             let brace_pos = local_config[current_start..].find('{').ok_or_else(|| {
                 Error::Custom(format!(
-                    "Failed to find an opening brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
+                    "Failed to find an opening brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]]",
                     config_filename
                 ))
             })?;
@@ -818,7 +818,7 @@ pub mod steam {
 
                 if value_start > value_end {
                     return Err(Error::Custom(format!(
-                        "Failed to read the [[LaunchOptions]] key, inside the [[2357570]] (Overwatch) key in Steam config at [[{}]].",
+                        "Failed to read the [[LaunchOptions]] key, inside the [[2357570]] (Overwatch) key in Steam config at [[{}]]",
                         config_filename
                     )));
                 }
@@ -872,7 +872,7 @@ pub mod steam {
             let config_changed = verify_file_diff(&config_filename, &backup_path);
             if config_changed.is_err() {
                 return Err(Error::Custom(format!(
-                    "Failed to verify the backup file at [[{}]], {}.",
+                    "Failed to verify the backup file at [[{}]], {}",
                     backup_path,
                     config_changed.unwrap_err()
                 )));

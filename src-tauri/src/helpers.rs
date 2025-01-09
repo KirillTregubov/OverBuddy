@@ -1,7 +1,7 @@
 use serde::Serialize;
 use serde_json::{from_reader, Serializer, Value};
-use std::fs::{self, File};
-use std::io::{self};
+use std::fs;
+use std::io;
 use std::path::{Path, PathBuf};
 
 // Global helpers
@@ -41,56 +41,6 @@ pub fn display_path_string(path: &PathBuf) -> Result<String, Error> {
 
 pub fn get_file_name_from_path(path: &str) -> Option<&str> {
     Path::new(path).file_name().and_then(|name| name.to_str())
-}
-
-// Background helpers
-
-// Generate background launch arguments
-const BACKGROUND_LAUNCH_ARG: &str = "--lobbyMap";
-pub fn generate_background_launch_args(launch_args: Option<&str>, id: Option<&str>) -> String {
-    let new_arg = id.map(|id| format!("{}={}", BACKGROUND_LAUNCH_ARG, id));
-
-    let filtered_args = launch_args
-        .map(|args| {
-            args.split_whitespace()
-                .filter(|&part| !part.starts_with(BACKGROUND_LAUNCH_ARG))
-                .collect::<Vec<_>>()
-                .join(" ")
-        })
-        .unwrap_or_default();
-
-    match (filtered_args.is_empty(), new_arg) {
-        (true, Some(arg)) => arg,
-        (false, Some(arg)) => format!("{} {}", filtered_args, arg),
-        (false, None) => filtered_args,
-        (true, None) => String::new(),
-    }
-}
-
-// Generate debug console launch arguments
-const CONSOLE_LAUNCH_ARG: &str = "--tank_Console";
-pub fn generate_console_launch_args(launch_args: Option<&str>, enable_console: bool) -> String {
-    let new_arg = if enable_console {
-        Some(CONSOLE_LAUNCH_ARG.to_string())
-    } else {
-        None
-    };
-
-    let filtered_args = launch_args
-        .map(|args| {
-            args.split_whitespace()
-                .filter(|&part| part != CONSOLE_LAUNCH_ARG)
-                .collect::<Vec<_>>()
-                .join(" ")
-        })
-        .unwrap_or_default();
-
-    match (filtered_args.is_empty(), new_arg) {
-        (true, Some(arg)) => arg,
-        (false, Some(arg)) => format!("{} {}", filtered_args, arg),
-        (false, None) => filtered_args,
-        (true, None) => String::new(),
-    }
 }
 
 pub fn safe_json_write(path: String, json: &serde_json::Value) -> Result<(), Error> {
@@ -148,7 +98,7 @@ pub fn safe_json_write(path: String, json: &serde_json::Value) -> Result<(), Err
     }
 
     // Validate new config
-    let file = match File::open(&path) {
+    let file = match fs::File::open(&path) {
         Ok(file) => file,
         Err(_) => {
             // Restore backup
@@ -179,6 +129,9 @@ pub fn safe_json_write(path: String, json: &serde_json::Value) -> Result<(), Err
     }
 }
 
+// Launch argument helpers
+
+/// Get the background id from the launch arguments.
 pub fn get_background(launch_args: &str) -> Option<String> {
     launch_args
         .split_whitespace()
@@ -193,8 +146,57 @@ pub fn get_background(launch_args: &str) -> Option<String> {
         })
 }
 
+/// Get the debug console state from the launch arguments.
 pub fn get_console_enabled(launch_args: &str) -> bool {
     launch_args
         .split_whitespace()
         .any(|s| s == CONSOLE_LAUNCH_ARG)
+}
+
+const BACKGROUND_LAUNCH_ARG: &str = "--lobbyMap";
+/// Generate background launch arguments
+pub fn generate_background_launch_args(launch_args: Option<&str>, id: Option<&str>) -> String {
+    let new_arg = id.map(|id| format!("{}={}", BACKGROUND_LAUNCH_ARG, id));
+
+    let filtered_args = launch_args
+        .map(|args| {
+            args.split_whitespace()
+                .filter(|&part| !part.starts_with(BACKGROUND_LAUNCH_ARG))
+                .collect::<Vec<_>>()
+                .join(" ")
+        })
+        .unwrap_or_default();
+
+    match (filtered_args.is_empty(), new_arg) {
+        (true, Some(arg)) => arg,
+        (false, Some(arg)) => format!("{} {}", filtered_args, arg),
+        (false, None) => filtered_args,
+        (true, None) => String::new(),
+    }
+}
+
+const CONSOLE_LAUNCH_ARG: &str = "--tank_Console";
+/// Generate debug console launch arguments
+pub fn generate_console_launch_args(launch_args: Option<&str>, enable_console: bool) -> String {
+    let new_arg = if enable_console {
+        Some(CONSOLE_LAUNCH_ARG.to_string())
+    } else {
+        None
+    };
+
+    let filtered_args = launch_args
+        .map(|args| {
+            args.split_whitespace()
+                .filter(|&part| part != CONSOLE_LAUNCH_ARG)
+                .collect::<Vec<_>>()
+                .join(" ")
+        })
+        .unwrap_or_default();
+
+    match (filtered_args.is_empty(), new_arg) {
+        (true, Some(arg)) => arg,
+        (false, Some(arg)) => format!("{} {}", filtered_args, arg),
+        (false, None) => filtered_args,
+        (true, None) => String::new(),
+    }
 }

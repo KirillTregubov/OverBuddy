@@ -18,20 +18,20 @@ pub struct SetupError {
     pub platforms: Option<Vec<String>>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct BattleNetConfig {
     pub enabled: bool,
     pub config: Option<String>,
     pub install: Option<String>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct SteamLocalconfig {
     pub id: String,
     pub file: String,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct SteamProfile {
     pub id: String,
     pub name: String,
@@ -39,7 +39,7 @@ pub struct SteamProfile {
     pub has_overwatch: bool,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct SteamConfig {
     pub enabled: bool,
     pub in_setup: bool,
@@ -49,24 +49,24 @@ pub struct SteamConfig {
     pub profiles: Option<Vec<SteamProfile>>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct BackgroundConfig {
     pub current: Option<String>,
     pub is_outdated: bool,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct AdditionalConfig {
     pub console_enabled: bool,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct SharedConfig {
     pub background: BackgroundConfig,
     pub additional: AdditionalConfig,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Config {
     pub is_setup: bool,
     pub battle_net: BattleNetConfig,
@@ -211,7 +211,7 @@ pub fn write_config(handle: &AppHandle, config: &Config) -> Result<(), Error> {
     let serialized_config = match serde_json::to_string(&config) {
         Ok(json) => json,
         Err(_) => {
-            return Err(Error::Custom("Failed to serialize config.".into()));
+            return Err(Error::Custom("Failed to serialize config".into()));
         }
     };
     match fs::write(&config_file_path, &serialized_config) {
