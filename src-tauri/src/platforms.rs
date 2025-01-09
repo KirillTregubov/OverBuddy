@@ -125,15 +125,23 @@ pub mod battle_net {
             // Save debug console state
             shared_config.additional.console_enabled = helpers::get_console_enabled(launch_args);
         }
-        //  else {
-        //     // Reset current background
-        //     shared_config.background.current = None;
-        //     shared_config.background.is_outdated = false;
-        //     // Reset debug console state
-        //     shared_config.additional.console_enabled = false;
-        // }
 
         Ok(Some(shared_config))
+    }
+
+    pub fn reset_settings(config: &Config) -> Result<(), Error> {
+        if config.battle_net.enabled {
+            // Reset background
+            if config.shared.background.current.is_some() {
+                set_launch_args(&config, None, helpers::generate_background_launch_args)?;
+            }
+            // Reset debug console state
+            if config.shared.additional.console_enabled {
+                set_launch_args(&config, false, helpers::generate_console_launch_args)?;
+            }
+        }
+
+        Ok(())
     }
 
     fn read_config(config: &Config) -> Result<serde_json::Value, Error> {
@@ -313,7 +321,7 @@ pub mod steam {
                 console_enabled: false,
             },
         };
-        let mut background_conflicts = false;
+        let mut background_conflict = false;
 
         // Update shared state
         if let Some(available_configs) = &config.steam.configs {
@@ -326,34 +334,31 @@ pub mod steam {
 
                 if let Some(launch_args) = launch_args {
                     // Save current background
-                    if !background_conflicts {
-                        let current_background = helpers::get_background(&launch_args);
+                    let current_background = helpers::get_background(&launch_args);
+                    let resolved_background =
+                        current_background
+                            .as_ref()
+                            .and_then(|current_background_id| {
+                                backgrounds::find_background_by_id(current_background_id)
+                                    .map(|background| background.id.to_string())
+                            });
 
-                        let resolved_background =
-                            current_background
-                                .as_ref()
-                                .and_then(|current_background_id| {
-                                    backgrounds::find_background_by_id(current_background_id)
-                                        .map(|background| background.id.to_string())
-                                });
+                    if !background_conflict && resolved_background.is_some() {
+                        if shared_config.background.current.is_some() {
+                            if resolved_background.unwrap()
+                                != shared_config.background.current.clone().unwrap()
+                            {
+                                shared_config.background.current = None;
+                                shared_config.background.is_outdated = false;
 
-                        if resolved_background.is_some() {
-                            if shared_config.background.current.is_some() {
-                                if resolved_background.unwrap()
-                                    != shared_config.background.current.clone().unwrap()
-                                {
-                                    shared_config.background.current = None;
-                                    shared_config.background.is_outdated = false;
-
-                                    background_conflicts = true;
-                                }
-                            } else {
-                                shared_config.background.current = resolved_background;
-                                shared_config.background.is_outdated =
-                                    shared_config.background.current.is_none()
-                                        && current_background.is_some();
+                                background_conflict = true;
                             }
+                        } else {
+                            shared_config.background.current = resolved_background;
+                            shared_config.background.is_outdated = false;
                         }
+                    } else if resolved_background.is_none() && current_background.is_some() {
+                        shared_config.background.is_outdated = true;
                     }
 
                     // Save debug console state
@@ -399,6 +404,21 @@ pub mod steam {
         }
 
         Ok(configs)
+    }
+
+    pub fn reset_settings(config: &Config) -> Result<(), Error> {
+        if config.steam.enabled {
+            // Reset background
+            if config.shared.background.current.is_some() {
+                set_launch_args(&config, None, helpers::generate_background_launch_args)?;
+            }
+            // Reset debug console state
+            if config.shared.additional.console_enabled {
+                set_launch_args(&config, false, helpers::generate_console_launch_args)?;
+            }
+        }
+
+        Ok(())
     }
 
     const STEAM_AVATAR_URL: &str = "https://avatars.akamai.steamstatic.com";

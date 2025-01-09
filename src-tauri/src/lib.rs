@@ -18,6 +18,10 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
     let mut battle_net_shared: Option<config::SharedConfig> = None;
     let mut steam_shared: Option<config::SharedConfig> = None;
 
+    if !config.battle_net.enabled && !config.steam.enabled {
+        config.is_setup = false;
+    }
+
     if config.is_setup {
         // TODO: Show user a warning if the backup file exists
 
@@ -31,41 +35,25 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
 
         // Merge shared config
         if let (Some(battle_net_shared), Some(steam_shared)) = (&battle_net_shared, &steam_shared) {
-            if let (Some(battle_net_bg), Some(steam_bg)) = (
-                &battle_net_shared.background.current,
-                &steam_shared.background.current,
-            ) {
-                if battle_net_bg == steam_bg {
-                    config.shared.background.current = Some(battle_net_bg.clone());
-                    config.shared.background.is_outdated = false;
-                } else {
-                    config.shared.background.current = None;
-                    config.shared.background.is_outdated = false;
-                }
+            if battle_net_shared.background.current == steam_shared.background.current {
+                config.shared.background.current = battle_net_shared.background.current.clone();
+            } else {
+                config.shared.background.current = None;
             }
+            config.shared.background.is_outdated =
+                battle_net_shared.background.is_outdated || steam_shared.background.is_outdated;
 
-            if battle_net_shared.additional.console_enabled
-                && steam_shared.additional.console_enabled
-            {
-                config.shared.additional.console_enabled = true;
-            }
-        } else if let Some(battle_net_shared) = &battle_net_shared {
-            config.shared.background.current = battle_net_shared.background.current.clone();
-            config.shared.background.is_outdated = battle_net_shared.background.is_outdated;
-            config.shared.additional.console_enabled = battle_net_shared.additional.console_enabled;
-        } else if let Some(steam_shared) = &steam_shared {
-            config.shared.background.current = steam_shared.background.current.clone();
-            config.shared.background.is_outdated = steam_shared.background.is_outdated;
-            config.shared.additional.console_enabled = steam_shared.additional.console_enabled;
+            config.shared.additional.console_enabled = battle_net_shared.additional.console_enabled
+                && steam_shared.additional.console_enabled;
+        } else if let Some(shared) = battle_net_shared.as_ref().or(steam_shared.as_ref()) {
+            config.shared.background.current = shared.background.current.clone();
+            config.shared.background.is_outdated = shared.background.is_outdated;
+            config.shared.additional.console_enabled = shared.additional.console_enabled;
         } else {
             config.shared.background.current = None;
             config.shared.background.is_outdated = false;
             config.shared.additional.console_enabled = false;
         }
-    }
-
-    if !config.battle_net.enabled && !config.steam.enabled {
-        config.is_setup = false;
     }
 
     //NOTE: Temporarily advertise Steam support
@@ -191,34 +179,18 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         };
 
         // Check Overwatch installation on Battle.net
-        let overwatch_config = match json
+        if let None = json
             .get_mut("Games")
             .and_then(|games| games.get_mut("prometheus"))
         {
-            Some(config) => config,
-            None => {
-                return Err(Error::Custom(serde_json::to_string(&SetupError {
-                    error_key: ErrorKey::NoOverwatch,
-                    message: "Unable to find an Overwatch installation on Battle.net".to_string(),
-                    platforms: None,
-                })?));
-            }
+            return Err(Error::Custom(serde_json::to_string(&SetupError {
+                error_key: ErrorKey::NoOverwatch,
+                message: "Unable to find an Overwatch installation on Battle.net".to_string(),
+                platforms: None,
+            })?));
         };
 
-        // Check and create AdditionalLaunchArguments if it doesn't exist
         let mut battle_net_was_closed = false;
-        if let None = overwatch_config.get_mut("AdditionalLaunchArguments") {
-            // Some(launch_args) => launch_args.as_str(),
-            // None => {
-            overwatch_config.as_object_mut().unwrap().insert(
-                "AdditionalLaunchArguments".to_string(),
-                serde_json::json!(""),
-            );
-
-            battle_net_was_closed = battle_net::close_app();
-            // overwatch_config.as_str()
-            // }
-        }
 
         // Check and create DefaultStartupScreen if it doesn't exist
         if let Some(client_config) = json.get_mut("Client") {
@@ -267,21 +239,8 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         // Enable Battle.net
         config.battle_net.enabled = true;
     } else {
-        if config.battle_net.enabled {
-            // Reset background
-            if config.shared.background.current.is_some() {
-                battle_net::set_launch_args(
-                    &config,
-                    None,
-                    helpers::generate_background_launch_args,
-                )?;
-                config.shared.background.is_outdated = false;
-            }
-            // Reset debug console state
-            if config.shared.additional.console_enabled {
-                battle_net::set_launch_args(&config, false, helpers::generate_console_launch_args)?;
-            }
-        }
+        battle_net::reset_settings(&mut config)?;
+
         // Disable Battle.net
         config.battle_net.enabled = false;
     }
@@ -360,20 +319,12 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         }
         config.steam.enabled = true;
     } else {
-        if config.steam.enabled {
-            // Reset background
-            if config.shared.background.current.is_some() {
-                steam::set_launch_args(&config, None, helpers::generate_background_launch_args)?;
-                config.shared.background.is_outdated = false;
-            }
-            // Reset debug console state
-            if config.shared.additional.console_enabled {
-                steam::set_launch_args(&config, false, helpers::generate_console_launch_args)?;
-            }
-        }
+        steam::reset_settings(&config)?;
+
         // Disable Steam
         config.steam.profiles = None;
         config.steam.configs = None;
+        config.steam.advertised = 0;
         config.steam.in_setup = false;
         config.steam.enabled = false;
     }
@@ -514,10 +465,10 @@ fn confirm_steam_setup(handle: AppHandle) -> Result<String, Error> {
                     config.shared.background.is_outdated = false;
                 }
             }
+            config.shared.background.is_outdated =
+                config.shared.background.is_outdated || steam_shared.background.is_outdated;
 
-            if config.shared.additional.console_enabled && steam_shared.additional.console_enabled {
-                config.shared.additional.console_enabled = true;
-            }
+            config.shared.additional.console_enabled &= steam_shared.additional.console_enabled;
         } else {
             config.shared.background.current = steam_shared.background.current;
             config.shared.background.is_outdated = steam_shared.background.is_outdated;
@@ -704,6 +655,13 @@ fn set_debug_console(handle: AppHandle, enable_console: bool) -> Result<String, 
 
 #[tauri::command]
 fn reset(handle: AppHandle) -> Result<String, Error> {
+    let config = config::read_config(&handle);
+
+    if let Ok(config) = config {
+        battle_net::reset_settings(&config)?;
+        steam::reset_settings(&config)?;
+    }
+
     let config = config::get_default_config();
     config::write_config(&handle, &config)?;
 
