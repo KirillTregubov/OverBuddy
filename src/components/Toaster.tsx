@@ -10,8 +10,7 @@ export default function Toaster() {
       toastOptions={{
         // duration: 2000,
         classNames: {
-          toast: 'select-none w-max max-w-[28rem]',
-          title: 'text-balance',
+          toast: 'select-none w-max max-w-none',
           actionButton: '!ml-1 font-semibold'
         },
         closeButton: true

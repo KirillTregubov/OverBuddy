@@ -842,7 +842,6 @@ function ResetButton() {
   )
 }
 
-// TODO: Implement
 function ToggleConsole() {
   const { data: config } = useSuspenseQuery(launchQueryOptions)
   const { mutate, status } = useDebugConsoleMutation()

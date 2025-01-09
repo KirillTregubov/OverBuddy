@@ -19,30 +19,6 @@ export const Route = createFileRoute('/setup/')({
 })
 
 function SetupSplash() {
-  // const navigate = useNavigate()
-  // const {
-  //   data: { available: updateAvailable }
-  // } = useSuspenseQuery(updateQueryOptions(true))
-  // useEffect(() => {
-  //   // if (updateAvailable) {
-  //   toast.warning('There is a new version of OverBuddy available.', {
-  //     id: 'update-available',
-  //     action: {
-  //       label: 'View Update',
-  //       onClick: () => {
-  //         navigate({
-  //           to: '/settings',
-  //           search: {
-  //             update: true
-  //           }
-  //         })
-  //       }
-  //     },
-  //     duration: Infinity
-  //   })
-  //   // }
-  // }, [updateAvailable, navigate])
-
   return (
     <motion.div
       className="mx-auto h-full w-full max-w-xl"

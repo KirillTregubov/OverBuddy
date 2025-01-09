@@ -206,9 +206,6 @@ function Menu() {
             label: 'Revert to Default',
             onClick: () => resetBackground()
           },
-          classNames: {
-            toast: '!max-w-none'
-          },
           duration: Infinity
         }
       )
@@ -232,9 +229,6 @@ function Menu() {
             })
         },
         onDismiss: () => dismissAd(),
-        classNames: {
-          toast: '!max-w-none'
-        },
         duration: 10000
       })
     }

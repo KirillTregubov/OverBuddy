@@ -267,19 +267,22 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         // Enable Battle.net
         config.battle_net.enabled = true;
     } else {
-        if config.battle_net.enabled && config.shared.background.current.is_some() {
-            match battle_net::set_launch_args(
-                &config,
-                None,
-                helpers::generate_background_launch_args,
-            ) {
-                Ok(_) => {}
-                Err(_) => {}
+        if config.battle_net.enabled {
+            // Reset background
+            if config.shared.background.current.is_some() {
+                battle_net::set_launch_args(
+                    &config,
+                    None,
+                    helpers::generate_background_launch_args,
+                )?;
+                config.shared.background.is_outdated = false;
+            }
+            // Reset debug console state
+            if config.shared.additional.console_enabled {
+                battle_net::set_launch_args(&config, false, helpers::generate_console_launch_args)?;
             }
         }
-
-        // TODO: Re-visit debug console
-
+        // Disable Battle.net
         config.battle_net.enabled = false;
     }
 
@@ -357,13 +360,18 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         }
         config.steam.enabled = true;
     } else {
-        if config.steam.enabled && config.shared.background.current.is_some() {
-            match steam::set_launch_args(&config, None, helpers::generate_background_launch_args) {
-                Ok(_) => {}
-                Err(_) => {}
+        if config.steam.enabled {
+            // Reset background
+            if config.shared.background.current.is_some() {
+                steam::set_launch_args(&config, None, helpers::generate_background_launch_args)?;
+                config.shared.background.is_outdated = false;
+            }
+            // Reset debug console state
+            if config.shared.additional.console_enabled {
+                steam::set_launch_args(&config, false, helpers::generate_console_launch_args)?;
             }
         }
-
+        // Disable Steam
         config.steam.profiles = None;
         config.steam.configs = None;
         config.steam.in_setup = false;
@@ -451,7 +459,7 @@ fn get_setup_path(key: &str) -> Result<String, Error> {
                 "defaultPath": path
             }))?)
         }
-        "SteamInstall" | "SteamAccount" => {
+        "SteamInstall" => {
             let path = env::var_os("programfiles(x86)")
                 .map(|path| Path::new(&path).join("Steam"))
                 .and_then(|path| helpers::display_path_string(&path).ok());
@@ -463,6 +471,16 @@ fn get_setup_path(key: &str) -> Result<String, Error> {
             Ok(serde_json::to_string(&serde_json::json!({
                 "path": path,
                 "defaultPath": default_path
+            }))?)
+        }
+        "SteamAccount" => {
+            let path = env::var_os("programfiles(x86)")
+                .map(|path| Path::new(&path).join("Steam"))
+                .and_then(|path| helpers::display_path_string(&path).ok());
+
+            Ok(serde_json::to_string(&serde_json::json!({
+                "path": path,
+                "defaultPath": path
             }))?)
         }
         _ => Err(Error::Custom(
