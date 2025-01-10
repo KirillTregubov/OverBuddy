@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   create-release:
@@ -17,8 +20,13 @@ jobs:
 
       - name: Read changelog
         run: |
+          # Read changelog
           echo 'RELEASE_BODY<<EOF' >> $env:GITHUB_ENV
           cat CHANGELOG.txt >> $env:GITHUB_ENV
+          echo ([Environment]::NewLine) >> $env:GITHUB_ENV
+          # Read generic release notes
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          (Get-Content RELEASE.md -Raw) -replace '__VERSION__', "$version" >> $env:GITHUB_ENV
           echo 'EOF' >> $env:GITHUB_ENV
 
       - name: Install Rust
@@ -31,8 +39,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -51,8 +57,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tauriScript: pnpm tauri
-          tagName: v__VERSION__
-          releaseName: 'OverBuddy v__VERSION__'
+          tagName: ${{ github.event_name == 'pull_request' && 'v__VERSION__-pre' || 'v__VERSION__' }}
+          releaseName: ${{ github.event_name == 'pull_request' && 'OverBuddy v__VERSION__ (Preview)' || 'OverBuddy v__VERSION__' }}
           releaseBody: ${{ env.RELEASE_BODY }}
           releaseDraft: true
-          prerelease: false
+          prerelease: ${{ github.event_name == 'pull_request' }}

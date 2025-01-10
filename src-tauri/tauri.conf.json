@@ -58,9 +58,9 @@
         "alwaysOnTop": false,
         "resizable": false,
         "maximizable": false,
+        "backgroundColor": "#18181b",
         "width": 1024,
-        "height": 768,
-        "backgroundColor": "#18181b"
+        "height": 768
       }
     ],
     "security": {

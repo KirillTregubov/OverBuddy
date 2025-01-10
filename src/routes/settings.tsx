@@ -9,8 +9,9 @@ import {
   XIcon
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Suspense, useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { z } from 'zod'
 
 import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
@@ -26,8 +27,8 @@ import {
   AlertDialogTrigger
 } from '@/components/AlertDialog'
 import { ExternalLinkInline, MotionButton } from '@/components/Button'
+import type { State } from '@/components/ErrorComponent'
 import KeyboardButton from '@/components/KeyboardButton'
-import { LoadingInline } from '@/components/Loading'
 import { Progress } from '@/components/Progress'
 import SteamProfileList from '@/components/SteamProfileList'
 import Version from '@/components/Version'
@@ -39,31 +40,36 @@ import {
 } from '@/lib/animations'
 import {
   invalidateActiveBackground,
-  settingsQueryOptions,
+  launchQueryOptions,
   updateQueryOptions,
   useCheckUpdates,
+  useDebugConsoleMutation,
   useResetMutation,
   useSetupMutation,
   useUpdateMutation
 } from '@/lib/data'
 import { ConfigError, ConfigErrors, SetupError } from '@/lib/errors'
+import preventReload from '@/lib/preventReload'
+import type { Platform } from '@/lib/schemas'
 import useKeyPress from '@/lib/useKeyPress'
 
-type SettingsSearch = {
-  update: boolean
-}
-
 export const Route = createFileRoute('/settings')({
+  validateSearch: z.object({
+    update: z.boolean().default(false)
+  }),
   loaderDeps: ({ search: { update } }) => ({ update }),
   loader: async ({ context: { queryClient }, deps: { update } }) => {
-    queryClient.prefetchQuery(settingsQueryOptions)
-    if (update) await queryClient.ensureQueryData(updateQueryOptions(true))
-    else queryClient.removeQueries(updateQueryOptions(true))
-  },
-  validateSearch: (search: Record<string, unknown>): SettingsSearch => {
-    return {
-      update: (search.update as boolean) || false
+    const promises: Promise<unknown>[] = [
+      queryClient.ensureQueryData(launchQueryOptions)
+    ]
+
+    if (update) {
+      promises.push(queryClient.ensureQueryData(updateQueryOptions(true)))
+    } else {
+      queryClient.removeQueries(updateQueryOptions(true))
     }
+
+    await Promise.allSettled(promises)
   },
   component: Settings
 })
@@ -89,7 +95,7 @@ function Settings() {
 
   return (
     <motion.div
-      className="flex w-full flex-col p-6"
+      className="flex w-full flex-col overflow-y-auto p-6 pr-3"
       variants={fadeInFastVariants}
       initial="hidden"
       animate="show"
@@ -155,10 +161,13 @@ function Settings() {
               <p>
                 Blizzard Entertainment, Battle.net and Overwatch are trademarks
                 or registered trademarks of Blizzard Entertainment, Inc. in the
-                U.S. and/or other countries.{' '}
-                {/* Steam and the Steam logo are trademarks and/or registered trademarks of Valve Corporation in the U.S. and/or other countries. */}
-                All rights reserved.
+                U.S. and/or other countries. Steam and the Steam logo are
+                trademarks and/or registered trademarks of Valve Corporation in
+                the U.S. and/or other countries. All rights reserved.
               </p>
+            </div>
+            <div className="mt-0.5">
+              <CheckForUpdates />
             </div>
           </motion.div>
           <motion.div
@@ -170,18 +179,18 @@ function Settings() {
                 Platforms
               </h2>
               <p className="select-none">
-                Connected platform(s) you use to play Overwatch.
+                Connect platform(s) you use to play Overwatch.
               </p>
             </div>
-            <Suspense
+            {/* <Suspense
               fallback={
                 <div className="flex h-[8.25rem] w-full items-center justify-center rounded-lg bg-zinc-800 p-2 pr-6 shadow-inner shadow-zinc-900">
                   <LoadingInline />
                 </div>
               }
-            >
-              <Platforms />
-            </Suspense>
+            > */}
+            <Platforms />
+            {/* </Suspense> */}
           </motion.div>
           <motion.div
             className="flex flex-col gap-1.5"
@@ -195,10 +204,10 @@ function Settings() {
             </div>
             <div className="flex flex-col gap-1.5 text-zinc-400">
               <div className="flex items-baseline gap-4">
-                <div className="flex items-baseline gap-2">
+                <div className="flex items-baseline">
                   <KeyboardButton>Esc</KeyboardButton>
                 </div>
-                <p className="select-none">Open/Close Settings</p>
+                <p className="select-none">Toggle Settings</p>
               </div>
               <div className="flex items-baseline gap-4">
                 <div className="flex items-baseline gap-2">
@@ -219,16 +228,17 @@ function Settings() {
             </div>
           </motion.div>
           <motion.div
-            className="flex flex-col gap-1.5"
+            className="flex flex-col gap-2"
             variants={moveInLessVariants}
           >
             <div className="flex items-baseline gap-2.5 text-zinc-400">
               <h2 className="select-none text-lg font-bold text-white">
-                Update
+                Utilities
               </h2>
-              <p className="select-none">Check for updates.</p>
+              <p className="select-none">Advanced tools.</p>
             </div>
-            <CheckForUpdates />
+            <ToggleConsole />
+            {/* TODO: Set custom background id (full and truncated) */}
           </motion.div>
           <motion.div
             className="flex flex-col gap-1.5"
@@ -239,28 +249,26 @@ function Settings() {
                 Reset
               </h2>
               <p className="select-none">
-                Reset all settings to their defaults.
+                Restore all settings to their defaults.
               </p>
             </div>
             <ResetButton />
           </motion.div>
         </motion.div>
       </motion.div>
+      <div className="fixed bottom-0 left-0 right-3 z-10 h-6 rounded-lg bg-easing-b-menu-top" />
     </motion.div>
   )
 }
 
 function Platforms() {
   const router = useRouter()
-  const { data, isFetching } = useSuspenseQuery(settingsQueryOptions)
+  const { data, isFetching } = useSuspenseQuery(launchQueryOptions)
   const { mutate } = useSetupMutation({
     onError: async (error) => {
       if (error instanceof SetupError) {
         toast.warning(
-          'All platforms were disconnected. You have been returned to the setup page.',
-          {
-            duration: 5000
-          }
+          'All platforms were disconnected. You have been returned to the welcome page.'
         )
         invalidateActiveBackground()
         router.navigate({
@@ -279,26 +287,32 @@ function Platforms() {
           },
           search: {
             message: error.message,
-            platforms: error.platforms
+            platforms: error.platforms,
+            redirect: '/settings'
           },
           replace: true
         })
         return
+      } else {
+        throw error
       }
     },
-    onSuccess: (data) => {
-      if (data.config.steam.enabled && !data.config.steam.setup) {
+    onSuccess: ({ config }) => {
+      if (config.steam.enabled && config.steam.in_setup) {
         router.navigate({
           to: '/setup/steam_setup',
+          search: {
+            redirect: '/settings'
+          },
           replace: true
         })
-        return
       }
-    }
+    },
+    throwOnError: false
   })
 
   return (
-    <motion.div className="rounded-lg bg-zinc-800 p-2 pr-6 shadow-inner shadow-zinc-900">
+    <motion.div className="rounded-lg bg-zinc-800 px-3 py-2 pr-4 shadow-inner shadow-zinc-900">
       <motion.div
         className="flex w-full gap-6"
         variants={fadeInVariants}
@@ -312,8 +326,7 @@ function Platforms() {
               <AlertDialogDescription>
                 You will no longer be able to change the background shown when
                 launching Overwatch through Battle.net.
-                {data.platforms.filter((p) => p !== 'BattleNet').length ===
-                  0 && (
+                {!data.steam.enabled && (
                   <>
                     {' '}
                     Since Battle.net is the only connected platform, this action
@@ -326,9 +339,10 @@ function Platforms() {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
-                  const newPlatforms = data.platforms.includes('BattleNet')
-                    ? data.platforms.filter((p) => p !== 'BattleNet')
-                    : data.platforms.concat('BattleNet')
+                  const newPlatforms: Platform[] = []
+                  if (data.steam.enabled) {
+                    newPlatforms.push('Steam')
+                  }
 
                   mutate({
                     platforms: newPlatforms,
@@ -341,24 +355,25 @@ function Platforms() {
             </AlertDialogFooter>
           </AlertDialogContent>
           <AlertDialogTrigger
-            className="group flex flex-col items-center gap-2 p-3 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+            className="group flex flex-col items-center gap-2 p-2 py-3 outline-none transition-transform duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
             onClick={(event) => {
-              if (data.platforms.includes('BattleNet')) {
+              if (data.battle_net.enabled) {
                 return
               } else {
                 event.preventDefault()
               }
 
-              const newPlatforms = data.platforms.includes('BattleNet')
-                ? data.platforms.filter((p) => p !== 'BattleNet')
-                : data.platforms.concat('BattleNet')
+              const newPlatforms: Platform[] = ['BattleNet']
+              if (data.steam.enabled) {
+                newPlatforms.push('Steam')
+              }
 
               mutate({
                 platforms: newPlatforms,
                 isInitialized: true
               })
             }}
-            title={`${data.platforms.includes('BattleNet') ? 'Disconnect' : 'Connect'} Battle.net`}
+            title={`${data.battle_net.enabled ? 'Disconnect' : 'Connect'} Battle.net`}
           >
             <img
               src={BattleNet}
@@ -368,7 +383,7 @@ function Platforms() {
               height="64px"
               className={clsx(
                 'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
-                data.platforms.includes('BattleNet')
+                data.battle_net.enabled
                   ? 'grayscale-0 group-active:grayscale'
                   : 'group-active:grayscale-0'
               )}
@@ -376,13 +391,13 @@ function Platforms() {
             <h2
               className={clsx(
                 'flex min-w-[6rem] select-none items-center gap-1.5 text-center font-medium leading-none transition',
-                data.platforms.includes('BattleNet')
+                data.battle_net.enabled
                   ? 'text-white group-active:text-zinc-400'
                   : 'text-zinc-400 group-active:text-white'
               )}
             >
               <AnimatePresence mode="wait">
-                {data.platforms.includes('BattleNet') ? (
+                {data.battle_net.enabled ? (
                   <motion.span
                     initial={{ opacity: 0.5 }}
                     animate={{ opacity: 1 }}
@@ -411,7 +426,7 @@ function Platforms() {
               <AlertDialogDescription>
                 You will no longer be able to change the background shown when
                 launching Overwatch through Steam.
-                {data.platforms.filter((p) => p !== 'Steam').length === 0 && (
+                {!data.battle_net.enabled && (
                   <>
                     {' '}
                     Since Steam is the only connected platform, this action will
@@ -424,9 +439,10 @@ function Platforms() {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
-                  const newPlatforms = data.platforms.includes('Steam')
-                    ? data.platforms.filter((p) => p !== 'Steam')
-                    : data.platforms.concat('Steam')
+                  const newPlatforms: Platform[] = []
+                  if (data.battle_net.enabled) {
+                    newPlatforms.push('BattleNet')
+                  }
 
                   mutate({
                     platforms: newPlatforms,
@@ -440,40 +456,33 @@ function Platforms() {
           </AlertDialogContent>
           <div
             className={clsx(
-              "relative z-10 flex min-w-0 items-center justify-center gap-6 p-3 transition-[background-color,box-shadow] before:pointer-events-none before:absolute before:-left-3 before:-right-3 before:top-0 before:h-full before:rounded-md before:bg-zinc-700 before:shadow-inner before:shadow-zinc-800 before:transition-opacity before:delay-100 before:content-['']",
-              data.platforms.includes('Steam')
-                ? 'before:opacity-100'
-                : 'before:opacity-0'
+              "relative z-10 flex min-w-0 items-center justify-center gap-6 p-2 py-3 transition-[background-color,box-shadow] before:pointer-events-none before:absolute before:-left-3 before:-right-1 before:top-0 before:h-full before:rounded-md before:bg-zinc-700 before:shadow-inner before:shadow-zinc-800 before:transition-opacity before:delay-100 before:content-['']",
+              data.steam.enabled ? 'before:opacity-100' : 'before:opacity-0'
             )}
             style={{
               transition: 'width 0s ease 0.15s'
             }}
           >
             <AlertDialogTrigger
-              className="group relative -m-3 flex flex-col items-center justify-center gap-2 p-3 outline-none transition-[background-color,transform] duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+              className="group relative -m-3 -mx-2 flex flex-col items-center justify-center gap-2 p-2 py-3 outline-none transition-[background-color,transform] duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
               onClick={(event) => {
-                toast.warning('Steam compatibility is not ready yet.', {
-                  id: 'steam-support-warning'
+                if (data.steam.enabled) {
+                  return
+                } else {
+                  event.preventDefault()
+                }
+
+                const newPlatforms: Platform[] = ['Steam']
+                if (data.battle_net.enabled) {
+                  newPlatforms.push('BattleNet')
+                }
+
+                mutate({
+                  platforms: newPlatforms,
+                  isInitialized: true
                 })
-                event.preventDefault()
-                return
-
-                // if (data.platforms.includes('Steam')) {
-                //   return
-                // } else {
-                //   event.preventDefault()
-                // }
-
-                // const newPlatforms = data.platforms.includes('Steam')
-                //   ? data.platforms.filter((p) => p !== 'Steam')
-                //   : data.platforms.concat('Steam')
-
-                // mutate({
-                //   platforms: newPlatforms,
-                //   isInitialized: true
-                // })
               }}
-              title={`${data.platforms.includes('Steam') ? 'Disconnect' : 'Connect'} Steam`}
+              title={`${data.steam.enabled ? 'Disconnect' : 'Connect'} Steam`}
             >
               <img
                 src={Steam}
@@ -483,7 +492,7 @@ function Platforms() {
                 height="64px"
                 className={clsx(
                   'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
-                  data.platforms.includes('Steam')
+                  data.steam.enabled
                     ? 'grayscale-0 group-active:grayscale'
                     : 'group-active:grayscale-0'
                 )}
@@ -491,13 +500,13 @@ function Platforms() {
               <h2
                 className={clsx(
                   'flex min-w-[4.5rem] select-none items-center gap-1.5 text-center font-medium leading-none transition',
-                  data.platforms.includes('Steam')
+                  data.steam.enabled
                     ? 'text-white group-active:text-zinc-400'
                     : 'text-zinc-400 group-active:text-white'
                 )}
               >
                 <AnimatePresence mode="wait">
-                  {data.platforms.includes('Steam') ? (
+                  {data.steam.enabled ? (
                     <motion.span
                       initial={{ opacity: 0.5 }}
                       animate={{ opacity: 1 }}
@@ -517,14 +526,11 @@ function Platforms() {
                 </AnimatePresence>
                 Steam
               </h2>
-              <div className="absolute top-8 rotate-12 select-none text-nowrap rounded-full bg-gradient-to-br from-pink-500 to-orange-500 px-2 py-1 text-xs font-medium text-white">
-                Coming Soon
-              </div>
             </AlertDialogTrigger>
             <AnimatePresence mode="wait">
-              {data.platforms.includes('Steam') && data.steam_profiles && (
+              {data.steam.enabled && data.steam.profiles && (
                 <SteamProfileList
-                  steam_profiles={data.steam_profiles}
+                  steam_profiles={data.steam.profiles}
                   isFetching={isFetching}
                 />
               )}
@@ -536,22 +542,11 @@ function Platforms() {
   )
 }
 
-// Prevent F5, Ctrl+R (Windows/Linux), Command+R (Mac) from refreshing the page
-function preventReload(event: KeyboardEvent) {
-  if (
-    event.key === 'F5' ||
-    (event.ctrlKey && event.key === 'r')
-    // || (event.metaKey && event.key === 'r') // macOS
-  ) {
-    event.preventDefault()
-  }
-}
-
 function CheckForUpdates() {
   const { update } = Route.useSearch()
+  const [progress, setProgress] = useState(0)
   const { data: checkData2 } = useQuery(updateQueryOptions(update))
   const [isOpen, setIsOpen] = useState(checkData2?.available ?? false)
-  const [progress, setProgress] = useState(0)
   const {
     status: checkStatus,
     data: checkData,
@@ -562,7 +557,9 @@ function CheckForUpdates() {
       setIsOpen(data.available)
 
       if (data.available === false) {
-        toast.success('You are using the latest version of OverBuddy.')
+        toast.success('You are using the latest version of OverBuddy.', {
+          id: 'update-available'
+        })
       }
     }
   })
@@ -713,7 +710,7 @@ function CheckForUpdates() {
       </AlertDialog>
       <div className="flex w-full items-center gap-4">
         <MotionButton
-          className="w-fit min-w-[10.5rem] disabled:pointer-events-none disabled:!opacity-100"
+          className="group grid w-fit min-w-[10.5rem] disabled:pointer-events-none disabled:!opacity-100"
           onClick={() => checkForUpdates()}
           disabled={checkStatus === 'pending'}
         >
@@ -749,8 +746,6 @@ function CheckForUpdates() {
   )
 }
 
-type State = 'idle' | 'confirm' | 'pending' | 'success'
-
 function ResetButton() {
   const router = useRouter()
   const { mutate, reset: resetMutation } = useResetMutation({
@@ -770,7 +765,7 @@ function ResetButton() {
   })
   const [isConfirming, setIsConfirming] = useState<State>('idle')
 
-  const handleClick = useCallback(() => {
+  const handleClick = () => {
     if (isConfirming === 'idle') {
       setIsConfirming('confirm')
       return
@@ -779,7 +774,7 @@ function ResetButton() {
       mutate()
       return
     }
-  }, [isConfirming, mutate])
+  }
 
   return (
     <div className="flex gap-2">
@@ -787,7 +782,7 @@ function ResetButton() {
         {isConfirming === 'idle' && (
           <MotionButton
             key="idle"
-            className="w-fit min-w-36"
+            className="w-fit min-w-[8.375rem]"
             onClick={handleClick}
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -808,7 +803,7 @@ function ResetButton() {
           >
             <MotionButton
               key="idle"
-              className="w-fit min-w-36"
+              className="w-fit min-w-[8.375rem]"
               onClick={() => setIsConfirming('idle')}
               disabled={isConfirming !== 'confirm'}
             >
@@ -817,24 +812,24 @@ function ResetButton() {
             <AnimatePresence mode="wait">
               <MotionButton
                 key={isConfirming}
+                disabled={isConfirming === 'pending'}
+                destructive={isConfirming === 'confirm'}
+                onClick={handleClick}
                 className={clsx(
                   'w-fit min-w-[28rem]',
                   isConfirming === 'pending' && 'pointer-events-none'
                 )}
-                destructive={isConfirming === 'confirm'}
-                onClick={handleClick}
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ opacity: { duration: 0.15, ease: 'easeOut' } }}
               >
                 <AnimatePresence mode="wait">
-                  {isConfirming === 'confirm' && (
+                  {isConfirming === 'confirm' ? (
                     <span>
                       Confirm Reset Settings (This action cannot be undone)
                     </span>
-                  )}
-                  {isConfirming === 'pending' && (
+                  ) : (
                     <LoaderPinwheel className="mx-auto animate-spin" />
                   )}
                 </AnimatePresence>
@@ -843,6 +838,73 @@ function ResetButton() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  )
+}
+
+function ToggleConsole() {
+  const { data: config } = useSuspenseQuery(launchQueryOptions)
+  const { mutate, status } = useDebugConsoleMutation()
+
+  return (
+    <div className="flex w-full items-center gap-4">
+      <MotionButton
+        className="w-fit min-w-[12.5625rem] disabled:pointer-events-none disabled:!opacity-100"
+        onClick={() =>
+          mutate({ enableConsole: !config.shared.additional.console_enabled })
+        }
+        disabled={status === 'pending'}
+      >
+        <AnimatePresence mode="wait">
+          {status === 'pending' ? (
+            <motion.span
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              key="pending"
+            >
+              <LoaderPinwheel className="mx-auto animate-spin" />
+            </motion.span>
+          ) : config.shared.additional.console_enabled ? (
+            <motion.span
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              key="disable"
+            >
+              Disable Debug Console
+            </motion.span>
+          ) : (
+            <motion.span
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              key="enable"
+            >
+              Enable Debug Console
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </MotionButton>
+      <div className="mt-1 flex select-none items-baseline gap-2 text-zinc-400">
+        <p>Allows you to access the Overwatch debug console.</p>
+        <div
+          className={clsx(
+            'flex select-none items-baseline gap-2 transition-colors',
+            !config.shared.additional.console_enabled && 'text-zinc-600'
+          )}
+        >
+          <div className="flex items-baseline gap-1">
+            <KeyboardButton>Alt</KeyboardButton>
+            <span className="select-none">+</span>
+            <KeyboardButton>~</KeyboardButton>
+          </div>
+          <p>In-Game</p>
+        </div>
+      </div>
     </div>
   )
 }

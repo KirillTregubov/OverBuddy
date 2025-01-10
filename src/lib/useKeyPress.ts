@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type MutableRefObject
-} from 'react'
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 
 type Key =
   | { key: string; keys?: undefined }
@@ -15,7 +9,7 @@ type useKeyPressProps = {
   onPressEnd?: (event: KeyboardEvent) => void
   debounce?: number
   capture?: boolean
-  sharedTimer?: MutableRefObject<number>
+  sharedTimer?: RefObject<number>
   avoidModifiers?: boolean
 } & Key
 
@@ -70,6 +64,8 @@ export default function useKeyPress({
 
       lastPressTimeRef.current = currentTime
       if (sharedTimer) {
+        // TODO: revisit
+        // eslint-disable-next-line react-compiler/react-compiler
         sharedTimer.current = currentTime
       }
       setPressed(true)

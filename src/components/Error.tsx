@@ -1,7 +1,7 @@
 import Highlight from './Highlight'
 
 export function FormattedError({ text }: { text: string }) {
-  const regex = /\[\[(.*?)\]\]/g
+  const regex = /\[\[([\s\S]*?)\]\]/g
   const parts = []
   let lastIdx = 0
 
@@ -15,6 +15,8 @@ export function FormattedError({ text }: { text: string }) {
   if (lastIdx < text.length) {
     parts.push(text.slice(lastIdx))
   }
+
+  parts.push('.')
 
   return parts
 }

@@ -9,7 +9,7 @@ export default function TracerImage() {
       src="/tracer.png"
       alt="logo"
       className={clsx(
-        'h-full w-auto pb-6 pt-20 transition-opacity duration-500',
+        '-ml-4 h-full w-auto pb-6 pt-20 transition-opacity duration-500',
         imageLoaded ? 'opacity-100' : 'opacity-0'
       )}
       loading="eager"

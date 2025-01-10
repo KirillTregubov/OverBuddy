@@ -1,28 +1,15 @@
-import {
-  createFileRoute,
-  useNavigate
-  // useNavigate
-} from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { BookLockIcon, GlobeIcon, SparklesIcon } from 'lucide-react'
 import { motion } from 'motion/react'
 
-import logo from '@/assets/logo.svg'
-import { Button, ExternalLinkInline } from '@/components/Button'
+import { ExternalLinkInline, LinkButton } from '@/components/Button'
+import CheckForUpdates from '@/components/CheckForUpdates'
 import {
   fadeInVariants,
   moveInVariants,
   staggerChildrenVariants
 } from '@/lib/animations'
-import { updateQueryOptions, useSetupMutation } from '@/lib/data'
-import {
-  ConfigError,
-  ConfigErrors,
-  handleError,
-  SetupError
-} from '@/lib/errors'
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { useEffect } from 'react'
-import { toast } from 'sonner'
+import { updateQueryOptions } from '@/lib/data'
 
 export const Route = createFileRoute('/setup/')({
   loader: async ({ context: { queryClient } }) =>
@@ -31,61 +18,6 @@ export const Route = createFileRoute('/setup/')({
 })
 
 function SetupSplash() {
-  const navigate = useNavigate()
-  const {
-    data: { available: updateAvailable }
-  } = useSuspenseQuery(updateQueryOptions(true))
-  const { status, mutate, reset } = useSetupMutation({
-    onError: (error) => {
-      if (error instanceof SetupError) {
-        handleError(error)
-        reset()
-      } else if (
-        error instanceof ConfigError &&
-        ConfigErrors.safeParse(error.error_key).success
-      ) {
-        navigate({
-          to: '/setup/$key',
-          params: {
-            key: error.error_key
-          },
-          search: {
-            message: error.message,
-            platforms: error.platforms
-          },
-          replace: true
-        })
-        return
-      }
-    },
-    onSuccess: () => {
-      navigate({
-        to: '/menu',
-        replace: true
-      })
-    }
-  })
-
-  useEffect(() => {
-    if (updateAvailable) {
-      toast.warning('There is a new version of OverBuddy available.', {
-        id: 'update-available',
-        action: {
-          label: 'View Update',
-          onClick: () => {
-            navigate({
-              to: '/settings',
-              search: {
-                update: true
-              }
-            })
-          }
-        },
-        duration: 5000
-      })
-    }
-  }, [updateAvailable, navigate])
-
   return (
     <motion.div
       className="mx-auto h-full w-full max-w-xl"
@@ -99,7 +31,7 @@ function SetupSplash() {
       >
         <div className="flex flex-col items-center gap-2">
           <motion.img
-            src={logo}
+            src="/logo.png"
             alt="OverBuddy Logo"
             variants={moveInVariants}
             width="64px"
@@ -144,8 +76,8 @@ function SetupSplash() {
                   open source
                 </ExternalLinkInline>
                 . It operates independently and is not affiliated with Blizzard
-                Entertainment®{/*or Valve®*/}. You can undo the changes it
-                makes at any time by reverting to the default background.
+                Entertainment® or Valve®. You can undo the changes it makes at
+                any time by reverting to the default background.
               </motion.p>
             </motion.div>
           </motion.div>
@@ -162,32 +94,25 @@ function SetupSplash() {
               </motion.h2>
               <motion.p className="text-pretty">
                 To change the menu background, OverBuddy needs to read and write
-                your Battle.net® {/* or Steam® */}configuration files. It does{' '}
-                <span className="font-medium">NOT</span> modify any game files.
-                Your Battle.net {/*or Steam */}
-                client will be restarted to apply the changes.
+                your Battle.net® and/or Steam® configuration files. It does{' '}
+                <span className="font-medium text-zinc-300/90">NOT</span> modify
+                any game files. Your game client will be restarted to apply the
+                changes.
               </motion.p>
             </motion.div>
           </motion.div>
         </div>
         <motion.div variants={moveInVariants} className="flex w-full">
-          {/* <LinkButton
+          <LinkButton
             primary
             className="w-full py-3"
             to="/setup/select"
             replace
           >
             Continue
-          </LinkButton> */}
-          <Button
-            primary
-            className="w-full py-3"
-            disabled={status !== 'idle'}
-            onClick={() => mutate({ platforms: ['BattleNet'] })}
-          >
-            Continue
-          </Button>
+          </LinkButton>
         </motion.div>
+        <CheckForUpdates />
       </motion.div>
     </motion.div>
   )

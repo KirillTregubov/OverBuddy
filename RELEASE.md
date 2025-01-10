@@ -1,40 +1,10 @@
-<div align="center">
-    <img width="128px" height="128px" src="src-tauri/icons/128x128@2x.png">
-    <h1>OverBuddy</h1>
-    <p>Customize your Overwatch™ 2 in-game main menu background.</p>
-    <p>Current Version: 2.0.0</p>
-    <div>
-      <a href="https://github.com/KirillTregubov/OverBuddy/releases/latest">Download</a>
-      ·
-      <a href="https://kirilltregubov.com/overbuddy#gallery">Background Gallery</a>
-      ·
-      <a href="https://github.com/KirillTregubov/OverBuddy/issues/new">Report Issue</a>
-    </div>
-</div>
-<br />
+## Downloads
 
-## Table of Contents
+- [Download from GitHub](https://github.com/KirillTregubov/OverBuddy/releases/download/v__VERSION__/OverBuddy___VERSION___x64_en-US.msi)
 
-- [Screenshots](#screenshots)
-- [Description](#description)
-- [Features](#features)
-- [Privacy Notice](#privacy-notice)
-- [Inspiration](#inspiration)
-- [Installation](#installation)
-- [How to Use](#how-to-use)
-- [License](#license)
-- [Legal](#legal)
+## Screenshot
 
-## Screenshots
-
-![Screenshot of Setup Screen](screenshots/screenshot-1.png)
 ![Screenshot of Main Screen with background selector](screenshots/screenshot-2.png)
-
----
-
-## Description
-
-OverBuddy is a free and open source Windows app that allows Overwatch players to easily customize their in-game main menu background. Say goodbye to the default look and personalize your menu background today.
 
 ## Features
 
@@ -57,7 +27,7 @@ I would like to extend my gratitude to [SkyBorik](https://steamcommunity.com/id/
 
 ## Installation
 
-Download the [latest version](https://github.com/KirillTregubov/OverBuddy/releases/latest) of OverBuddy and run the installer.
+[Download this version](https://github.com/KirillTregubov/OverBuddy/releases/download/v__VERSION__/OverBuddy___VERSION___x64_en-US.msi) of OverBuddy and run the installer.
 
 ## How to Use
 

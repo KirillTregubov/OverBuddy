@@ -22,7 +22,7 @@ export default function SteamProfileList({
       ref={ref}
       key="steam_profiles"
       className={clsx(
-        'scroller scroller-settings z-10 -mb-2 -mr-3 flex cursor-auto gap-6 overflow-x-scroll py-2 last:pr-3',
+        'scroller scroller-settings z-10 -mb-2 -mr-1 flex cursor-auto gap-6 overflow-x-scroll py-2 pr-3',
         isOverflow ? '' : 'scroller-hidden'
       )}
       variants={{
@@ -40,15 +40,12 @@ export default function SteamProfileList({
           {steam_profiles.map((profile) => (
             <SteamProfileComponent key={profile.id} account={profile} />
           ))}
-          <motion.div
-            className="pointer-events-none absolute bottom-6 right-0 top-6 z-20 block w-4 bg-easing-r-settings"
-            aria-hidden
-            variants={{
-              initial: { opacity: 0 },
-              animate: { opacity: 1 },
-              exit: { opacity: 0 }
-            }}
-          />
+          {/* {steam_profiles.map((profile) => (
+            <SteamProfileComponent key={profile.id} account={profile} />
+          ))} */}
+          <div className="pointer-events-none absolute bottom-6 right-0 top-6 z-20 flex">
+            <div className="h-full w-3 bg-easing-r-settings" aria-hidden />
+          </div>
         </>
       ) : (
         <>No Steam Profiles</>
@@ -58,7 +55,7 @@ export default function SteamProfileList({
           <motion.div
             key="fetching"
             aria-live="polite"
-            className="right absolute -right-1 top-1 z-30 flex animate-pulse items-center gap-1 text-sm text-zinc-400"
+            className="right absolute right-1 top-1 z-30 flex animate-pulse items-center gap-1 text-sm text-zinc-400"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             exit={{ opacity: 0 }}

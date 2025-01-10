@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+// import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
@@ -9,6 +9,7 @@ import Loading from '@/components/Loading'
 import Toaster from '@/components/Toaster'
 import { routeTree } from '@/routeTree.gen'
 import '@/styles.css'
+import NotFound from './components/NotFound'
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,6 +34,7 @@ const router = createRouter({
   // This will ensure that the loader is always called when the route is preloaded or visited
   defaultPreloadStaleTime: 0,
   notFoundMode: 'root',
+  defaultNotFoundComponent: NotFound,
   defaultErrorComponent: ErrorComponent,
   defaultPendingComponent: Loading
 })
@@ -43,12 +45,27 @@ declare module '@tanstack/react-router' {
   }
 }
 
+// const TanStackRouterDevtools =
+//   process.env.NODE_ENV === 'production'
+//     ? () => null // Render nothing in production
+//     : React.lazy(() =>
+//         // Lazy load in development
+//         import('@tanstack/router-devtools').then((res) => ({
+//           default: res.TanStackRouterDevtools
+//           // For Embedded Mode
+//           // default: res.TanStackRouterDevtoolsPanel
+//         }))
+//       )
+
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
+    <Toaster />
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
-      <ReactQueryDevtools initialIsOpen={false} />
+      {/* <React.Suspense>
+        <TanStackRouterDevtools router={router} />
+      </React.Suspense> */}
+      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
     </QueryClientProvider>
-    <Toaster />
   </React.StrictMode>
 )

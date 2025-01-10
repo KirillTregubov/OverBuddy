@@ -16,35 +16,21 @@ import {
   Background,
   BackgroundArray,
   LaunchConfig,
-  SettingsData,
   SteamProfile,
   type Platform
 } from '@/lib/schemas'
 import { queryClient } from '@/main'
+import { useState } from 'react'
 import { isDev } from './dev'
 
-const updateLaunchConfig = async (
-  config: LaunchConfig,
-  setLaunchQuery = true
-) => {
-  const settingsData = {} as SettingsData
-  settingsData.platforms = [
-    config.steam.enabled && ('Steam' as const),
-    config.battle_net.enabled && ('BattleNet' as const)
-  ].filter(Boolean)
-  if (config.steam.enabled && config.steam.setup) {
-    settingsData.steam_profiles = config.steam.profiles
-  }
-  queryClient.setQueryData(['settings'], settingsData)
-  queryClient.invalidateQueries({ queryKey: ['settings'] })
+const launchQueryKey = ['launch']
 
-  if (setLaunchQuery) {
-    queryClient.setQueryData(['launch'], config)
-  }
+const updateLaunchConfig = async (config: LaunchConfig) => {
+  queryClient.setQueryData(launchQueryKey, config)
 }
 
 export const launchQueryOptions = queryOptions({
-  queryKey: ['launch'],
+  queryKey: launchQueryKey,
   queryFn: async () => {
     const data = await invoke('get_launch_config').catch((error) => {
       if (typeof error !== 'string') throw error
@@ -55,7 +41,7 @@ export const launchQueryOptions = queryOptions({
       throw new Error(config.error.message)
     }
 
-    updateLaunchConfig(config.data, false)
+    updateLaunchConfig(config.data)
 
     return config.data
   },
@@ -111,7 +97,8 @@ const setupMutation = async ({
 
 export const useSetupMutation = ({
   onError,
-  onSuccess
+  onSuccess,
+  throwOnError = true
 }: {
   isInitialized?: boolean
   onError?: (error: Error | ConfigError) => void
@@ -121,7 +108,8 @@ export const useSetupMutation = ({
   useMutation({
     mutationFn: setupMutation,
     onError,
-    onSuccess
+    onSuccess,
+    throwOnError
   })
 
 export const getSetupPath = (key: ConfigErrors) =>
@@ -265,15 +253,15 @@ export const backgroundsQueryOptions = queryOptions({
 export const activeBackgroundQueryOptions = queryOptions({
   queryKey: ['active_background'],
   queryFn: async () => {
-    await queryClient.ensureQueryData(backgroundsQueryOptions)
     await queryClient.ensureQueryData(launchQueryOptions)
+    await queryClient.ensureQueryData(backgroundsQueryOptions)
 
     const backgrounds = queryClient.getQueryData(
       backgroundsQueryOptions.queryKey
     )!
     const defaultBackground = backgrounds[0]
     const current = queryClient.getQueryData(launchQueryOptions.queryKey)!
-      .background.current
+      .shared.background.current
     if (current !== null) {
       const index = backgrounds.findIndex((bg) => bg.id === current)
       if (index === -1) return defaultBackground
@@ -299,12 +287,16 @@ export const useActiveBackgroundMutation = () =>
 export const invalidateActiveBackground = () =>
   queryClient.invalidateQueries(activeBackgroundQueryOptions)
 
+const toastIds = ['background-1', 'background-2']
+
 export const useBackgroundMutation = ({
   onError
 }: {
   onError?: (error: Error) => void
-} = {}) =>
-  useMutation({
+} = {}) => {
+  const [toastIndex, setToastIndex] = useState(0)
+
+  return useMutation({
     mutationFn: async (background: { id: string }) => {
       const data = (await invoke('set_background', background)) as string
       const config = LaunchConfig.safeParse(JSON.parse(data))
@@ -315,10 +307,20 @@ export const useBackgroundMutation = ({
       }
       updateLaunchConfig(config.data)
     },
+    onSuccess: () => {
+      toast.dismiss(toastIds[toastIndex])
+      const newIndex = (toastIndex + 1) % toastIds.length
+
+      toast.success(`Successfully applied background.`, {
+        id: toastIds[newIndex]
+      })
+      setToastIndex(newIndex)
+    },
     onError: (error) => {
       onError?.(error)
     }
   })
+}
 
 export const useResetBackgroundMutation = ({
   onSuccess,
@@ -344,6 +346,36 @@ export const useResetBackgroundMutation = ({
     onSettled
   })
 
+export const useDebugConsoleMutation = () =>
+  useMutation({
+    mutationFn: async (data: { enableConsole: boolean }) => {
+      const query = (await invoke('set_debug_console', data)) as string
+      const config = LaunchConfig.safeParse(JSON.parse(query))
+      if (!config.success) {
+        throw new Error(
+          `Failed to save debug console change. ${config.error.message}`
+        )
+      }
+      updateLaunchConfig(config.data)
+      return data.enableConsole
+    },
+    onError: (error) => handleError(error),
+    onSuccess: (enableConsole) => {
+      const id = enableConsole ? 'debug-console' : 'debug-console-disabled'
+      const prevId = !enableConsole ? 'debug-console' : 'debug-console-disabled'
+      toast.dismiss(prevId)
+      if (enableConsole) {
+        toast.success('The Overwatch debug console has been enabled.', {
+          id: id
+        })
+      } else {
+        toast.warning('The Overwatch debug console has been disabled.', {
+          id: id
+        })
+      }
+    }
+  })
+
 export const useResetMutation = ({
   onSuccess,
   onError,
@@ -360,7 +392,7 @@ export const useResetMutation = ({
       if (!config.success) {
         throw new Error(`Failed to reset.`)
       }
-      queryClient.invalidateQueries({ queryKey: ['active_background'] })
+      invalidateActiveBackground()
       updateLaunchConfig(config.data)
     },
     onError: (error) => {
@@ -368,24 +400,11 @@ export const useResetMutation = ({
       onError?.(error)
     },
     onSuccess: () => {
-      toast.success('Successfully reset to default settings.')
+      toast.success('All settings have been reset to default.')
       onSuccess?.()
     },
     onSettled
   })
-
-export const settingsQueryOptions = queryOptions({
-  queryKey: ['settings'],
-  queryFn: async () => {
-    const data = await invoke('get_settings_data')
-    const settings = SettingsData.safeParse(JSON.parse(data as string))
-    if (!settings.success) {
-      throw new Error(`Failed to get settings. ${settings.error.message}`)
-    }
-    return settings.data
-  },
-  staleTime: 0
-})
 
 type useCheckUpdatesReturnType =
   | { available: false }
@@ -475,4 +494,17 @@ export const updateQueryOptions = (enabled: boolean = false) =>
     queryKey: ['check_for_update'],
     queryFn: checkUpdate,
     enabled
+  })
+
+export const shouldAdvertiseQueryOptions = queryOptions({
+  queryKey: ['advertisement'],
+  queryFn: () => true,
+  staleTime: Infinity
+})
+
+export const useDismissAdMutation = () =>
+  useMutation({
+    mutationFn: async () => {
+      queryClient.setQueryData(shouldAdvertiseQueryOptions.queryKey, false)
+    }
   })
