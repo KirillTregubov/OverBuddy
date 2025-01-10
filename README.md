@@ -46,8 +46,8 @@ OverBuddy is a free and open source Windows app that allows Overwatch players to
 
 ## Privacy Notice
 
-- **Reads and Writes Configuration**: OverBuddy needs to read and write your Battle.net and/or Steam configuration files to change your background. It does **NOT** modify any game files and your personal data is **NOT** collected.
-- **Automatic Client Restart**: Changes are applied after automatically restarting your Battle.net and/or Steam client.
+- **Reads and Writes Configuration**: OverBuddy needs to read and write your Battle.net and/or Steam configuration files to change your background. It does **NOT** modify any game files and does **NOT** collect your personal data.
+- **Automatically Restarts Game Clients**: Changes are applied after automatically restarting your Battle.net and/or Steam client.
 
 ## Inspiration
 
