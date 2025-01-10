@@ -20,8 +20,13 @@ jobs:
 
       - name: Read changelog
         run: |
+          # Read changelog
           echo 'RELEASE_BODY<<EOF' >> $env:GITHUB_ENV
           cat CHANGELOG.txt >> $env:GITHUB_ENV
+          echo ([Environment]::NewLine + [Environment]::NewLine) >> $env:GITHUB_ENV
+          # Read generic release notes
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          (Get-Content RELEASE.md -Raw) -replace '__VERSION__', "$version" >> $env:GITHUB_ENV
           echo 'EOF' >> $env:GITHUB_ENV
 
       - name: Install Rust

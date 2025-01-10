@@ -1,6 +1,6 @@
 OverBuddy has been updated and now supports Steam!
 - Added support for Steam installations of Overwatch.
-- Added the option to enable the Overwatch debug console.
+- Added an option in Settings to enable the Overwatch debug console.
 - Fixed various issues and made improvements.
 
-Thank you for using OverBuddy! This major update brings important improvements for a more reliable and complete experience.
+Thank you for using OverBuddy! This major update brings important changes for a more reliable and complete experience.
