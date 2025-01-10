@@ -1,6 +1,6 @@
-OverBuddy has been updated! Steam compatibility is coming soon.
-- Added Season 14 backgrounds, removed broken ones.
-Other changes in this update:
-- Faster app startup time, more consistent loading animations.
-- Updated "Check for Updates" in Settings and startup update check.
+OverBuddy has been updated and now supports Steam!
+- Added support for Steam installations of Overwatch.
+- Added the option to enable the Overwatch debug console.
 - Fixed various issues and made improvements.
+
+Thank you for using OverBuddy! This major update brings important improvements for a more reliable and complete experience.
