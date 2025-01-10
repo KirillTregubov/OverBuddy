@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   create-release:
@@ -51,8 +54,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tauriScript: pnpm tauri
-          tagName: v__VERSION__
-          releaseName: 'OverBuddy v__VERSION__'
+          tagName: ${{ github.event_name == 'pull_request' && 'v__VERSION__-pre' || 'v__VERSION__' }}
+          releaseName: ${{ github.event_name == 'pull_request' && 'OverBuddy v__VERSION__ (Preview)' || 'OverBuddy v__VERSION__' }}
           releaseBody: ${{ env.RELEASE_BODY }}
           releaseDraft: true
-          prerelease: false
+          prerelease: ${{ github.event_name == 'pull_request' }}
