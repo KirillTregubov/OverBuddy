@@ -63,7 +63,7 @@ export default function SteamProfileComponent({
             className={clsx(
               'absolute flex items-center rounded',
               large
-                ? 'inset-0 justify-center bg-neutral-950/20'
+                ? 'inset-0 justify-center bg-zinc-950/20'
                 : 'bottom-1 left-1 right-1 justify-end'
             )}
             title="No Overwatch Data Found"
