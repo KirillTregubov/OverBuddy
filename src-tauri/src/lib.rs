@@ -239,7 +239,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         // Enable Battle.net
         config.battle_net.enabled = true;
     } else {
-        battle_net::reset_settings(&mut config)?;
+        battle_net::reset_config(&mut config)?;
 
         // Disable Battle.net
         config.battle_net.enabled = false;
@@ -319,7 +319,7 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         }
         config.steam.enabled = true;
     } else {
-        steam::reset_settings(&config)?;
+        steam::reset_config(&config)?;
 
         // Disable Steam
         config.steam.profiles = None;
@@ -658,8 +658,8 @@ fn reset(handle: AppHandle) -> Result<String, Error> {
     let config = config::read_config(&handle);
 
     if let Ok(config) = config {
-        battle_net::reset_settings(&config)?;
-        steam::reset_settings(&config)?;
+        battle_net::reset_config(&config)?;
+        steam::reset_config(&config)?;
     }
 
     let config = config::get_default_config();

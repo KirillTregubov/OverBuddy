@@ -27,9 +27,9 @@ export const LaunchConfig = z.object({
     enabled: z.boolean(),
     in_setup: z.boolean(),
     advertised: z.number(),
-    profiles: z.array(SteamProfile).nullable(),
     install: z.string().nullable(),
-    configs: z.array(SteamLocalconfig).nullable()
+    configs: z.array(SteamLocalconfig).nullable(),
+    profiles: z.array(SteamProfile).nullable()
   }),
   shared: z.object({
     background: z.object({

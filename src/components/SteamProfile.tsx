@@ -1,7 +1,7 @@
 import clsx from 'clsx'
-import { CircleXIcon, HashIcon } from 'lucide-react'
+import { CircleXIcon, HashIcon, UserRoundIcon } from 'lucide-react'
+import { useState } from 'react'
 
-import placeholder from '@/assets/placeholder_small.svg'
 import type { SteamProfile } from '@/lib/schemas'
 
 export default function SteamProfileComponent({
@@ -11,29 +11,41 @@ export default function SteamProfileComponent({
   account: SteamProfile
   large?: boolean
 }) {
+  const [isError, setIsError] = useState(false)
+
   return (
     <div
       key={account.id}
       className={clsx(large ? 'flex flex-col gap-1' : 'flex shrink-0 gap-2.5')}
     >
       <div className="relative w-fit select-none">
-        <img
-          src={account.avatar || placeholder}
-          alt={`Avatar of ${account.name}`}
-          onError={(e) => (e.currentTarget.src = placeholder)}
-          className={clsx(
-            'block rounded shadow-inner brightness-50',
-            large ? 'h-28 w-28' : 'max-h-16 max-w-16'
-          )}
-          draggable={false}
-        />
-
+        {!isError && account.avatar ? (
+          <img
+            src={account.avatar}
+            alt={`Avatar of ${account.name}`}
+            onError={() => setIsError(true)}
+            className={clsx(
+              'block rounded shadow-inner brightness-50',
+              large ? 'h-28 w-28' : 'size-16'
+            )}
+            draggable={false}
+          />
+        ) : (
+          <div
+            className={clsx(
+              'flex items-center justify-center rounded bg-zinc-700 shadow-inner brightness-[0.25]',
+              large ? 'size-28' : 'size-16'
+            )}
+          >
+            <UserRoundIcon size={large ? 96 : 48} />
+          </div>
+        )}
         {account.has_overwatch ? (
           <div
             className={clsx(
               'absolute flex items-center rounded',
               large
-                ? 'inset-0 justify-center bg-orange-950/20'
+                ? 'inset-0 justify-center bg-orange-950/25'
                 : 'bottom-1 left-1 right-1 justify-end'
             )}
             title="Found Overwatch Data"

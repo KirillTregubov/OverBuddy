@@ -60,7 +60,7 @@ export const Route = createFileRoute('/menu')({
   pendingMs: 0
 })
 
-const onImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
+function onImageError(event: React.SyntheticEvent<HTMLImageElement, Event>) {
   if (!event?.target) return
   ;(event.target as HTMLImageElement).src = placeholder
 }

@@ -45,8 +45,8 @@ importers:
         specifier: ^0.469.0
         version: 0.469.0(react@19.0.0)
       motion:
-        specifier: ^11.16.1
-        version: 11.16.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        specifier: ^11.16.4
+        version: 11.16.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       react:
         specifier: ^19.0.0
         version: 19.0.0
@@ -1384,8 +1384,8 @@ packages:
     resolution: {integrity: sha512-QOSvevhslijgYwRx6Rv7zKdMF8lbRmx+uQGx2+vDc+KI/eBnsy9kit5aj23AgGu3pa4t9AgwbnXWqS+iOY+2aA==}
     engines: {node: '>= 6'}
 
-  caniuse-lite@1.0.30001690:
-    resolution: {integrity: sha512-5ExiE3qQN6oF8Clf8ifIDcMRCRE/dMGcETG/XGMD8/XiXm6HXQgQTh1yZYLXXpSOsEUlJm1Xr7kGULZTuGtP/w==}
+  caniuse-lite@1.0.30001692:
+    resolution: {integrity: sha512-A95VKan0kdtrsnMubMKxEKUKImOPSuCpYgxSQBo036P5YYgVIcOYJEgt/txJWqObiRQeISNCfef9nvlQ0vbV7A==}
 
   chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
@@ -1493,8 +1493,8 @@ packages:
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
 
-  electron-to-chromium@1.5.79:
-    resolution: {integrity: sha512-nYOxJNxQ9Om4EC88BE4pPoNI8xwSFf8pU/BAeOl4Hh/b/i6V4biTAzwV7pXi3ARKeoYO5JZKMIXTryXSVer5RA==}
+  electron-to-chromium@1.5.80:
+    resolution: {integrity: sha512-LTrKpW0AqIuHwmlVNV+cjFYTnXtM9K37OGhpe0ZI10ScPSxqVSryZHIY3WnCS5NSYbBODRTZyhRMS2h5FAEqAw==}
 
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -1661,8 +1661,8 @@ packages:
   fraction.js@4.3.7:
     resolution: {integrity: sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==}
 
-  framer-motion@11.16.1:
-    resolution: {integrity: sha512-xsjhEUSWHn39g334PpBTH+QissgEJVJkpRGS/4QUyMSmoJSNxA+7FTuq61s+OXPMS4muu5k9Y6r7GpcNKhd1xA==}
+  framer-motion@11.16.4:
+    resolution: {integrity: sha512-7ncPlBjrYX6iQXcTSw1kvZcHSVjEuOAW3uWuu+/+chUS4UWBMe8kCjniE4VMc2/BMo0su0Uw9sw0aWS9anpPWA==}
     peerDependencies:
       '@emotion/is-prop-valid': '*'
       react: ^18.0.0 || ^19.0.0
@@ -2019,14 +2019,14 @@ packages:
     resolution: {integrity: sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw==}
     engines: {node: '>=16 || 14 >=14.17'}
 
-  motion-dom@11.16.1:
-    resolution: {integrity: sha512-XVNf3iCfZn9OHPZYJQy5YXXLn0NuPNvtT3YCat89oAnr4D88Cr52KqFgKa8dWElBK8uIoQhpJMJEG+dyniYycQ==}
+  motion-dom@11.16.4:
+    resolution: {integrity: sha512-2wuCie206pCiP2K23uvwJeci4pMFfyQKpWI0Vy6HrCTDzDCer4TsYtT7IVnuGbDeoIV37UuZiUr6SZMHEc1Vww==}
 
   motion-utils@11.16.0:
     resolution: {integrity: sha512-ngdWPjg31rD4WGXFi0eZ00DQQqKKu04QExyv/ymlC+3k+WIgYVFbt6gS5JsFPbJODTF/r8XiE/X+SsoT9c0ocw==}
 
-  motion@11.16.1:
-    resolution: {integrity: sha512-VEwkZHdisrudJVF3Qpy2EtL1J4gZhcg6yv7HkbvnTHrD/wbMamymTH29y89ezIQa9k2RbMXe4vc2K55c+MdbBQ==}
+  motion@11.16.4:
+    resolution: {integrity: sha512-Ut4Lv41Bh8QRmBM56zwVXZsRS/jUTVjS081xnHF7zCl2I24v5Kb5/FU5oogSfCCQY/T/BZnIhkIe5PH8BDZIAA==}
     peerDependencies:
       '@emotion/is-prop-valid': '*'
       react: ^18.0.0 || ^19.0.0
@@ -3813,7 +3813,7 @@ snapshots:
   autoprefixer@10.4.20(postcss@8.4.49):
     dependencies:
       browserslist: 4.24.4
-      caniuse-lite: 1.0.30001690
+      caniuse-lite: 1.0.30001692
       fraction.js: 4.3.7
       normalize-range: 0.1.2
       picocolors: 1.1.1
@@ -3856,8 +3856,8 @@ snapshots:
 
   browserslist@4.24.4:
     dependencies:
-      caniuse-lite: 1.0.30001690
-      electron-to-chromium: 1.5.79
+      caniuse-lite: 1.0.30001692
+      electron-to-chromium: 1.5.80
       node-releases: 2.0.19
       update-browserslist-db: 1.1.2(browserslist@4.24.4)
 
@@ -3882,7 +3882,7 @@ snapshots:
 
   camelcase-css@2.0.1: {}
 
-  caniuse-lite@1.0.30001690: {}
+  caniuse-lite@1.0.30001692: {}
 
   chalk@4.1.2:
     dependencies:
@@ -3989,7 +3989,7 @@ snapshots:
 
   eastasianwidth@0.2.0: {}
 
-  electron-to-chromium@1.5.79: {}
+  electron-to-chromium@1.5.80: {}
 
   emoji-regex@8.0.0: {}
 
@@ -4311,9 +4311,9 @@ snapshots:
 
   fraction.js@4.3.7: {}
 
-  framer-motion@11.16.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  framer-motion@11.16.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
     dependencies:
-      motion-dom: 11.16.1
+      motion-dom: 11.16.4
       motion-utils: 11.16.0
       tslib: 2.8.1
     optionalDependencies:
@@ -4659,15 +4659,15 @@ snapshots:
 
   minipass@7.1.2: {}
 
-  motion-dom@11.16.1:
+  motion-dom@11.16.4:
     dependencies:
       motion-utils: 11.16.0
 
   motion-utils@11.16.0: {}
 
-  motion@11.16.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  motion@11.16.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
     dependencies:
-      framer-motion: 11.16.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      framer-motion: 11.16.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       tslib: 2.8.1
     optionalDependencies:
       react: 19.0.0

@@ -3,7 +3,7 @@
   "author": "Kirill Tregubov",
   "repository": "https://github.com/KirillTregubov/OverBuddy",
   "private": true,
-  "version": "1.4.7",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "tauri": "tauri",
@@ -27,7 +27,7 @@
     "@tauri-apps/plugin-updater": "~2.3.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.469.0",
-    "motion": "^11.16.1",
+    "motion": "^11.16.4",
     "react": "^19.0.0",
     "react-compiler-runtime": "19.0.0-beta-b2e8e9c-20241220",
     "react-dom": "^19.0.0",

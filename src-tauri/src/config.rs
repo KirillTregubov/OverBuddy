@@ -86,9 +86,9 @@ pub fn get_default_config() -> Config {
             enabled: false,
             in_setup: false,
             advertised: 0,
+            install: None,
             configs: None,
             profiles: None,
-            install: None,
         },
         shared: SharedConfig {
             background: BackgroundConfig {

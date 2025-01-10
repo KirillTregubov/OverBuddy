@@ -8,6 +8,7 @@ pub mod battle_net {
 
     pub static CONFIG_FILE: &str = "Battle.net.config";
 
+    /// Close all instances of Battle.net.
     pub fn close_app() -> bool {
         let mut flag = false;
         let system = System::new_all();
@@ -20,6 +21,7 @@ pub mod battle_net {
         flag
     }
 
+    /// Set the Battle.net launch arguments.
     pub fn set_launch_args<F, P>(
         config: &Config,
         params: P,
@@ -77,7 +79,7 @@ pub mod battle_net {
         Ok(())
     }
 
-    /// Updates OverBuddy configuration with the current state of the Battle.net.config file.
+    /// Update OverBuddy configuration with the current state of the Battle.net.config file.
     ///
     /// **Warning**: This function modifies the shared configuration fields.
     pub fn update_config(config: &Config) -> Result<Option<config::SharedConfig>, Error> {
@@ -129,7 +131,8 @@ pub mod battle_net {
         Ok(Some(shared_config))
     }
 
-    pub fn reset_settings(config: &Config) -> Result<(), Error> {
+    /// Reset all Battle.net configuration.
+    pub fn reset_config(config: &Config) -> Result<(), Error> {
         if config.battle_net.enabled {
             // Reset background
             if config.shared.background.current.is_some() {
@@ -186,6 +189,7 @@ pub mod steam {
     use std::process::Command;
     use sysinfo::System;
 
+    /// Close all instances of Steam.
     pub fn close_app() -> bool {
         let mut flag = false;
         let system = System::new_all();
@@ -198,6 +202,7 @@ pub mod steam {
         flag
     }
 
+    /// Get all Steam profiles from the Steam config files.
     pub fn get_profiles(config: &Config) -> Result<Vec<SteamProfile>, Error> {
         let mut profiles: Vec<SteamProfile> = vec![];
 
@@ -209,22 +214,7 @@ pub mod steam {
                     continue;
                 }
 
-                let contents = match fs::read_to_string(config_path) {
-                    Ok(contents) => contents,
-                    Err(err) => {
-                        return Err(Error::Custom(format!(
-                            "Failed to read config file at [[{}]]. {}",
-                            steam_config.file, err
-                        )));
-                    }
-                };
-
-                match extract_steam_user_info(
-                    &contents,
-                    "UserLocalConfigStore",
-                    "friends",
-                    steam_config.id.as_str(),
-                ) {
+                match extract_steam_user_info(steam_config, config_path) {
                     Ok(profile) => profiles.push(profile),
                     Err(err) => {
                         return Err(Error::Custom(format!(
@@ -246,6 +236,7 @@ pub mod steam {
         Ok(profiles)
     }
 
+    /// Set the Steam launch arguments.
     pub fn set_launch_args<F, P>(
         config: &Config,
         params: P,
@@ -295,7 +286,7 @@ pub mod steam {
         Ok(())
     }
 
-    /// Updates OverBuddy configuration with the current state of the Battle.net.config file.
+    /// Update OverBuddy configuration with the current state of the Battle.net.config file.
     ///
     /// **Warning**: This function modifies the shared configuration fields.
     pub fn update_config(config: &mut Config) -> Result<Option<config::SharedConfig>, Error> {
@@ -330,7 +321,7 @@ pub mod steam {
                     continue;
                 }
 
-                let launch_args = get_config_launch_args(&steam_config.file)?;
+                let launch_args = get_config_launch_args(&steam_config.file)?.0;
 
                 if let Some(launch_args) = launch_args {
                     // Save current background
@@ -371,6 +362,7 @@ pub mod steam {
         Ok(Some(shared_config))
     }
 
+    /// Get all Steam configs from the Steam installation.
     pub fn get_configs(config: &Config) -> Result<Vec<config::SteamLocalconfig>, Error> {
         let mut configs: Vec<config::SteamLocalconfig> = vec![];
 
@@ -406,7 +398,8 @@ pub mod steam {
         Ok(configs)
     }
 
-    pub fn reset_settings(config: &Config) -> Result<(), Error> {
+    /// Reset all Steam configuration.
+    pub fn reset_config(config: &Config) -> Result<(), Error> {
         if config.steam.enabled {
             // Reset background
             if config.shared.background.current.is_some() {
@@ -422,12 +415,25 @@ pub mod steam {
     }
 
     const STEAM_AVATAR_URL: &str = "https://avatars.akamai.steamstatic.com";
+
     fn extract_steam_user_info(
-        contents: &str,
-        outer_key: &str,
-        middle_key: &str,
-        id: &str,
+        steam_config: &config::SteamLocalconfig,
+        config_path: &Path,
     ) -> Result<SteamProfile, Error> {
+        let contents = match fs::read_to_string(config_path) {
+            Ok(contents) => contents,
+            Err(err) => {
+                return Err(Error::Custom(format!(
+                    "Failed to read config file at [[{}]]. {}",
+                    steam_config.file, err
+                )));
+            }
+        };
+
+        let outer_key = "UserLocalConfigStore";
+        let middle_key = "friends";
+        let id = steam_config.id.as_str();
+
         if let Some(outer_start) = contents.find(&format!("\"{}\"", outer_key)) {
             if let Some(middle_start) = contents[outer_start..].find(&format!("\"{}\"", middle_key))
             {
@@ -448,10 +454,12 @@ pub mod steam {
                                     if open_braces == 0 {
                                         let end_index = object_start + i + 2;
                                         let object_str = &contents[object_start..end_index];
+
                                         let avatar =
                                             extract_value(object_str, "avatar").map(|avatar| {
                                                 format!("{}/{}_full.jpg", STEAM_AVATAR_URL, avatar)
                                             });
+
                                         let mut name = extract_name_history(object_str);
                                         if name.is_none() || name.as_ref().unwrap().is_empty() {
                                             name = extract_value(object_str, "name");
@@ -462,7 +470,7 @@ pub mod steam {
                                             ));
                                         }
 
-                                        let has_overwatch = get_overwatch_installed(contents)?;
+                                        let has_overwatch = get_overwatch_installed(&contents)?;
 
                                         return Ok(SteamProfile {
                                             id: id.to_string(),
@@ -480,43 +488,34 @@ pub mod steam {
                 }
             }
         }
+
         Err(Error::Custom(
             "Reached the end of file without finding target".to_string(),
         ))
     }
 
     fn extract_value(object_str: &str, key: &str) -> Option<String> {
-        if let Some(start) = object_str.find(&format!("\"{}\"", key)) {
-            let key_start = start + key.len() + 3; // Skip the key, quotes, and tab
-            if let Some(value_start) = object_str[key_start..].find('"') {
-                let value_start = key_start + value_start + 1; // Move past the initial quote
-                if let Some(value_end) = object_str[value_start..].find('"') {
-                    return Some(object_str[value_start..value_start + value_end].to_string());
-                }
-            }
-        }
-        None
+        let search_key = format!("\t\t\t\"{}\"", key);
+        object_str.find(&search_key).and_then(|start| {
+            let value_slice = &object_str[start + search_key.len()..];
+            let value_start = value_slice.find('"')? + 1;
+            let value_end = value_slice[value_start..].find('"')?;
+            Some(value_slice[value_start..value_start + value_end].to_string())
+        })
     }
 
     fn extract_name_history(object_str: &str) -> Option<String> {
-        if let Some(start) = object_str.find("\"NameHistory\"") {
-            let key_start = start + "NameHistory".len() + 3; // Skip the key, quotes, and tab
-            if let Some(open_brace_start) = object_str[key_start..].find('{') {
-                let nested_start = key_start + open_brace_start + 1; // Move past the opening brace
-                if let Some(zero_start) = object_str[nested_start..].find("\"0\"") {
-                    let zero_key_start = nested_start + zero_start + 3; // Skip the key, quotes, and tab
-                    if let Some(value_start) = object_str[zero_key_start..].find('"') {
-                        let value_start = zero_key_start + value_start + 1; // Move past the initial quote
-                        if let Some(value_end) = object_str[value_start..].find('"') {
-                            return Some(
-                                object_str[value_start..value_start + value_end].to_string(),
-                            );
-                        }
-                    }
-                }
-            }
-        }
-        None
+        let search_key = "\t\t\t\"NameHistory\"";
+        object_str.find(search_key).and_then(|start| {
+            let after_key = &object_str[start + search_key.len()..];
+            let nested_start = after_key.find('{')? + 1;
+            let after_brace = &after_key[nested_start..];
+            let zero_key_start = after_brace.find("\"0\"")? + 3;
+            let after_zero_key = &after_brace[zero_key_start..];
+            let value_start = after_zero_key.find('"')? + 1;
+            let value_end = after_zero_key[value_start..].find('"')?;
+            Some(after_zero_key[value_start..value_start + value_end].to_string())
+        })
     }
 
     fn get_overwatch_installed(contents: &str) -> Result<bool, Error> {
@@ -617,41 +616,46 @@ pub mod steam {
 
         let diff = TextDiff::from_lines(&lines1, &lines2);
 
+        let mut insert_count = 0;
         let mut delete_count = 0;
-        let mut diff_count = 0;
         for change in diff.iter_all_changes() {
-            if change.tag() == ChangeTag::Delete {
-                if !change.value().contains("LaunchOptions") {
-                    return Err(format!(
-                        "Tried to incorrectly delete [[{}]]",
-                        change.to_string_lossy()
-                    ));
+            match change.tag() {
+                ChangeTag::Insert => {
+                    if !change.value().contains("LaunchOptions") {
+                        return Err(format!(
+                            "Tried to incorrectly insert [[{}]]",
+                            change.to_string_lossy()
+                        ));
+                    }
+                    insert_count += 1;
                 }
-
-                delete_count += 1;
-            } else if change.tag() == ChangeTag::Insert {
-                if !change.value().contains("LaunchOptions") {
-                    return Err(format!(
-                        "Tried to incorrectly insert [[{}]]",
-                        change.to_string_lossy()
-                    ));
+                ChangeTag::Delete => {
+                    if !change.value().contains("LaunchOptions") {
+                        return Err(format!(
+                            "Tried to incorrectly delete [[{}]]",
+                            change.to_string_lossy()
+                        ));
+                    }
+                    delete_count += 1;
                 }
-
-                diff_count += 1;
+                _ => {}
             }
 
-            if diff_count > 1 || delete_count > 1 {
+            if insert_count > 1 || delete_count > 1 {
                 return Err("More than one line is different".to_string());
             }
         }
 
-        if diff_count == 0 {
-            return Ok(false);
+        if insert_count == 0 {
+            Ok(false)
+        } else {
+            Ok(true)
         }
-        Ok(true)
     }
 
-    fn get_config_launch_args(config_filename: &str) -> Result<Option<String>, Error> {
+    fn get_config_launch_args(
+        config_filename: &str,
+    ) -> Result<(Option<String>, Option<usize>, Option<usize>), Error> {
         let mut file = fs::OpenOptions::new()
             .read(true)
             .write(true)
@@ -720,7 +724,7 @@ pub mod steam {
             } else {
                 if key == "2357570" {
                     // Overwatch not installed on this account
-                    return Ok(None);
+                    return Ok((None, None, None));
                 }
                 return Err(Error::Custom(format!(
                     "Failed to find the [[{}]] key in Steam config at [[{}]]",
@@ -757,9 +761,13 @@ pub mod steam {
             }
 
             let launch_args = &local_config[value_start..value_end];
-            return Ok(Some(launch_args.to_string()));
+            return Ok((
+                Some(launch_args.to_string()),
+                Some(value_start),
+                Some(value_end),
+            ));
         } else {
-            return Ok(Some(String::new()));
+            return Ok((Some(String::new()), Some(block_start + 1), None));
         }
     }
 
@@ -793,102 +801,26 @@ pub mod steam {
                 ))
             })?;
 
-            // Traverse config file to Overwatch entry
-            let keys = vec![
-                "UserLocalConfigStore",
-                "Software",
-                "Valve",
-                "Steam",
-                "apps",
-                "2357570",
-            ];
-
-            let mut queue: VecDeque<&str> = VecDeque::from(keys);
-            let mut current_start = 0;
-            let mut current_end = local_config.len();
-
-            while let Some(key) = queue.pop_front() {
-                if let Some(pos) = local_config[current_start..current_end].find(key) {
-                    // Update start position
-                    current_start += pos;
-                    // Identify opening brace
-                    let brace_pos = local_config[current_start..].find('{').ok_or_else(|| {
-                    Error::Custom(format!(
-                        "Failed to find an opening brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]]",
-                        config_filename
-                    ))
-                })?;
-                    let block_start = current_start + brace_pos + 1;
-                    // Identify closing brace
-                    let current_indent = local_config[current_start..block_start]
-                        .rfind("\n")
-                        .and_then(|inner_pos| {
-                            local_config[current_start + inner_pos + 1..block_start]
-                                .chars()
-                                .take_while(|&c| c == '\t')
-                                .count()
-                                .into()
-                        })
-                        .unwrap_or(0);
-                    let search_pattern = format!("\n{}{}", "\t".repeat(current_indent), "}");
-                    // Update end position
-                    current_end = local_config[block_start..]
-                    .find(&search_pattern)
-                    .map(|i| block_start + i + 1)
-                    .ok_or_else(|| {
-                        Error::Custom(format!(
-                            "Failed to find the closing brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]]", config_filename
-                        ))
-                    })?;
+            let (launch_args, start_index, end_index) = get_config_launch_args(config_filename)?;
+            if let Some(launch_args) = launch_args {
+                if let (Some(start_index), Some(end_index)) = (start_index, end_index) {
+                    let new_launch_args = generate_launch_args(Some(launch_args.as_str()), params);
+                    local_config.replace_range(start_index..end_index, &new_launch_args);
+                } else if let Some(start_index) = start_index {
+                    let new_launch_args = generate_launch_args(None, params);
+                    local_config.insert_str(
+                        start_index,
+                        format!("\t\t\t\t\t\t\"LaunchOptions\"\t\t\"{}\"\n", new_launch_args)
+                            .as_str(),
+                    );
                 } else {
-                    if key == "2357570" {
-                        // Overwatch not installed on this account
-                        return Ok(());
-                    }
                     return Err(Error::Custom(format!(
-                        "Failed to find the [[{}]] key in Steam config at [[{}]]",
-                        key, config_filename
-                    )));
-                }
-            }
-
-            // Get Overwatch config block
-            let brace_pos = local_config[current_start..].find('{').ok_or_else(|| {
-                Error::Custom(format!(
-                    "Failed to find an opening brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]]",
-                    config_filename
-                ))
-            })?;
-            let block_start = current_start + brace_pos + 1;
-            let block_end = current_end;
-
-            // Set LaunchOptions config to background
-            if let Some(launch_options_pos) =
-                local_config[block_start..block_end].find("\"LaunchOptions\"")
-            {
-                let value_start = block_start + launch_options_pos + "\"LaunchOptions\"".len() + 3; // Skip the key, quotes, and tab
-                let value_end = value_start
-                    + local_config[value_start..block_end]
-                        .find('"')
-                        .unwrap_or(value_start);
-
-                if value_start > value_end {
-                    return Err(Error::Custom(format!(
-                        "Failed to read the [[LaunchOptions]] key, inside the [[2357570]] (Overwatch) key in Steam config at [[{}]]",
+                        "Reached unexpected state while reading launch arguments in Steam config at [[{}]]",
                         config_filename
                     )));
                 }
-
-                let launch_args = &local_config[value_start..value_end];
-                let new_launch_args = generate_launch_args(Some(launch_args), params);
-                local_config.replace_range(value_start..value_end, &new_launch_args);
             } else {
-                let new_launch_args = generate_launch_args(None, params);
-
-                local_config.insert_str(
-                    block_start + 1,
-                    format!("\t\t\t\t\t\t\"LaunchOptions\"\t\t\"{}\"\n", new_launch_args).as_str(),
-                );
+                return Ok(());
             }
 
             // Backup config file

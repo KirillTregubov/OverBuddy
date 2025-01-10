@@ -2,7 +2,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import { BookLockIcon, GlobeIcon, SparklesIcon } from 'lucide-react'
 import { motion } from 'motion/react'
 
-import logo from '@/assets/logo.svg'
 import { ExternalLinkInline, LinkButton } from '@/components/Button'
 import CheckForUpdates from '@/components/CheckForUpdates'
 import {
@@ -32,7 +31,7 @@ function SetupSplash() {
       >
         <div className="flex flex-col items-center gap-2">
           <motion.img
-            src={logo}
+            src="/logo.png"
             alt="OverBuddy Logo"
             variants={moveInVariants}
             width="64px"
@@ -96,7 +95,7 @@ function SetupSplash() {
               <motion.p className="text-pretty">
                 To change the menu background, OverBuddy needs to read and write
                 your Battle.net® and/or Steam® configuration files. It does{' '}
-                <span className="font-medium text-zinc-300">NOT</span> modify
+                <span className="font-medium text-zinc-300/90">NOT</span> modify
                 any game files. Your game client will be restarted to apply the
                 changes.
               </motion.p>
