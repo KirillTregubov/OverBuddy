@@ -73,6 +73,6 @@ jobs:
         uses: tubone24/update_release@v1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG_NAME: ${{ github.event_name == 'pull_request' && 'v__VERSION__-pre' || 'v__VERSION__' }}
+          TAG_NAME: ${{ github.event_name == 'pull_request' && format('v{0}-pre', steps.tauri.outputs.appVersion) || format('v{0}', steps.tauri.outputs.appVersion) }}
         with:
           body: ${{ env.RELEASE_BODY }}
