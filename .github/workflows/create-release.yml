@@ -25,7 +25,6 @@ jobs:
           $changelog = Get-Content CHANGELOG.txt -Raw
           echo "$changelog" >> $env:GITHUB_ENV
           echo 'EOF' >> $env:GITHUB_ENV
-
           # Read changelog + release notes
           echo "RELEASE_BODY<<EOF" >> $env:GITHUB_ENV
           echo "$changelog" >> $env:GITHUB_ENV
@@ -33,6 +32,8 @@ jobs:
           $version = (Get-Content package.json | ConvertFrom-Json).version
           (Get-Content RELEASE.md -Raw) -replace '__VERSION__', "$version" >> $env:GITHUB_ENV
           echo 'EOF' >> $env:GITHUB_ENV
+          # Print success message
+          echo "Successfully read changelog"
         shell: pwsh
 
       - name: Install Rust
@@ -74,12 +75,14 @@ jobs:
         id: update_release
         uses: octokit/request-action@v2.x
         with:
-          route: PATCH /repos/{repo}/releases/{release_id}'
+          route: PATCH /repos/{repo}/releases/{release_id}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INPUT_REPO: ${{ github.repository }}
           INPUT_RELEASE_ID: ${{ steps.tauri.outputs.releaseId }}
           INPUT_BODY: ${{ toJSON(env.RELEASE_BODY) }}
-      - run: 'echo Successfully updated release body'
-      - run: "echo Release could not be found. Request failed with status '${{ steps.update_release.outputs.status }}': ${{ steps.update_release.outputs.data }}"
+      - name: Handle Update Release Success
+        run: echo "Successfully updated release body"
+      - name: Handle Update Release Failure
+        run: 'echo "Release could not be found. Request failed with status ${{ steps.update_release.outputs.status }}: ${{ steps.update_release.outputs.data }}"'
         if: ${{ failure() }}
