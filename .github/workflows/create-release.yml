@@ -22,22 +22,20 @@ jobs:
         run: |
           # Read version
           $version = (Get-Content package.json | ConvertFrom-Json).version
+          if ($env:GITHUB_EVENT_NAME -eq 'pull_request') {
+            $version = "$version-pre"
+          }
 
-          # Read changelog only
+          # Export changelog
           echo "CHANGELOG_BODY<<EOF" >> $env:GITHUB_ENV
           $changelog = Get-Content CHANGELOG.txt -Raw
           echo "$changelog" >> $env:GITHUB_ENV
           echo "EOF" >> $env:GITHUB_ENV
 
-          # Read tag name
-          if ($env:GITHUB_EVENT_NAME -eq 'pull_request') {
-            $tag = "v$version-pre"
-          } else {
-            $tag = "v$version"
-          }
-          echo "TAG_NAME=$tag" >> $env:GITHUB_ENV
+          # Export tag name
+          echo "TAG_NAME=v$version" >> $env:GITHUB_ENV
 
-          # Read changelog + release notes
+          # Export changelog + release notes
           echo "RELEASE_BODY<<EOF" >> $env:GITHUB_ENV
           echo "$changelog" >> $env:GITHUB_ENV
           echo "" >> $env:GITHUB_ENV
