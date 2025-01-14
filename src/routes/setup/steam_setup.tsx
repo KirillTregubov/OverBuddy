@@ -37,6 +37,16 @@ function SteamSetup() {
   const navigate = useNavigate()
   const { data: profiles } = useSuspenseQuery(steamQueryOptions)
   const { mutate, status } = useSteamConfirmMutation({
+    onError: () => {
+      console.log('error')
+      navigate({
+        to: '/setup/NoSteamOverwatch',
+        search: {
+          redirect
+        },
+        replace: true
+      })
+    },
     onSuccess: () => {
       if (redirect) {
         navigate({
@@ -92,7 +102,6 @@ function SteamSetup() {
         >
           Confirm
         </MotionButton>
-        {/* TODO: Disconnect Steam? */}
       </motion.div>
     </motion.div>
   )

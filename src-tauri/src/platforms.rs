@@ -321,6 +321,7 @@ pub mod steam {
                     continue;
                 }
 
+                // NOTE: Currently fails when config is malformed instead of continuing.
                 let launch_args = get_config_launch_args(&steam_config.file)?.0;
 
                 if let Some(launch_args) = launch_args {
@@ -543,10 +544,10 @@ pub mod steam {
                 current_start += pos;
                 // Identify opening brace
                 let brace_pos = contents[current_start..].find('{').ok_or_else(|| {
-                    Error::Custom(
-                        "Failed to find an opening brace for the [[2357570]] (Overwatch) key"
-                            .to_string(),
-                    )
+                    Error::Custom(format!(
+                        "Failed to find an opening brace for the [[{}]] key",
+                        key
+                    ))
                 })?;
                 let block_start = current_start + brace_pos + 1;
                 // Identify closing brace
@@ -695,7 +696,8 @@ pub mod steam {
                 // Identify opening brace
                 let brace_pos = local_config[current_start..].find('{').ok_or_else(|| {
                     Error::Custom(format!(
-                        "Failed to find an opening brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]]",
+                        "Failed to find an opening brace for the [[{}]] key in Steam config at [[{}]]",
+                        key,
                         config_filename
                     ))
                 })?;

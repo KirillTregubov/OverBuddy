@@ -283,9 +283,9 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         let userdata_path = steam_path.join("userdata");
         if !userdata_path.exists() || !userdata_path.is_dir() {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
-                error_key: ErrorKey::SteamInstall,
+                error_key: ErrorKey::SteamAccount,
                 message: format!(
-                    "Failed to read Steam [[userdata]] folder, located at [[{}]]",
+                    "Failed to read your Steam [[userdata]] folder, located at [[{}]]",
                     userdata_path.to_string_lossy()
                 ),
                 platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
@@ -293,23 +293,13 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         }
 
         config.steam.configs = Some(steam::get_configs(&config)?);
-        if config.steam.configs.as_ref().unwrap().is_empty() {
-            return Err(Error::Custom(serde_json::to_string(&SetupError {
-                error_key: ErrorKey::SteamInstall,
-                message: format!(
-                    "Failed to find any accounts in your Steam [[userdata]] folder at [[{}]]",
-                    userdata_path.to_string_lossy()
-                ),
-                platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
-            })?));
-        }
-
-        // Check if Steam accounts exist
         if config.steam.configs.is_none() || config.steam.configs.as_ref().unwrap().is_empty() {
             return Err(Error::Custom(serde_json::to_string(&SetupError {
                 error_key: ErrorKey::SteamAccount,
-                message: "Failed to find any accounts in your Steam [[userdata]] folder"
-                    .to_string(),
+                message: format!(
+                    "Failed to find any accounts in your Steam [[userdata]] folder, located at [[{}]]",
+                    userdata_path.to_string_lossy()
+                ),
                 platforms: Some(platforms.iter().map(|s| s.to_string()).collect()),
             })?));
         }
@@ -443,10 +433,13 @@ fn get_setup_path(key: &str) -> Result<String, Error> {
 
 #[tauri::command]
 fn get_steam_accounts(handle: AppHandle) -> Result<String, Error> {
-    let config = config::read_config(&handle)?;
-    let accounts = steam::get_profiles(&config)?;
+    let mut config = config::read_config(&handle)?;
 
-    Ok(serde_json::to_string(&accounts)?)
+    config.steam.configs = Some(steam::get_configs(&config)?);
+    let profiles = steam::get_profiles(&config)?;
+    config::write_config(&handle, &config)?;
+
+    Ok(serde_json::to_string(&profiles)?)
 }
 
 #[tauri::command]
@@ -454,6 +447,18 @@ fn confirm_steam_setup(handle: AppHandle) -> Result<String, Error> {
     let mut config = config::read_config(&handle)?;
 
     let steam_shared = steam::update_config(&mut config)?;
+
+    // Check that at least one account has Overwatch
+    if let Some(profiles) = &config.steam.profiles {
+        let has_overwatch = profiles.iter().any(|profile| profile.has_overwatch);
+        if !has_overwatch {
+            if config.battle_net.enabled {
+                return Ok("NoSteamOverwatch".into());
+            } else {
+                return Ok("NoSteamOverwatchFatal".into());
+            }
+        }
+    }
 
     if let Some(steam_shared) = steam_shared {
         if config.battle_net.enabled {
@@ -478,6 +483,24 @@ fn confirm_steam_setup(handle: AppHandle) -> Result<String, Error> {
     }
 
     config.steam.in_setup = false;
+    config::write_config(&handle, &config)?;
+
+    Ok(serde_json::to_string(&config)?)
+}
+
+#[tauri::command]
+fn undo_steam_setup(handle: AppHandle) -> Result<String, Error> {
+    let mut config = config::read_config(&handle)?;
+
+    config.steam.profiles = None;
+    config.steam.configs = None;
+    config.steam.in_setup = false;
+    config.steam.enabled = false;
+
+    if !config.battle_net.enabled {
+        config.is_setup = false;
+    }
+
     config::write_config(&handle, &config)?;
 
     Ok(serde_json::to_string(&config)?)
@@ -688,6 +711,7 @@ pub fn run() {
             get_setup_path,
             get_steam_accounts,
             confirm_steam_setup,
+            undo_steam_setup,
             get_backgrounds,
             set_background,
             reset_background,

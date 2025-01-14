@@ -33,26 +33,28 @@ export function Button<A extends React.ElementType>({
   )
 }
 
-export function LinkButton({
-  className,
-  primary = false,
-  destructive = false,
-  role = 'button',
-  children,
-  ...props
-}: ButtonProps & React.ComponentProps<typeof Link>) {
-  return (
-    <Link
-      {...anchorLinkFix}
-      {...props}
-      className={buttonClasses(className, { primary, destructive })}
-      role={role}
-      draggable={false}
-    >
-      {children}
-    </Link>
-  )
-}
+export const LinkButton = createLink(
+  ({
+    className,
+    primary = false,
+    destructive = false,
+    role = 'button',
+    children,
+    ...props
+  }: ButtonProps & React.ComponentProps<typeof Link>) => {
+    return (
+      <Link
+        {...anchorLinkFix}
+        {...props}
+        className={buttonClasses(className, { primary, destructive })}
+        role={role}
+        draggable={false}
+      >
+        {children}
+      </Link>
+    )
+  }
+)
 
 type MotionButtonProps = ButtonProps & HTMLMotionProps<'button'>
 

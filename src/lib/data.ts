@@ -10,6 +10,7 @@ import {
   ConfigErrors,
   SetupError,
   SetupPathResponse,
+  SteamSetupError,
   handleError
 } from '@/lib/errors'
 import {
@@ -204,13 +205,30 @@ export const steamQueryOptions = queryOptions({
 })
 
 export const useSteamConfirmMutation = ({
+  onError,
   onSuccess
 }: {
+  onError?: (err: Error) => void
   onSuccess?: () => void
 } = {}) =>
   useMutation({
     mutationFn: async () => {
-      const data = (await invoke('confirm_steam_setup')) as string
+      let data = (await invoke('confirm_steam_setup')) as string
+
+      if (data.startsWith('NoSteamOverwatch')) {
+        if (data.includes('Fatal')) {
+          throw new SteamSetupError()
+        } else {
+          data = (await invoke('undo_steam_setup')) as string
+          toast.warning(
+            'Cannot enable Steam support: No Overwatch installation found.',
+            {
+              id: 'no-steam-overwatch'
+            }
+          )
+        }
+      }
+
       const config = LaunchConfig.safeParse(JSON.parse(data))
       if (!config.success) {
         throw new Error(
@@ -219,7 +237,33 @@ export const useSteamConfirmMutation = ({
       }
       updateLaunchConfig(config.data)
     },
-    onError: (error) => handleError(error),
+    onError: (error) => {
+      if (error instanceof SteamSetupError) {
+        onError?.(error)
+        return
+      }
+
+      handleError(error)
+    },
+    onSuccess
+  })
+
+export const useSteamUndoMutation = ({
+  onSuccess
+}: {
+  onSuccess?: () => void
+} = {}) =>
+  useMutation({
+    mutationFn: async () => {
+      const data = (await invoke('undo_steam_setup')) as string
+      const config = LaunchConfig.safeParse(JSON.parse(data))
+      if (!config.success) {
+        throw new Error(
+          `Failed to save background change. ${config.error.message}`
+        )
+      }
+      updateLaunchConfig(config.data)
+    },
     onSuccess
   })
 
