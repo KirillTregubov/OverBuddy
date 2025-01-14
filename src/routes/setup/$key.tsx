@@ -4,7 +4,7 @@ import { open } from '@tauri-apps/plugin-dialog'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-import { Button, MotionButton } from '@/components/Button'
+import { Button } from '@/components/Button'
 import { FormattedError } from '@/components/Error'
 import ErrorWrapper from '@/components/ErrorWrapper'
 import Highlight from '@/components/Highlight'
@@ -137,10 +137,32 @@ function ConfigureComponent() {
       }
       buttons={
         <>
-          {/* TODO: SteamAccount Untested */}
-          {key === 'SteamAccount' ? (
-            <MotionButton
-              primary
+          <Button
+            onClick={() => {
+              if (is_setup) {
+                if (redirect) {
+                  navigate({
+                    to: redirect,
+                    replace: true
+                  })
+                } else {
+                  navigate({
+                    to: '/menu',
+                    replace: true
+                  })
+                }
+              } else {
+                navigate({
+                  to: '/setup/select',
+                  replace: true
+                })
+              }
+            }}
+          >
+            Go Back
+          </Button>
+          {key === 'SteamAccount' && (
+            <Button
               onClick={() => {
                 mutate({
                   key,
@@ -149,35 +171,10 @@ function ConfigureComponent() {
                 })
               }}
             >
-              Retry
-            </MotionButton>
-          ) : (
-            <Button
-              onClick={() => {
-                if (is_setup) {
-                  if (redirect) {
-                    navigate({
-                      to: redirect,
-                      replace: true
-                    })
-                  } else {
-                    navigate({
-                      to: '/menu',
-                      replace: true
-                    })
-                  }
-                } else {
-                  navigate({
-                    to: '/setup/select',
-                    replace: true
-                  })
-                }
-              }}
-            >
-              Go Back
+              Retry Setup
             </Button>
           )}
-          <MotionButton
+          <Button
             primary
             onClick={async () => {
               const selected = await open({
@@ -220,7 +217,7 @@ function ConfigureComponent() {
               : key === 'BattleNetConfig'
                 ? 'Battle.net.config'
                 : 'steam.exe'}
-          </MotionButton>
+          </Button>
           {/* TODO: report issue */}
         </>
       }

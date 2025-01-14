@@ -48,16 +48,27 @@ export const SetupPathResponse = z.object({
 })
 export type SetupPathResponse = z.infer<typeof SetupPathResponse>
 
+/* SteamSetupError Class */
+export class SteamSetupError extends Error {
+  constructor() {
+    super('Failed to find a Steam installation of Overwatch.')
+  }
+}
+
 /* Handle non-critical errors */
 // , reportable = true
 export function handleError(error: unknown) {
   if (error instanceof Error) error = error.message
   else if (typeof error !== 'string') error = 'An unknown error occurred.'
-  toast.error((error as string).replaceAll(/\[\[|\]\]/g, '"'), {
-    classNames: {
-      toast: '!max-w-[28rem]'
+  toast.error(
+    (error as string).replaceAll(/\[\[|\]\]/g, '"') +
+      (/[.!?]$/.test(error as string) ? '' : '.'),
+    {
+      classNames: {
+        toast: '!max-w-[28rem] !select-auto'
+      }
     }
-  })
+  )
   // , {
   //   action: reportable
   //     ? {

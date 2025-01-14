@@ -1,6 +1,6 @@
 ## Downloads
 
-- [Download from GitHub](https://github.com/KirillTregubov/OverBuddy/releases/download/v__VERSION__/OverBuddy___VERSION___x64_en-US.msi)
+- [Download from GitHub](https://github.com/KirillTregubov/OverBuddy/releases/download/__TAG__/OverBuddy___VERSION___x64_en-US.msi)
 
 ## Screenshot
 
@@ -27,7 +27,7 @@ I would like to extend my gratitude to [SkyBorik](https://steamcommunity.com/id/
 
 ## Installation
 
-[Download this version](https://github.com/KirillTregubov/OverBuddy/releases/download/v__VERSION__/OverBuddy___VERSION___x64_en-US.msi) of OverBuddy and run the installer.
+[Download this version](https://github.com/KirillTregubov/OverBuddy/releases/download/__TAG__/OverBuddy___VERSION___x64_en-US.msi) of OverBuddy and run the installer.
 
 ## How to Use
 

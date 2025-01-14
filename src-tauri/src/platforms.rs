@@ -321,6 +321,7 @@ pub mod steam {
                     continue;
                 }
 
+                // NOTE: Currently fails when config is malformed instead of continuing.
                 let launch_args = get_config_launch_args(&steam_config.file)?.0;
 
                 if let Some(launch_args) = launch_args {
@@ -430,12 +431,14 @@ pub mod steam {
             }
         };
 
-        let outer_key = "UserLocalConfigStore";
-        let middle_key = "friends";
+        let outer_key = "\"UserLocalConfigStore\"";
+        let middle_key = "\n\t\"friends\"";
         let id = steam_config.id.as_str();
 
-        if let Some(outer_start) = contents.find(&format!("\"{}\"", outer_key)) {
-            if let Some(middle_start) = contents[outer_start..].find(&format!("\"{}\"", middle_key))
+        if let Some(outer_start) = contents.to_lowercase().find(&outer_key.to_lowercase()) {
+            if let Some(middle_start) = contents[outer_start..]
+                .to_lowercase()
+                .find(&middle_key.to_lowercase())
             {
                 if let Some(id_start) =
                     contents[outer_start + middle_start..].find(&format!("\"{}\"", id))
@@ -490,12 +493,12 @@ pub mod steam {
         }
 
         Err(Error::Custom(
-            "Reached the end of file without finding target".to_string(),
+            "Reached the end of file without finding Steam user info".to_string(),
         ))
     }
 
     fn extract_value(object_str: &str, key: &str) -> Option<String> {
-        let search_key = format!("\t\t\t\"{}\"", key);
+        let search_key = format!("\n\t\t\t\"{}\"", key);
         object_str.find(&search_key).and_then(|start| {
             let value_slice = &object_str[start + search_key.len()..];
             let value_start = value_slice.find('"')? + 1;
@@ -505,7 +508,7 @@ pub mod steam {
     }
 
     fn extract_name_history(object_str: &str) -> Option<String> {
-        let search_key = "\t\t\t\"NameHistory\"";
+        let search_key = "\n\t\t\t\"NameHistory\"";
         object_str.find(search_key).and_then(|start| {
             let after_key = &object_str[start + search_key.len()..];
             let nested_start = after_key.find('{')? + 1;
@@ -520,36 +523,51 @@ pub mod steam {
 
     fn get_overwatch_installed(contents: &str) -> Result<bool, Error> {
         // Traverse config file to Overwatch entry
-        let keys = vec![
-            "UserLocalConfigStore",
-            "Software",
-            "Valve",
-            "Steam",
-            "apps",
-            "2357570",
-        ];
-
-        // Use a queue for traversal
-        let mut queue: VecDeque<&str> = VecDeque::from(keys);
+        let mut queue: VecDeque<&str> = VecDeque::from(vec![
+            "\"UserLocalConfigStore\"",
+            "\n\t\"Software\"",
+            "\n\t\t\"Valve\"",
+            "\n\t\t\t\"Steam\"",
+            "\n\t\t\t\t\"apps\"",
+            "\n\t\t\t\t\t\"2357570\"",
+        ]);
         let mut current_start = 0;
         let mut current_end = contents.len();
 
         while let Some(key) = queue.pop_front() {
-            if let Some(pos) = contents[current_start..current_end].find(key) {
-                if key == "2357570" {
+            let formatted_key = key
+                .find('\"')
+                .and_then(|start| {
+                    key[start + 1..]
+                        .find('\"')
+                        .map(|end| &key[start + 1..start + 1 + end])
+                })
+                .unwrap_or(key);
+
+            if let Some(pos) = contents[current_start..current_end]
+                .to_lowercase()
+                .find(&key.to_lowercase())
+            {
+                if formatted_key == "2357570" {
                     break;
                 }
+
                 // Update start position
                 current_start += pos;
-                // Identify opening brace
-                let brace_pos = contents[current_start..].find('{').ok_or_else(|| {
-                    Error::Custom(
-                        "Failed to find an opening brace for the [[2357570]] (Overwatch) key"
-                            .to_string(),
-                    )
-                })?;
+
+                // Identify start of block
+                let brace_pos =
+                    contents[current_start..current_end]
+                        .find('{')
+                        .ok_or_else(|| {
+                            Error::Custom(format!(
+                                "Failed to find an opening brace for the [[{}]] key",
+                                formatted_key
+                            ))
+                        })?;
                 let block_start = current_start + brace_pos + 1;
-                // Identify closing brace
+
+                // Identify end of block
                 let current_indent = contents[current_start..block_start]
                     .rfind("\n")
                     .and_then(|inner_pos| {
@@ -560,9 +578,10 @@ pub mod steam {
                             .into()
                     })
                     .unwrap_or(0);
+
+                // Update search end position
                 let search_pattern = format!("\n{}{}", "\t".repeat(current_indent), "}");
-                // Update end position
-                current_end = contents[block_start..]
+                current_end = contents[block_start..current_end]
                     .find(&search_pattern)
                     .map(|i| block_start + i + 1)
                     .ok_or_else(|| {
@@ -572,7 +591,8 @@ pub mod steam {
                         )
                     })?;
             } else {
-                if key == "2357570" {
+                if formatted_key == "2357570" {
+                    // Overwatch not installed on this account
                     return Ok(false);
                 }
 
@@ -675,32 +695,48 @@ pub mod steam {
         })?;
 
         // Traverse config file to Overwatch entry
-        let keys = vec![
-            "UserLocalConfigStore",
-            "Software",
-            "Valve",
-            "Steam",
-            "apps",
-            "2357570",
-        ];
-
-        let mut queue: VecDeque<&str> = VecDeque::from(keys);
+        let mut queue: VecDeque<&str> = VecDeque::from(vec![
+            "\"UserLocalConfigStore\"",
+            "\n\t\"Software\"",
+            "\n\t\t\"Valve\"",
+            "\n\t\t\t\"Steam\"",
+            "\n\t\t\t\t\"apps\"",
+            "\n\t\t\t\t\t\"2357570\"",
+        ]);
         let mut current_start = 0;
         let mut current_end = local_config.len();
 
         while let Some(key) = queue.pop_front() {
-            if let Some(pos) = local_config[current_start..current_end].find(key) {
+            let formatted_key = key
+                .find('\"')
+                .and_then(|start| {
+                    key[start + 1..]
+                        .find('\"')
+                        .map(|end| &key[start + 1..start + 1 + end])
+                })
+                .unwrap_or(key);
+
+            if let Some(pos) = &local_config[current_start..current_end]
+                .to_lowercase()
+                .find(&key.to_lowercase())
+            {
                 // Update start position
                 current_start += pos;
-                // Identify opening brace
-                let brace_pos = local_config[current_start..].find('{').ok_or_else(|| {
-                    Error::Custom(format!(
-                        "Failed to find an opening brace for the [[2357570]] (Overwatch) key in Steam config at [[{}]]",
-                        config_filename
-                    ))
-                })?;
+
+                // Identify start of block
+                let brace_pos =
+                    local_config[current_start..current_end]
+                        .find('{')
+                        .ok_or_else(|| {
+                            Error::Custom(format!(
+                                "Failed to find an opening brace for the [[{}]] key in Steam config at [[{}]]",
+                                formatted_key,
+                                config_filename
+                            ))
+                        })?;
                 let block_start = current_start + brace_pos + 1;
-                // Identify closing brace
+
+                // Identify end of block
                 let current_indent = local_config[current_start..block_start]
                     .rfind("\n")
                     .and_then(|inner_pos| {
@@ -711,9 +747,10 @@ pub mod steam {
                             .into()
                     })
                     .unwrap_or(0);
+
+                // Update search end position
                 let search_pattern = format!("\n{}{}", "\t".repeat(current_indent), "}");
-                // Update end position
-                current_end = local_config[block_start..]
+                current_end = local_config[block_start..current_end]
                     .find(&search_pattern)
                     .map(|i| block_start + i + 1)
                     .ok_or_else(|| {
@@ -722,13 +759,14 @@ pub mod steam {
                         ))
                     })?;
             } else {
-                if key == "2357570" {
+                if formatted_key == "2357570" {
                     // Overwatch not installed on this account
                     return Ok((None, None, None));
                 }
+
                 return Err(Error::Custom(format!(
                     "Failed to find the [[{}]] key in Steam config at [[{}]]",
-                    key, config_filename
+                    formatted_key, config_filename
                 )));
             }
         }
