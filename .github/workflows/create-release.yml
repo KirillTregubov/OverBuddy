@@ -27,7 +27,7 @@ jobs:
           echo "CHANGELOG_BODY<<EOF" >> $env:GITHUB_ENV
           $changelog = Get-Content CHANGELOG.txt -Raw
           echo "$changelog" >> $env:GITHUB_ENV
-          echo 'EOF' >> $env:GITHUB_ENV
+          echo "EOF" >> $env:GITHUB_ENV
 
           # Read tag name
           if ($env:GITHUB_EVENT_NAME -eq 'pull_request') {
@@ -38,7 +38,6 @@ jobs:
           echo "TAG_NAME=$tag" >> $env:GITHUB_ENV
 
           # Read changelog + release notes
-          $releaseNotes = 
           echo "RELEASE_BODY<<EOF" >> $env:GITHUB_ENV
           echo "$changelog" >> $env:GITHUB_ENV
           echo "" >> $env:GITHUB_ENV
@@ -92,7 +91,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INPUT_REPO: ${{ github.repository }}
-          INPUT_RELEASE_ID: 194746238 # ${{ steps.tauri.outputs.releaseId }}
+          INPUT_RELEASE_ID: ${{ steps.tauri.outputs.releaseId }}
           INPUT_BODY: ${{ toJSON(env.RELEASE_BODY) }}
           INPUT_TAG_NAME: ${{ env.TAG_NAME }}
 
