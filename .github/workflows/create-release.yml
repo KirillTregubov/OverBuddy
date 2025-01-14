@@ -40,8 +40,9 @@ jobs:
             body = "$changelog`n`n$releaseNotes"
             tag_name  = "$tag"
           } | ConvertTo-Json -Compress
-          echo "RELEASE_BODY=$releaseBody" >> $env:GITHUB_ENV
-          # echo 'EOF' >> $env:GITHUB_ENV
+          $escapedJson = $releaseBody -replace '"', '\"'
+          echo "RELEASE_BODY=$escapedJson" >> $env:GITHUB_ENV
+          echo 'EOF' >> $env:GITHUB_ENV
 
           # Print success message
           echo "Successfully read changelog"
