@@ -20,56 +20,61 @@ jobs:
 
       - name: Read changelog
         run: |
+          # Read version
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          echo "VERSION=$version" >> $env:GITHUB_ENV
+
           # Read changelog only
           echo "CHANGELOG_BODY<<EOF" >> $env:GITHUB_ENV
           $changelog = Get-Content CHANGELOG.txt -Raw
           echo "$changelog" >> $env:GITHUB_ENV
           echo 'EOF' >> $env:GITHUB_ENV
+
           # Read changelog + release notes
           echo "RELEASE_BODY<<EOF" >> $env:GITHUB_ENV
           echo "$changelog" >> $env:GITHUB_ENV
-          echo ([Environment]::NewLine) >> $env:GITHUB_ENV
-          $version = (Get-Content package.json | ConvertFrom-Json).version
+          echo "" >> $env:GITHUB_ENV
           (Get-Content RELEASE.md -Raw) -replace '__VERSION__', "$version" >> $env:GITHUB_ENV
           echo 'EOF' >> $env:GITHUB_ENV
+
           # Print success message
           echo "Successfully read changelog"
         shell: pwsh
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      # - name: Install Rust
+      #   uses: dtolnay/rust-toolchain@stable
 
-      - name: Setup Rust cache
-        uses: swatinem/rust-cache@v2
-        with:
-          workspaces: './src-tauri -> target'
+      # - name: Setup Rust cache
+      #   uses: swatinem/rust-cache@v2
+      #   with:
+      #     workspaces: './src-tauri -> target'
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      # - name: Setup pnpm
+      #   uses: pnpm/action-setup@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
+      # - name: Setup Node.js
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: 20
+      #     cache: 'pnpm'
 
-      - name: Install frontend dependencies
-        run: pnpm install --frozen-lockfile --strict-peer-dependencies
+      # - name: Install frontend dependencies
+      #   run: pnpm install --frozen-lockfile --strict-peer-dependencies
 
-      - name: Build Tauri app
-        id: tauri
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        with:
-          tauriScript: pnpm tauri
-          tagName: ${{ github.event_name == 'pull_request' && 'v__VERSION__-pre' || 'v__VERSION__' }}
-          releaseName: ${{ github.event_name == 'pull_request' && 'OverBuddy v__VERSION__ (Preview)' || 'OverBuddy v__VERSION__' }}
-          releaseBody: ${{ env.CHANGELOG_BODY }}
-          releaseDraft: true
-          prerelease: ${{ github.event_name == 'pull_request' }}
+      # - name: Build Tauri app
+      #   id: tauri
+      #   uses: tauri-apps/tauri-action@v0
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      #     TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      #   with:
+      #     tauriScript: pnpm tauri
+      #     tagName: ${{ github.event_name == 'pull_request' && 'v__VERSION__-pre' || 'v__VERSION__' }}
+      #     releaseName: ${{ github.event_name == 'pull_request' && 'OverBuddy v__VERSION__ (Preview)' || 'OverBuddy v__VERSION__' }}
+      #     releaseBody: ${{ env.CHANGELOG_BODY }}
+      #     releaseDraft: true
+      #     prerelease: ${{ github.event_name == 'pull_request' }}
 
       - name: Update Release Body
         id: update_release
@@ -79,11 +84,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INPUT_REPO: ${{ github.repository }}
-          INPUT_RELEASE_ID: ${{ steps.tauri.outputs.releaseId }}
+          INPUT_RELEASE_ID: 194746238 # ${{ steps.tauri.outputs.releaseId }}
           INPUT_BODY: |
             {
-              "body": "${{ env.RELEASE_BODY }}",
-              "tag_name": "${{ github.event_name == 'pull_request' && 'v__VERSION__-pre' || 'v__VERSION__' }}"
+              "body": "${{ toJSON(env.RELEASE_BODY) }}",
+              "tag_name": "${{ github.event_name == 'pull_request' && format('v{0}-pre', env.VERSION) || format('v{0}', env.VERSION) }}"
             }
       - name: Handle Update Release Success
         run: echo "Successfully updated release body"
