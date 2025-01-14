@@ -35,7 +35,7 @@ jobs:
           } else {
             $tag = "v$version"
           }
-          echo "$TAG_NAME=$tag" >> $env:GITHUB_ENV
+          echo "TAG_NAME=$tag" >> $env:GITHUB_ENV
 
           # Read changelog + release notes
           $releaseNotes = 
