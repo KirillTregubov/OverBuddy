@@ -22,7 +22,6 @@ jobs:
         run: |
           # Read version
           $version = (Get-Content package.json | ConvertFrom-Json).version
-          echo "VERSION=$version" >> $env:GITHUB_ENV
 
           # Read changelog only
           echo "CHANGELOG_BODY<<EOF" >> $env:GITHUB_ENV
@@ -31,11 +30,18 @@ jobs:
           echo 'EOF' >> $env:GITHUB_ENV
 
           # Read changelog + release notes
-          echo "RELEASE_BODY<<EOF" >> $env:GITHUB_ENV
-          echo "$changelog" >> $env:GITHUB_ENV
-          echo "" >> $env:GITHUB_ENV
-          (Get-Content RELEASE.md -Raw) -replace '__VERSION__', "$version" >> $env:GITHUB_ENV
-          echo 'EOF' >> $env:GITHUB_ENV
+          $releaseNotes = (Get-Content RELEASE.md -Raw) -replace '__VERSION__', "$version"
+          if ($env:GITHUB_EVENT_NAME -eq 'pull_request') {
+            $tag = "v$version-pre"
+          } else {
+            $tag = "v$version"
+          }
+          $releaseBody = @{
+            body = "$changelog`n`n$releaseNotes"
+            tag  = "$tag"
+          } | ConvertTo-Json -Compress
+          echo "RELEASE_BODY=$releaseBody" >> $env:GITHUB_ENV
+          # echo 'EOF' >> $env:GITHUB_ENV
 
           # Print success message
           echo "Successfully read changelog"
@@ -85,11 +91,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INPUT_REPO: ${{ github.repository }}
           INPUT_RELEASE_ID: 194746238 # ${{ steps.tauri.outputs.releaseId }}
-          INPUT_BODY: |
+          BODY: |
             {
               "body": ${{ toJSON(env.RELEASE_BODY) }},
               "tag_name": "${{ github.event_name == 'pull_request' && format('v{0}-pre', env.VERSION) || format('v{0}', env.VERSION) }}"
             }
+          INPUT_BODY: ${{ toJSON(env.BODY) }}
+
       - name: Handle Update Release Success
         run: echo "Successfully updated release body"
       - name: Handle Update Release Failure
