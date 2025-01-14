@@ -87,7 +87,7 @@ jobs:
           INPUT_RELEASE_ID: 194746238 # ${{ steps.tauri.outputs.releaseId }}
           INPUT_BODY: |
             {
-              "body": "${{ toJSON(env.RELEASE_BODY) }}",
+              "body": ${{ toJSON(env.RELEASE_BODY) }},
               "tag_name": "${{ github.event_name == 'pull_request' && format('v{0}-pre', env.VERSION) || format('v{0}', env.VERSION) }}"
             }
       - name: Handle Update Release Success
