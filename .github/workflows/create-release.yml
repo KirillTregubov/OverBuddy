@@ -92,7 +92,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INPUT_REPO: ${{ github.repository }}
           INPUT_RELEASE_ID: 194746238 # ${{ steps.tauri.outputs.releaseId }}
-          INPUT_BODY: ${{ env.RELEASE_BODY }}
+          INPUT_BODY: |
+            |
+            ${{ env.RELEASE_BODY }}
 
       - name: Handle Update Release Success
         run: echo "Successfully updated release body"
