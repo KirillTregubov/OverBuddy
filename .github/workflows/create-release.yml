@@ -23,7 +23,9 @@ jobs:
           # Read version
           $version = (Get-Content package.json | ConvertFrom-Json).version
           if ($env:GITHUB_EVENT_NAME -eq 'pull_request') {
-            $version = "$version-pre"
+            $tag = "v$version-pre"
+          } else {
+            $tag = "v$version"
           }
 
           # Export changelog
@@ -33,13 +35,13 @@ jobs:
           echo "EOF" >> $env:GITHUB_ENV
 
           # Export tag name
-          echo "TAG_NAME=v$version" >> $env:GITHUB_ENV
+          echo "TAG_NAME=$tag" >> $env:GITHUB_ENV
 
           # Export changelog + release notes
           echo "RELEASE_BODY<<EOF" >> $env:GITHUB_ENV
           echo "$changelog" >> $env:GITHUB_ENV
           echo "" >> $env:GITHUB_ENV
-          (Get-Content RELEASE.md -Raw) -replace '__VERSION__', "$version" >> $env:GITHUB_ENV
+          (Get-Content RELEASE.md -Raw) -replace '__VERSION__', "$version" -replace '__TAG__', "$tag" >> $env:GITHUB_ENV
           echo "EOF" >> $env:GITHUB_ENV
 
           # Print success message
