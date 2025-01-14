@@ -40,8 +40,7 @@ jobs:
             body = "$changelog`n`n$releaseNotes"
             tag_name  = "$tag"
           } | ConvertTo-Json -Compress
-          $escapedJson = $releaseBody -replace '"', '\"'
-          echo "RELEASE_BODY=$escapedJson" >> $env:GITHUB_ENV
+          echo "RELEASE_BODY=$releaseBody" >> $env:GITHUB_ENV
 
           # Print success message
           echo "Successfully read changelog"
@@ -91,7 +90,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INPUT_REPO: ${{ github.repository }}
           INPUT_RELEASE_ID: 194746238 # ${{ steps.tauri.outputs.releaseId }}
-          INPUT_BODY: ${{ toJSON(env.RELEASE_BODY) }}
+          INPUT_BODY: ${{ env.RELEASE_BODY }}
 
       - name: Handle Update Release Success
         run: echo "Successfully updated release body"
