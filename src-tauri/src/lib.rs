@@ -450,8 +450,8 @@ fn confirm_steam_setup(handle: AppHandle) -> Result<String, Error> {
 
     // Check that at least one account has Overwatch
     if let Some(profiles) = &config.steam.profiles {
-        let has_overwatch = profiles.iter().any(|profile| profile.has_overwatch);
-        if !has_overwatch {
+        let steam_has_overwatch = profiles.iter().any(|profile| profile.has_overwatch);
+        if !steam_has_overwatch {
             if config.battle_net.enabled {
                 return Ok("NoSteamOverwatch".into());
             } else {
