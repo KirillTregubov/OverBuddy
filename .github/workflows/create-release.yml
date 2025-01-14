@@ -42,7 +42,6 @@ jobs:
           } | ConvertTo-Json -Compress
           $escapedJson = $releaseBody -replace '"', '\"'
           echo "RELEASE_BODY=$escapedJson" >> $env:GITHUB_ENV
-          echo 'EOF' >> $env:GITHUB_ENV
 
           # Print success message
           echo "Successfully read changelog"
