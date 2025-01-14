@@ -34,7 +34,6 @@ import SteamProfileList from '@/components/SteamProfileList'
 import Version from '@/components/Version'
 import {
   fadeInFastVariants,
-  fadeInVariants,
   moveInLessVariants,
   staggerChildrenVariants
 } from '@/lib/animations'
@@ -182,15 +181,7 @@ function Settings() {
                 Connect platform(s) you use to play Overwatch.
               </p>
             </div>
-            {/* <Suspense
-              fallback={
-                <div className="flex h-[8.25rem] w-full items-center justify-center rounded-lg bg-zinc-800 p-2 pr-6 shadow-inner shadow-zinc-900">
-                  <LoadingInline />
-                </div>
-              }
-            > */}
             <Platforms />
-            {/* </Suspense> */}
           </motion.div>
           <motion.div
             className="flex flex-col gap-1.5"
@@ -312,13 +303,8 @@ function Platforms() {
   })
 
   return (
-    <motion.div className="rounded-lg bg-zinc-800 px-3 py-2 pr-4 shadow-inner shadow-zinc-900">
-      <motion.div
-        className="flex w-full gap-6"
-        variants={fadeInVariants}
-        initial="hidden"
-        animate="show"
-      >
+    <div className="rounded-lg bg-zinc-800 px-3 py-2 pr-4 shadow-inner shadow-zinc-900">
+      <div className="flex w-full gap-6">
         <AlertDialog>
           <AlertDialogContent data-ignore-global-shortcut>
             <AlertDialogHeader>
@@ -537,8 +523,8 @@ function Platforms() {
             </AnimatePresence>
           </div>
         </AlertDialog>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   )
 }
 

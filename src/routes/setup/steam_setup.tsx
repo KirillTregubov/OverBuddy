@@ -38,7 +38,6 @@ function SteamSetup() {
   const { data: profiles } = useSuspenseQuery(steamQueryOptions)
   const { mutate, status } = useSteamConfirmMutation({
     onError: () => {
-      console.log('error')
       navigate({
         to: '/setup/NoSteamOverwatch',
         search: {
