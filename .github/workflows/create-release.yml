@@ -29,19 +29,20 @@ jobs:
           echo "$changelog" >> $env:GITHUB_ENV
           echo 'EOF' >> $env:GITHUB_ENV
 
-          # Read changelog + release notes
-          $releaseNotes = (Get-Content RELEASE.md -Raw) -replace '__VERSION__', "$version"
+          # Read tag name
           if ($env:GITHUB_EVENT_NAME -eq 'pull_request') {
             $tag = "v$version-pre"
           } else {
             $tag = "v$version"
           }
-          $releaseBody = @{
-            body = "$changelog`n`n$releaseNotes"
-            tag_name  = "$tag"
-          } | ConvertTo-Json -Compress
+          echo "$TAG_NAME=$tag" >> $env:GITHUB_ENV
+
+          # Read changelog + release notes
+          $releaseNotes = 
           echo "RELEASE_BODY<<EOF" >> $env:GITHUB_ENV
-          echo "$releaseBody" >> $env:GITHUB_ENV
+          echo "$changelog" >> $env:GITHUB_ENV
+          echo "" >> $env:GITHUB_ENV
+          (Get-Content RELEASE.md -Raw) -replace '__VERSION__', "$version" >> $env:GITHUB_ENV
           echo "EOF" >> $env:GITHUB_ENV
 
           # Print success message
@@ -92,9 +93,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INPUT_REPO: ${{ github.repository }}
           INPUT_RELEASE_ID: 194746238 # ${{ steps.tauri.outputs.releaseId }}
-          INPUT_BODY: |
-            |
-            ${{ env.RELEASE_BODY }}
+          INPUT_BODY: ${{ toJSON(env.RELEASE_BODY) }}
+          INPUT_TAG_NAME: ${{ toJSON(env.TAG_NAME) }}
 
       - name: Handle Update Release Success
         run: echo "Successfully updated release body"
