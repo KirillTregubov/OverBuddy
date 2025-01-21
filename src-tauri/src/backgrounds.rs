@@ -7,6 +7,7 @@ pub struct Background {
     pub name: &'static str,
     pub description: &'static str,
     pub tags: &'static [&'static str],
+    pub new: bool,
 }
 
 const BACKGROUNDS: &[Background] = &[
@@ -16,6 +17,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Overwatch League",
         description: "Overwatch League Promo",
         tags: &["Silent"],
+        new: false,
     },
     Background {
         id: "0x0800000000000E77",
@@ -23,6 +25,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Heroes",
         description: "2022 Alpha Test",
         tags: &["Animated"],
+        new: false,
     },
     Background {
         id: "0x0800000000000D6C",
@@ -30,6 +33,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Sojourn",
         description: "2022 PvP Beta",
         tags: &[],
+        new: false,
     },
     // Background {
     //     id: "0x0800000000000EF3",
@@ -44,6 +48,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Zero Hour",
         description: "Overwatch 2 Launch",
         tags: &[],
+        new: false,
     },
     // Broken after Season 13 mid-season patch
     // Background {
@@ -94,6 +99,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Festive Junkrat & Roadhog",
         description: "Winter Wonderland 2022 (Season 2)",
         tags: &[],
+        new: false,
     },
     Background {
         id: "0x0800000000000DAD",
@@ -101,6 +107,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Festive Mei",
         description: "Lunar New Year 2023 (Season 2)",
         tags: &[],
+        new: false,
     },
     Background {
         id: "0x0800000000000710",
@@ -108,6 +115,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Palanquin D.Va",
         description: "Lunar New Year 2023 (Season 2)",
         tags: &[],
+        new: false,
     },
     // Background {
     //     id: "0x080000000000103D",
@@ -136,6 +144,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Cupid Hanzo",
         description: "Ultimate Valentine 2023 (Season 3)",
         tags: &["Animated"],
+        new: false,
     },
     // Background {
     //     id: "0x0800000000000EED",
@@ -157,6 +166,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Galactic Emperor Sigma",
         description: "Season 4 Mythic Skin",
         tags: &[],
+        new: false,
     },
     // Background {
     //     id: "0x0800000000001132",
@@ -171,6 +181,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Overwatch League Zero Hour",
         description: "Overwatch League Promo (Season 4)",
         tags: &["Overwatch League"],
+        new: false,
     },
     // Background {
     //     id: "0x0800000000001133",
@@ -185,6 +196,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Tropical Doomfist",
         description: "Summer Games 2023 (Season 5)",
         tags: &[],
+        new: false,
     },
     // Background {
     //     id: "0x080000000000112B",
@@ -206,6 +218,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Gothenburg Mothership",
         description: "Invasion PvE Event (Season 6)",
         tags: &["No Music"],
+        new: false,
     },
     // Background {
     //     id: "0x0800000000001150",
@@ -234,6 +247,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Overwatch World Cup",
         description: "Overwatch World Cup 2023 (Season 7)",
         tags: &["World Cup"],
+        new: false,
     },
     // Background {
     //     id: "0x0800000000001173",
@@ -272,6 +286,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Ancient Caller Moira",
         description: "Season 9 Mythic Skin",
         tags: &["Art"],
+        new: false,
     },
     Background {
         id: "0x080000000000121A",
@@ -279,6 +294,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Venture",
         description: "Venture Release (Season 10)",
         tags: &["Art"],
+        new: false,
     },
     Background {
         id: "0x080000000000121E",
@@ -286,6 +302,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Mirrorwatch",
         description: "Mirrorwatch Event (Season 10)",
         tags: &[],
+        new: false,
     },
     Background {
         id: "0x08000000000010AC",
@@ -293,6 +310,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Mirrorwatch Art",
         description: "Mirrorwatch Event (Season 10)",
         tags: &["Art"],
+        new: false,
     },
     Background {
         id: "0x0800000000001219",
@@ -300,6 +318,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Porsche D.Va",
         description: "Porsche Event (Season 10)",
         tags: &["Collaboration", "Art"],
+        new: false,
     },
     // Removed in Season 12, before I could even push to main :(
     // Background {
@@ -315,6 +334,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Rose Gold Mercy",
         description: "Breast Cancer Charity Event (Season 11)",
         tags: &["Charity"],
+        new: false,
     },
     // Removed in Season 12, before I could even push to main :(
     // Background {
@@ -330,6 +350,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Lifeguard Lifeweaver & Kiriko",
         description: "Summer Games 2024 (Season 11)",
         tags: &[],
+        new: false,
     },
     Background {
         id: "0x080000000000124A",
@@ -337,6 +358,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Reinhardt Bound Demon",
         description: "Reinhardt Mythic Weapon (Season 11)",
         tags: &["Mythic Weapon"],
+        new: false,
     },
     // Background {
     //     id: "0x0800000000001276",
@@ -351,6 +373,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Anubis Reaper",
         description: "Season 12 Mythic Skin",
         tags: &["Art"],
+        new: false,
     },
     Background {
         id: "0x0800000000001293",
@@ -358,6 +381,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Sylvanas Widowmaker",
         description: "World of Warcraft Event (Season 12)",
         tags: &["Collaboration", "Art"],
+        new: false,
     },
     Background {
         id: "0x0800000000001289",
@@ -365,6 +389,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Ana Midnight Sun",
         description: "Ana Mythic Weapon (Season 12)",
         tags: &["Mythic Weapon"],
+        new: false,
     },
     Background {
         id: "0x08000000000012A5",
@@ -372,6 +397,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Spellbinder Widowmaker",
         description: "Season 13 Mythic Skin",
         tags: &["Art"],
+        new: false,
     },
     Background {
         id: "0x08000000000012A3",
@@ -379,6 +405,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "OWCS Finals 2024",
         description: "Overwatch Championship Series Finals 2024",
         tags: &["Overwatch Champions Series", "Art", "Crowd Sounds"],
+        new: false,
     },
     // Background {
     //     id: "0x08000000000012A4",
@@ -393,6 +420,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Overwatch Classic",
         description: "Overwatch Classic Event (Season 13)",
         tags: &["Overwatch 1.0 Patch", "Original Theme Song"],
+        new: false,
     },
     Background {
         id: "0x08000000000012BE",
@@ -400,6 +428,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Soldier: 76 Deliverance",
         description: "Soldier: 76 Mythic Weapon (Season 13)",
         tags: &["Mythic Weapon"],
+        new: false,
     },
     Background {
         id: "0x08000000000012C6",
@@ -407,6 +436,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Hazard",
         description: "Hazard Release (Season 14)",
         tags: &["Art"],
+        new: false,
     },
     Background {
         id: "0x08000000000012C7",
@@ -414,6 +444,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Thor Reinhardt",
         description: "Season 14 Mythic Skin",
         tags: &["Animated Art"],
+        new: false,
     },
     Background {
         id: "0x08000000000012EA",
@@ -421,6 +452,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Welcome Home, China",
         description: "China Re-release with NetEase",
         tags: &["Art"],
+        new: false,
     },
     Background {
         id: "0x08000000000012CA",
@@ -428,6 +460,23 @@ const BACKGROUNDS: &[Background] = &[
         name: "Avatar: The Last Airbender",
         description: "Avatar: The Last Airbender Event (Season 14)",
         tags: &["Collaboration", "Animated Art"],
+        new: false,
+    },
+    Background {
+        id: "0x08000000000012CB",
+        image: "ashe_lead_rose.jpg",
+        name: "Ashe Lead Rose",
+        description: "Ashe Mythic Weapon (Season 14)",
+        tags: &["Mythic Weapon"],
+        new: true,
+    },
+    Background {
+        id: "0x0800000000001300",
+        image: "celestial_skins.jpg",
+        name: "Celestial Skins",
+        description: "Celestial Skin Bundle (Season 14)",
+        tags: &[],
+        new: true,
     },
 ];
 
