@@ -8,7 +8,13 @@ import {
   SettingsIcon
 } from 'lucide-react'
 import { AnimatePresence, motion, useAnimation } from 'motion/react'
-import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState
+} from 'react'
 import { toast } from 'sonner'
 
 import placeholder from '@/assets/placeholder.svg'
@@ -65,6 +71,21 @@ function onImageError(event: React.SyntheticEvent<HTMLImageElement, Event>) {
   ;(event.target as HTMLImageElement).src = placeholder
 }
 
+const handleKeyDown = (
+  event: React.KeyboardEvent<HTMLButtonElement>,
+  keys: string[]
+) => {
+  if (
+    keys.includes(event.key) &&
+    !(event.ctrlKey || event.altKey || event.shiftKey || event.metaKey)
+  ) {
+    ;(event.target as HTMLButtonElement).blur()
+  }
+}
+
+const prevKeys = ['ArrowLeft', 'a']
+const nextKeys = ['ArrowRight', 'd']
+
 function Menu() {
   const navigate = useNavigate()
   const { data: backgrounds } = useSuspenseQuery(backgroundsQueryOptions)
@@ -93,6 +114,36 @@ function Menu() {
   const { mutate: setActiveBackground } = useActiveBackgroundMutation()
   const { mutate: dismissAd } = useDismissAdMutation()
 
+  const [newBackground] = useState(
+    backgrounds.findIndex((bg) => bg.new) || null
+  )
+  const [showNewButton, setShowNewButton] = useState(false)
+
+  useEffect(() => {
+    if (!newBackground) return
+
+    const newBackgroundRef = backgroundRefs.current[newBackground]
+    if (!newBackgroundRef) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) setShowNewButton(false)
+        else setShowNewButton(true)
+      },
+      {
+        threshold: 0.3
+      }
+    )
+
+    observer.observe(newBackgroundRef)
+
+    return () => {
+      if (newBackgroundRef) {
+        observer.unobserve(newBackgroundRef)
+      }
+    }
+  }, [newBackground])
+
   const prevButtonRef = useRef<HTMLButtonElement>(null)
   const prevButtonAnimation = useAnimation()
   const nextButtonRef = useRef<HTMLButtonElement>(null)
@@ -118,7 +169,7 @@ function Menu() {
     [prevButtonRef, prevButtonAnimation]
   )
   useKeyPress({
-    keys: ['ArrowLeft', 'a'],
+    keys: prevKeys,
     onPress: onLeftPress,
     debounce: 50,
     sharedTimer: sharedTimerRef,
@@ -143,7 +194,7 @@ function Menu() {
     [nextButtonRef, nextButtonAnimation]
   )
   useKeyPress({
-    keys: ['ArrowRight', 'd'],
+    keys: nextKeys,
     onPress: onRightPress,
     debounce: 50,
     sharedTimer: sharedTimerRef,
@@ -259,6 +310,10 @@ function Menu() {
   }, [activeBackground, backgrounds])
 
   const handleSelect = (index: number) => {
+    if (newBackground && index === newBackground) {
+      setShowNewButton(false)
+    }
+
     const ref = backgroundRefs.current[index]
     if (!ref || (activeBackground && ref.id === activeBackground?.id)) return
     const background = backgrounds.at(index)
@@ -276,9 +331,11 @@ function Menu() {
     let newIndex
 
     if (direction === 'prev') {
+      prevButtonRef.current?.focus()
       newIndex =
         currentIndex - 1 < 0 ? backgrounds.length - 1 : currentIndex - 1
     } else {
+      nextButtonRef.current?.focus()
       newIndex = currentIndex + 1 >= backgrounds.length ? 0 : currentIndex + 1
     }
 
@@ -329,7 +386,7 @@ function Menu() {
                 id={background.id}
                 alt={background.name}
                 className={clsx(
-                  'pointer-events-none h-full w-full select-none object-cover transition-[border-radius]',
+                  'pointer-events-none h-full w-full transform-gpu select-none object-cover transition-[border-radius]',
                   activeBackground?.id === background.id
                     ? 'rounded-xl'
                     : 'rounded-lg'
@@ -362,7 +419,7 @@ function Menu() {
         </div>
         <motion.div
           className="pointer-events-none absolute left-0 top-0 z-20 flex h-full items-center"
-          initial={{ transform: 'translateX(15px)' }}
+          initial={{ transform: 'translateX(8px)' }}
           animate={{ transform: 'translateX(0px)' }}
           transition={{ duration: 0.3 }}
         >
@@ -377,13 +434,14 @@ function Menu() {
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.15 }}
             aria-label="Previous Background"
+            onKeyDown={(event) => handleKeyDown(event, nextKeys)}
           >
             <ChevronLeft size={24} className="text-white" />
           </motion.button>
         </motion.div>
         <motion.div
           className="pointer-events-none absolute right-0 top-0 z-20 flex h-full items-center"
-          initial={{ transform: 'translateX(-15px)' }}
+          initial={{ transform: 'translateX(-8px)' }}
           animate={{ transform: 'translateX(0px)' }}
           transition={{ duration: 0.3 }}
         >
@@ -398,10 +456,35 @@ function Menu() {
             transition={{ duration: 0.15 }}
             animate={nextButtonAnimation}
             aria-label="Next Background"
+            onKeyDown={(event) => handleKeyDown(event, prevKeys)}
           >
             <ChevronRight size={24} className="text-white" />
           </motion.button>
         </motion.div>
+        <AnimatePresence>
+          {showNewButton && (
+            <motion.div
+              className="pointer-events-none absolute right-0 top-6 z-20 flex h-full items-start justify-end"
+              initial={{ transform: 'translateY(8px)', opacity: 0 }}
+              animate={{ transform: 'translateY(0px)', opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.button
+                className="pointer-events-auto rounded-full bg-zinc-100/80 px-3 py-1 text-black backdrop-blur transition-colors will-change-transform hover:bg-white/80 focus-visible:bg-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:bg-white/90"
+                onClick={() => handleSelect(newBackground!)}
+                initial={{ scale: 1 }}
+                whileHover={{ scale: 1.05 }}
+                whileFocus={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                aria-label="Previous Background"
+              >
+                See New
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
       <motion.div
         className="relative flex h-full min-h-0 w-full flex-1 justify-center"
