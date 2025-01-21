@@ -48,7 +48,8 @@ export const Background = z.object({
   image: z.string(),
   name: z.string(),
   description: z.string(),
-  tags: z.array(z.string())
+  tags: z.array(z.string()),
+  new: z.boolean()
 })
 export type Background = z.infer<typeof Background>
 

@@ -1,5 +1,6 @@
 OverBuddy has been updated and now supports Steam!
 - Added two new Season 14 mid-season patch backgrounds.
+- Added a "See New" button to view the new backgrounds.
 
 Other changes in this update:
 - Improved stability by only allowing one instance of the app to run.
