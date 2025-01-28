@@ -53,7 +53,7 @@ OverBuddy is a free and open source Windows app that allows Overwatch players to
 
 As with all software, OverBuddy is built on the shoulders of giants.
 
-I would like to extend my gratitude to [SkyBorik](https://steamcommunity.com/id/MRPRP30) for showing the community [How to change Main Menu background](https://steamcommunity.com/sharedfiles/filedetails/?id=3099694051), to [Toyz](https://github.com/Toyz) for publishing the [Overwatch command line arguments](https://gist.github.com/Toyz/30e6fd504c713511f67f1a607025b0bc), and to the [OverTools Team](https://github.com/overtools) for their [OWLib tool](https://github.com/overtools/OWLib). This app would not have been possible without their contributions to the community.
+I would like to extend my gratitude to [SkyBorik](https://steamcommunity.com/id/MRPRP30) for showing the community [How to change Main Menu background](https://web.archive.org/web/20250124072732/https://steamcommunity.com/sharedfiles/filedetails/?id=3099694051), to [Toyz](https://github.com/Toyz) for publishing the [Overwatch command line arguments](https://gist.github.com/Toyz/30e6fd504c713511f67f1a607025b0bc), and to the [OverTools Team](https://github.com/overtools) for their [OWLib tool](https://github.com/overtools/OWLib). This app would not have been possible without their contributions to the community.
 
 ## Installation
 
