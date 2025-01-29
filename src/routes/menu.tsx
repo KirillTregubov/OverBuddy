@@ -471,7 +471,7 @@ function Menu() {
               transition={{ duration: 0.3 }}
             >
               <motion.button
-                className="pointer-events-auto rounded-full bg-zinc-100/80 px-3 py-1 text-black backdrop-blur transition-colors will-change-transform hover:bg-white/80 focus-visible:bg-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:bg-white/90"
+                className="pointer-events-auto select-none rounded-full bg-zinc-100/80 px-3 py-1 text-black backdrop-blur transition-colors will-change-transform hover:bg-white/80 focus-visible:bg-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:bg-white/90"
                 onClick={() => handleSelect(newBackground!)}
                 initial={{ scale: 1 }}
                 whileHover={{ scale: 1.05 }}

@@ -144,7 +144,7 @@ function Settings() {
               <p>
                 This app is built on the shoulders of giants and wouldn&apos;t
                 be possible without the work of{' '}
-                <ExternalLinkInline href="https://steamcommunity.com/sharedfiles/filedetails/?id=3099694051">
+                <ExternalLinkInline href="https://steamcommunity.com/id/MRPRP30">
                   SkyBorik
                 </ExternalLinkInline>
                 ,{' '}
