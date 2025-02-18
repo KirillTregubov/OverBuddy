@@ -461,11 +461,11 @@ type useCheckUpdatesReturnType =
 
 const checkUpdate = async () => {
   const update = await check()
-  if (isDev()) {
-    return {
-      available: false
-    } satisfies useCheckUpdatesReturnType
-  }
+  // if (isDev()) {
+  //   return {
+  //     available: false
+  //   } satisfies useCheckUpdatesReturnType
+  // }
 
   if (update) {
     return {

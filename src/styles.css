@@ -135,7 +135,7 @@ button.highlight-base {
 }
 
 [data-sonner-toast][data-styled='true'][data-type='warning'] [data-button] {
-  @apply bg-amber-800 text-amber-100 !shadow-none transition-[background-color,box-shadow,transform] will-change-transform hover:bg-amber-900 focus-visible:ring focus-visible:ring-amber-500/75 active:scale-95 active:bg-amber-900;
+  @apply bg-amber-800 text-amber-100 !shadow-none transition will-change-transform hover:bg-amber-900 focus-visible:ring focus-visible:ring-amber-500/75 active:scale-95 active:bg-amber-900;
 }
 
 [data-sonner-toast][data-styled='true'][data-type='warning']
@@ -144,7 +144,7 @@ button.highlight-base {
 }
 
 [data-sonner-toast][data-styled='true'][data-type='error'] [data-button] {
-  @apply bg-red-800 text-red-100 !shadow-none transition-[background-color,box-shadow,transform] will-change-transform hover:bg-red-900 focus-visible:ring focus-visible:ring-red-500/75 active:scale-95 active:bg-red-900;
+  @apply bg-red-800 text-red-100 !shadow-none transition will-change-transform hover:bg-red-900 focus-visible:ring focus-visible:ring-red-500/75 active:scale-95 active:bg-red-900;
 }
 
 [data-sonner-toast][data-styled='true'][data-type='error'] [data-close-button] {
@@ -152,7 +152,7 @@ button.highlight-base {
 }
 
 [data-sonner-toast][data-styled='true'][data-type='info'] [data-button] {
-  @apply bg-blue-800 text-blue-100 !shadow-none transition-[background-color,box-shadow,transform] will-change-transform hover:bg-blue-900 focus-visible:ring focus-visible:ring-blue-500/75 active:scale-95 active:bg-blue-900;
+  @apply bg-blue-800 text-blue-100 !shadow-none transition will-change-transform hover:bg-blue-900 focus-visible:ring focus-visible:ring-blue-500/75 active:scale-95 active:bg-blue-900;
 }
 
 [data-sonner-toast][data-styled='true'][data-type='info'] [data-close-button] {

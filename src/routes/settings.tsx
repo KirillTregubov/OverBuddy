@@ -108,7 +108,7 @@ function Settings() {
           <div className="-mr-2.5 select-none">
             <button
               onClick={() => router.navigate({ to: '/menu', replace: true })}
-              className="group flex items-center gap-0.5 rounded-full px-1.5 font-medium text-zinc-400 transition-[box-shadow,color,background-color,border-color,transform] duration-100 will-change-transform hover:text-zinc-50 focus-visible:text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95"
+              className="group flex items-center gap-0.5 rounded-full px-1.5 font-medium text-zinc-400 transition duration-100 will-change-transform hover:text-zinc-50 focus-visible:text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95"
             >
               <XIcon size={20} />
               <span className="mb-px">Close</span>
@@ -442,7 +442,7 @@ function Platforms() {
           </AlertDialogContent>
           <div
             className={clsx(
-              "relative z-10 flex min-w-0 items-center justify-center gap-6 p-2 py-3 transition-[background-color,box-shadow] before:pointer-events-none before:absolute before:-left-3 before:-right-1 before:top-0 before:h-full before:rounded-md before:bg-zinc-700 before:shadow-inner before:shadow-zinc-800 before:transition-opacity before:delay-100 before:content-['']",
+              "relative z-10 flex min-w-0 items-center justify-center gap-6 p-2 py-3 transition before:pointer-events-none before:absolute before:-left-3 before:-right-1 before:top-0 before:h-full before:rounded-md before:bg-zinc-700 before:shadow-inner before:shadow-zinc-800 before:transition-opacity before:delay-100 before:content-['']",
               data.steam.enabled ? 'before:opacity-100' : 'before:opacity-0'
             )}
             style={{
@@ -450,7 +450,7 @@ function Platforms() {
             }}
           >
             <AlertDialogTrigger
-              className="group relative -m-3 -mx-2 flex flex-col items-center justify-center gap-2 p-2 py-3 outline-none transition-[background-color,transform] duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
+              className="group relative -m-3 -mx-2 flex flex-col items-center justify-center gap-2 p-2 py-3 outline-none transition duration-200 will-change-transform hover:scale-105 focus-visible:scale-105 active:scale-95"
               onClick={(event) => {
                 if (data.steam.enabled) {
                   return
