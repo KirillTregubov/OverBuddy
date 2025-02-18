@@ -57,6 +57,7 @@ const BACKGROUNDS: &[Background] = &[
     //     name: "Cyber Demon Genji (Green)",
     //     description: "Season 1 Mythic Skin",
     //     tags: &["Animated"],
+    //     new: false
     // },
     // Background {
     //     id: "0x0800000000000EFA",
@@ -64,6 +65,7 @@ const BACKGROUNDS: &[Background] = &[
     //     name: "Cyber Demon Genji (Red)",
     //     description: "Season 1 Mythic Skin",
     //     tags: &["Animated"],
+    //     new: false
     // },
     // Background {
     //     id: "0x0800000000000F12",
@@ -71,6 +73,7 @@ const BACKGROUNDS: &[Background] = &[
     //     name: "Cyber Demon Genji (Pink)",
     //     description: "Season 1 Mythic Skin",
     //     tags: &["Animated"],
+    //     new: false
     // },
     // Background {
     //     id: "0x0800000000000F8F",
@@ -254,10 +257,8 @@ const BACKGROUNDS: &[Background] = &[
     //     image: "le_sserafim_collab.jpg",
     //     name: "LE SSERAFIM",
     //     description: "LE SSERAFIM Event (Season 7)",
-    //     tags: vec![
-    //         "Collaboration",
-    //         "Song: Perfect Night by LE SSERAFIM",
-    //     ],
+    //     tags: &["Collaboration", "Song: Perfect Night by LE SSERAFIM"],
+    //     new: false,
     // },
     // Background {
     //     id: "0x080000000000118a",
@@ -468,7 +469,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Ashe Lead Rose",
         description: "Ashe Mythic Weapon (Season 14)",
         tags: &["Mythic Weapon"],
-        new: true,
+        new: false,
     },
     Background {
         id: "0x0800000000001300",
@@ -476,6 +477,14 @@ const BACKGROUNDS: &[Background] = &[
         name: "Celestial Skins",
         description: "Celestial Skin Bundle (Season 14)",
         tags: &[],
+        new: false,
+    },
+    Background {
+        id: "0x0800000000001316",
+        image: "honor_and_glory.jpg",
+        name: "Honor and Glory",
+        description: "Honor and Glory Art (Season 15)",
+        tags: &["Art"],
         new: true,
     },
 ];
