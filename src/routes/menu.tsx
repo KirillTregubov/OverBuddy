@@ -562,7 +562,7 @@ function Menu() {
         </div>
 
         {activeBackground && (
-          <div className="absolute bottom-0 z-10 flex w-full items-center gap-5 rounded-b-lg bg-zinc-950/50 p-4 pt-0 before:absolute before:-top-8 before:left-0 before:h-8 before:w-full before:content-[''] before:bg-easing-b-menu-bottom">
+          <div className="absolute bottom-0 z-10 flex w-full items-center gap-5 rounded-b-lg bg-zinc-950/50 p-4 pt-0 before:absolute before:-top-6 before:left-0 before:h-6 before:w-full before:content-[''] before:bg-easing-b-menu-bottom">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={`${activeBackground.id}-description`}
@@ -580,7 +580,7 @@ function Menu() {
               config.shared.background.current !== null) && (
               <button
                 className={clsx(
-                  'relative h-14 w-48 select-none text-center text-lg font-medium uppercase tracking-wider transition-[color,transform] will-change-transform hover:text-zinc-300 focus-visible:text-zinc-300 focus-visible:outline-none active:scale-95 disabled:pointer-events-none',
+                  'relative h-14 w-48 select-none text-center text-lg font-medium uppercase tracking-wider transition will-change-transform hover:text-zinc-300 focus-visible:text-zinc-300 focus-visible:outline-none active:scale-95 disabled:pointer-events-none',
                   resetStatus === 'idle' &&
                     'underline-fade-in after:bottom-4 after:left-1.5 after:right-1.5 after:w-[calc(100%-0.75rem)] after:bg-zinc-300'
                 )}
@@ -613,7 +613,7 @@ function Menu() {
               </button>
             )}
 
-            {/* <button className="group rounded-full border-2 border-orange-900/50 bg-orange-950 p-3.5 text-orange-100 shadow-md ring-white transition-[border-color,transform,fill] will-change-transform hover:scale-105 hover:border-white focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 active:scale-95 active:border-orange-200 active:ring-orange-200">
+            {/* <button className="group rounded-full border-2 border-orange-900/50 bg-orange-950 p-3.5 text-orange-100 shadow-md ring-white transition will-change-transform hover:scale-105 hover:border-white focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 active:scale-95 active:border-orange-200 active:ring-orange-200">
               <HeartIcon
                 size={24}
                 className="fill-transparent transition-colors group-hover:fill-current group-focus-visible:fill-current group-active:fill-orange-200 group-active:stroke-orange-200"
@@ -621,7 +621,7 @@ function Menu() {
             </button> */}
             <button
               className={clsx(
-                'h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-white transition-[border-color,transform,border-radius,box-shadow] will-change-transform hover:scale-105 hover:rounded-[0.25rem] hover:border-orange-50 focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:!scale-100 disabled:!border-orange-800/40',
+                'h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-white transition will-change-transform hover:scale-105 hover:rounded hover:border-orange-50 focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:!scale-100 disabled:!border-orange-800/40',
                 setStatus === 'pending' && 'cursor-wait'
               )}
               onClick={() => {
