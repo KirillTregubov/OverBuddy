@@ -42,7 +42,8 @@ export default defineConfig(async () => ({
   },
   define: {
     'import.meta.env.REPOSITORY_URL': JSON.stringify(
-      process.env.npm_package_repository
+      process.env.npm_package_repository ||
+        'https://github.com/KirillTregubov/OverBuddy'
     ),
     'import.meta.env.PACKAGE_VERSION': JSON.stringify(
       process.env.npm_package_version

@@ -261,7 +261,7 @@ const BACKGROUNDS: &[Background] = &[
     //     new: false,
     // },
     // Background {
-    //     id: "0x080000000000118a",
+    //     id: "0x080000000000118A",
     //     image: "mauga.jpg",
     //     name: "Mauga",
     //     description: "Mauga Release (Season 8)",
@@ -275,7 +275,7 @@ const BACKGROUNDS: &[Background] = &[
     //     tags: vec![],
     // },
     // Background {
-    //     id: "0x08000000000011b4",
+    //     id: "0x08000000000011B4",
     //     image: "winter_wonderland_2023.jpg",
     //     name: "Festive Mercy, B.O.B. and Genji",
     //     description: "Winter Wonderland 2023 (Season 8)",
@@ -451,7 +451,7 @@ const BACKGROUNDS: &[Background] = &[
         id: "0x08000000000012EA",
         image: "welcome_home_china.jpg",
         name: "Welcome Home, China",
-        description: "China re-release with NetEase",
+        description: "Chinese (NetEase) beta re-release of Overwatch (Season 14)",
         tags: &["Art"],
         new: false,
     },
@@ -485,6 +485,14 @@ const BACKGROUNDS: &[Background] = &[
         name: "Honor and Glory",
         description: "Season 15 Release Art",
         tags: &["Art"],
+        new: true,
+    },
+    Background {
+        id: "0x0800000000001317",
+        image: "party_in_china.jpg",
+        name: "Party in China",
+        description: "Chinese (NetEase) re-release of Overwatch (Season 15)",
+        tags: &["Animated Art"],
         new: true,
     },
 ];

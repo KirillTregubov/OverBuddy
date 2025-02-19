@@ -1,5 +1,5 @@
 OverBuddy has been updated and supports Steam!
-- Added Season 15 background.
+- Added Season 15 and China re-release backgrounds.
 - Fixed various issues and made improvements.
 
 Other changes in this update:
