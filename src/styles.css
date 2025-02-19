@@ -163,3 +163,7 @@ button.highlight-base {
   [data-close-button] {
   @apply outline-none transition-shadow focus-visible:ring focus-visible:ring-green-500/85;
 }
+
+[data-sonner-toast][data-styled='true'] {
+  width: max-content;
+}

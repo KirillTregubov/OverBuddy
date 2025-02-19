@@ -562,7 +562,7 @@ function Menu() {
         </div>
 
         {activeBackground && (
-          <div className="absolute bottom-0 z-10 flex w-full items-center gap-5 rounded-b-lg bg-zinc-950/50 p-4 pt-0 before:absolute before:-top-6 before:left-0 before:h-6 before:w-full before:content-[''] before:bg-easing-b-menu-bottom">
+          <div className="absolute bottom-0 z-10 flex w-full items-center gap-5 rounded-b-lg bg-zinc-950/50 p-4 pt-0 before:absolute before:-top-7 before:left-0 before:h-7 before:w-full before:content-[''] before:bg-easing-b-menu-bottom">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={`${activeBackground.id}-description`}
