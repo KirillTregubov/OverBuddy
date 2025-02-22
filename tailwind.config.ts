@@ -7,12 +7,19 @@ export default {
   theme: {
     extend: {
       animation: {
-        'spin-cog': 'spin-cog 1.5s ease 1'
+        'spin-cog': 'spin-cog 1.5s ease 1',
+        ping: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite'
       },
       keyframes: {
         'spin-cog': {
           from: { transform: 'rotate(30deg)' },
           to: { transform: 'rotate(390deg)' }
+        },
+        ping: {
+          '75%, 100%': {
+            transform: 'scale(1.5)',
+            opacity: '0'
+          }
         }
       }
     }

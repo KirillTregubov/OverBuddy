@@ -294,6 +294,14 @@ export const backgroundsQueryOptions = queryOptions({
   staleTime: isDev() ? 0 : Infinity
 })
 
+/**
+ * Query for the active background
+ *
+ * Preconditions:
+ * - Launch config must be loaded
+ * - Backgrounds must be loaded
+ * - Backgrounds is not empty
+ */
 export const activeBackgroundQueryOptions = queryOptions({
   queryKey: ['active_background'],
   queryFn: async () => {
@@ -303,13 +311,13 @@ export const activeBackgroundQueryOptions = queryOptions({
     const backgrounds = queryClient.getQueryData(
       backgroundsQueryOptions.queryKey
     )!
-    const defaultBackground = backgrounds[0]
+    const defaultBackground = backgrounds[0]!
     const current = queryClient.getQueryData(launchQueryOptions.queryKey)!
       .shared.background.current
     if (current !== null) {
       const index = backgrounds.findIndex((bg) => bg.id === current)
       if (index === -1) return defaultBackground
-      return backgrounds[index]
+      return backgrounds[index]!
     }
 
     return defaultBackground
