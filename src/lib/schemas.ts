@@ -34,7 +34,8 @@ export const LaunchConfig = z.object({
   shared: z.object({
     background: z.object({
       current: z.string().nullable(),
-      is_outdated: z.boolean()
+      is_outdated: z.boolean(),
+      custom: z.string().nullable()
     }),
     additional: z.object({
       console_enabled: z.boolean()

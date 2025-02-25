@@ -41,6 +41,7 @@ import {
   invalidateActiveBackground,
   launchQueryOptions,
   updateQueryOptions,
+  useBackgroundMutation,
   useCheckUpdates,
   useDebugConsoleMutation,
   useResetMutation,
@@ -178,7 +179,7 @@ function Settings() {
                 Platforms
               </h2>
               <p className="select-none">
-                Connect platform(s) you use to play Overwatch.
+                Connect the platform(s) you use to play Overwatch.
               </p>
             </div>
             <Platforms />
@@ -229,7 +230,7 @@ function Settings() {
               <p className="select-none">Advanced tools.</p>
             </div>
             <ToggleConsole />
-            {/* TODO: Set custom background id (full and truncated) */}
+            <CustomBackgroundSetter />
           </motion.div>
           <motion.div
             className="flex flex-col gap-1.5"
@@ -247,7 +248,7 @@ function Settings() {
           </motion.div>
         </motion.div>
       </motion.div>
-      <div className="fixed bottom-0 left-0 right-3 z-10 h-6 rounded-lg bg-easing-b-menu-top" />
+      <div className="pointer-events-none fixed bottom-0 left-0 right-3 z-10 h-6 rounded-lg bg-easing-b-menu-top" />
     </motion.div>
   )
 }
@@ -306,7 +307,7 @@ function Platforms() {
     <div className="rounded-lg bg-zinc-800 px-3 py-2 pr-4 shadow-inner shadow-zinc-900">
       <div className="flex w-full gap-6">
         <AlertDialog>
-          <AlertDialogContent data-ignore-global-shortcut>
+          <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Disconnect Battle.net?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -406,7 +407,7 @@ function Platforms() {
           </AlertDialogTrigger>
         </AlertDialog>
         <AlertDialog>
-          <AlertDialogContent data-ignore-global-shortcut>
+          <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Disconnect Steam?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -570,7 +571,7 @@ function CheckForUpdates() {
       <AlertDialog
         open={isOpen && (checkData?.available || checkData2?.available)}
       >
-        <AlertDialogContent data-ignore-global-shortcut>
+        <AlertDialogContent>
           <AnimatePresence mode="wait" initial={false}>
             {updateStatus === 'idle' ? (
               <motion.span
@@ -892,5 +893,108 @@ function ToggleConsole() {
         </div>
       </div>
     </div>
+  )
+}
+
+function formatCustomBackgroundId(input: string) {
+  if (input.startsWith('0x08') && input.length === 18) {
+    return input
+  }
+  const hex = input.startsWith('0x08') ? input.slice(4) : input
+  const cleaned = hex.replace(/^0+/, '')
+
+  return `0x080000000000${cleaned.padStart(4, '0')}`
+}
+
+const patternString = '^(0x)?[0-9A-F]{1,16}$'
+const pattern = /^(0x)?[0-9A-F]{1,16}$/
+
+function CustomBackgroundSetter() {
+  const [isOpen, setIsOpen] = useState(false)
+  const [inputValue, setInputValue] = useState('')
+  const { mutate, status } = useBackgroundMutation()
+
+  const handleInput = (value: string) => {
+    // setInputValue(value.toUpperCase())
+    if (value.toLowerCase().startsWith('0x')) {
+      const prefix = '0x' // keep prefix lowercase
+      const rest = value.slice(2).toUpperCase()
+      setInputValue(prefix + rest)
+    } else {
+      setInputValue(value.toUpperCase())
+    }
+  }
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open)
+  }
+
+  const handleApply = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    if (!pattern.test(inputValue)) {
+      toast.error('Background ID must be 1 to 18 hexadecimal characters.')
+      return
+    }
+
+    const formattedId = formatCustomBackgroundId(inputValue)
+    mutate({ id: formattedId, isCustom: true })
+    handleOpenChange(false)
+    // Clear the input after a short delay so the dialog can close smoothly
+    setTimeout(() => {
+      setInputValue('')
+    }, 100)
+  }
+
+  return (
+    <AlertDialog open={isOpen} onOpenChange={handleOpenChange}>
+      <div className="flex w-full items-center gap-4">
+        <AlertDialogTrigger asChild>
+          <MotionButton className="w-fit min-w-[12rem]">
+            Apply Custom Background
+          </MotionButton>
+        </AlertDialogTrigger>
+        <div className="mt-1 flex select-none items-baseline gap-2 text-zinc-400">
+          <p>Apply a custom lobbyMap background code.</p>
+        </div>
+      </div>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Apply Custom Background</AlertDialogTitle>
+          <AlertDialogDescription>
+            <span className="flex items-center gap-2 rounded bg-amber-950/50 p-2 text-sm text-amber-200/90">
+              ⚠️ Warning: Setting a custom background may result in a broken or
+              undesired menu background. Use at your own risk.
+            </span>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <div>
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => handleInput(e.target.value)}
+            placeholder="Background ID (Ex: 6C7)"
+            className="w-full rounded border border-zinc-700 bg-zinc-800 p-2 text-zinc-50 outline-none ring-zinc-600 transition selection:bg-zinc-500 selection:text-zinc-50 placeholder:text-zinc-500 invalid:text-red-400 invalid:selection:bg-red-950 focus-visible:border-zinc-600 focus-visible:ring-2"
+            pattern={patternString}
+            maxLength={18}
+          />
+        </div>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleApply}
+            disabled={
+              status === 'pending' || !inputValue || !pattern.test(inputValue)
+            }
+            title={
+              !inputValue || !pattern.test(inputValue)
+                ? 'Background ID must be 1 to 18 hexadecimal characters.'
+                : undefined
+            }
+          >
+            Apply
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }

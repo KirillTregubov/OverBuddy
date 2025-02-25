@@ -58,7 +58,7 @@ export default function CheckForUpdates() {
   return (
     <>
       <AlertDialog open={isOpen}>
-        <AlertDialogContent data-ignore-global-shortcut>
+        <AlertDialogContent>
           <AnimatePresence mode="wait" initial={false}>
             {updateStatus === 'idle' ? (
               <motion.span

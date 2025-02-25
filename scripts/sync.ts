@@ -4,6 +4,38 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 const gamePath = 'E:\\Games\\Overwatch\\Overwatch'
+const visitedBackgrounds = [
+  '184', // Removed
+  '661', // Tutorial map clipped
+  '688', // Practice range clipped
+  '6B3', // Removed
+  '6C7', // NOTE: Hazard on green screen
+  '6C9', // Junkenstein's Revenge clipped
+  '807', // White gradient background
+  '862', // Inside hexagon sphere
+  '871', // Rialto clipped
+  '92D', // Platform on black screen
+  'A7A', // Busan clipped
+  'D4C', // Green screen bad angles
+  'D53', // Esperanca clipped
+  'EB2', // Runasapi clipped
+  'EC0', // Samoa clipped
+  'EF0', // Ocean clipped
+  'FF7', // Hero Mastery side view
+  'FFF', // Default background
+  '1018', // NOTE: Default background (triangular tiles)
+  '10D6', // Dark Ice fields
+  '1128', // Dark Sky
+  '1157', // NOTE: Hanaoka Fly-by, clips into rock for a bit
+  '1160', // Throne of Anubis bad angles
+  '11AD', // Removed
+  '1207', // Underneath hero mastery
+  '1216', // Light blue gradient
+  '123F', // White empty with grid base
+  '1276', // Was Juno is now squished OWCS
+  '12B9', // Overwatch Classic not shaded
+  '12BA' // Overwatch Classic draft
+]
 
 // Paths
 const __filename = fileURLToPath(import.meta.url)
@@ -38,7 +70,7 @@ async function extractBackgroundIds(
   backgroundsFile: string
 ): Promise<string[]> {
   const content = await readFile(backgroundsFile, 'utf-8')
-  const idRegex = /^\s*id: "0x[0-9A-Fa-f]+",/gm
+  const idRegex = /^\s*(?:\/\/\s*)?id: "0x[0-9A-Fa-f]+",/gm
   const matches = content.match(idRegex)
 
   if (!matches) {
@@ -86,7 +118,9 @@ try {
   )
 
   // Step 4: List extra IDs in DataTool output that are not in backgrounds.rs
-  const extraIds = mapData.filter(({ id }) => !backgroundIds.includes(id))
+  const extraIds = mapData.filter(
+    ({ id }) => !backgroundIds.includes(id) && !visitedBackgrounds.includes(id)
+  )
 
   if (extraIds.length > 0) {
     const extraIdOutput = extraIds
@@ -104,7 +138,7 @@ try {
 
   if (missingIds.length > 0) {
     console.log(
-      `IDs in backgrounds.rs but not in DataTool output: ${missingIds.join(', ')}`
+      `IDs in backgrounds.rs but not in DataTool output: ${missingIds.join(', ')}.`
     )
   } else {
     console.log('All IDs from backgrounds.rs are present in DataTool output.')
