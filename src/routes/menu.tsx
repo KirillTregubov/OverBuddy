@@ -256,7 +256,6 @@ function Menu() {
   }, [updateAvailable, navigate])
   // Outdated background toast
   useEffect(() => {
-    console.log(config)
     if (config.shared.background.is_outdated) {
       toast.warning(
         'Your background is outdated. This may result in a black screen in game.',
@@ -428,8 +427,8 @@ function Menu() {
                 </div>
               </div>
               {background.new && (
-                <div className="absolute right-2 top-2 flex items-center gap-1 rounded border border-amber-400/60 bg-amber-300 px-1.5 py-0.5 text-xs font-bold uppercase text-yellow-950 shadow shadow-amber-950 will-change-transform">
-                  New!
+                <div className="absolute right-2 top-2 flex items-center gap-1 rounded-[0.1875rem] border border-amber-400/60 bg-amber-300 px-1 text-xs font-bold uppercase tracking-wide text-yellow-950 shadow shadow-amber-800 will-change-transform">
+                  NEW!
                 </div>
               )}
             </motion.button>
