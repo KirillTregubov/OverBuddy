@@ -973,9 +973,9 @@ function CustomBackgroundSetter() {
         transition={{ duration: 0.15 }}
       >
         <AlertDialogTrigger asChild>
-          <MotionButton>Apply Custom Background</MotionButton>
+          <MotionButton className="mr-2">Apply Custom Background</MotionButton>
         </AlertDialogTrigger>
-        <div className="ml-2 flex select-none items-baseline gap-2 whitespace-nowrap text-zinc-400">
+        <div className="flex select-none items-baseline gap-2 whitespace-nowrap text-zinc-400">
           <AnimatePresence mode="wait">
             {config.shared.background.custom !== null ? (
               <motion.span
@@ -992,6 +992,7 @@ function CustomBackgroundSetter() {
               <motion.span
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
                 key="apply"
               >
@@ -1005,9 +1006,9 @@ function CustomBackgroundSetter() {
             <motion.button
               className="-mx-1 rounded px-1 text-zinc-200 underline underline-offset-2 ring-white transition hover:text-white focus-visible:text-white focus-visible:outline-none focus-visible:ring-2 active:scale-95"
               onClick={() => resetBackground()}
-              exit={{ opacity: 0 }}
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              whileInView={{ opacity: 1, transition: { delay: 0.15 } }}
+              exit={{ opacity: 0 }}
               transition={{ opacity: { duration: 0.15 } }}
               layout
             >
