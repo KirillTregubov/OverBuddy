@@ -1,5 +1,5 @@
 OverBuddy has been updated and supports Steam!
-- Added functionality to apply custom backgrounds.
+- Added an option in Settings to apply custom backgrounds.
 - Added badge to show new backgrounds.
 - Replaced "See New" button with subtle nudge.
 - Fixed various issues and made improvements.
