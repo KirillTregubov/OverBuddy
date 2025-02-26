@@ -294,6 +294,14 @@ export const backgroundsQueryOptions = queryOptions({
   staleTime: isDev() ? 0 : Infinity
 })
 
+/**
+ * Query for the active background
+ *
+ * Preconditions:
+ * - Launch config must be loaded
+ * - Backgrounds must be loaded
+ * - Backgrounds is not empty
+ */
 export const activeBackgroundQueryOptions = queryOptions({
   queryKey: ['active_background'],
   queryFn: async () => {
@@ -303,13 +311,13 @@ export const activeBackgroundQueryOptions = queryOptions({
     const backgrounds = queryClient.getQueryData(
       backgroundsQueryOptions.queryKey
     )!
-    const defaultBackground = backgrounds[0]
+    const defaultBackground = backgrounds[0]!
     const current = queryClient.getQueryData(launchQueryOptions.queryKey)!
       .shared.background.current
     if (current !== null) {
       const index = backgrounds.findIndex((bg) => bg.id === current)
       if (index === -1) return defaultBackground
-      return backgrounds[index]
+      return backgrounds[index]!
     }
 
     return defaultBackground
@@ -331,8 +339,7 @@ export const useActiveBackgroundMutation = () =>
 export const invalidateActiveBackground = () =>
   queryClient.invalidateQueries(activeBackgroundQueryOptions)
 
-const toastIds = ['background-1', 'background-2']
-
+export const backgroundToastIds = ['background-1', 'background-2']
 export const useBackgroundMutation = ({
   onError
 }: {
@@ -341,7 +348,8 @@ export const useBackgroundMutation = ({
   const [toastIndex, setToastIndex] = useState(0)
 
   return useMutation({
-    mutationFn: async (background: { id: string }) => {
+    mutationFn: async (background: { id: string; isCustom?: boolean }) => {
+      // Only send the required id to the backend
       const data = (await invoke('set_background', background)) as string
       const config = LaunchConfig.safeParse(JSON.parse(data))
       if (!config.success) {
@@ -350,14 +358,30 @@ export const useBackgroundMutation = ({
         )
       }
       updateLaunchConfig(config.data)
-    },
-    onSuccess: () => {
-      toast.dismiss(toastIds[toastIndex])
-      const newIndex = (toastIndex + 1) % toastIds.length
 
-      toast.success(`Successfully applied background.`, {
-        id: toastIds[newIndex]
-      })
+      return {
+        background: background.id,
+        isCustom: background.isCustom
+      }
+    },
+    onSuccess: (data) => {
+      toast.dismiss(backgroundToastIds[toastIndex])
+      const newIndex = (toastIndex + 1) % backgroundToastIds.length
+
+      // TODO: Check https://github.com/emilkowalski/sonner/issues/592 before updating Sonner
+      // setTimeout(() => {
+      if (data.isCustom) {
+        toast.success(
+          `Successfully applied custom background ${data.background}.`,
+          { id: backgroundToastIds[newIndex], duration: 8000 }
+        )
+      } else {
+        toast.success(`Successfully applied background.`, {
+          id: backgroundToastIds[newIndex]
+        })
+      }
+      // }, 100)
+
       setToastIndex(newIndex)
     },
     onError: (error) => {
@@ -384,7 +408,9 @@ export const useResetBackgroundMutation = ({
     },
     onError: (error) => handleError(error),
     onSuccess: () => {
-      toast.success('Successfully reverted to the default background.')
+      toast.success('Successfully reverted to the default background.', {
+        id: 'reset-background'
+      })
       onSuccess?.()
     },
     onSettled

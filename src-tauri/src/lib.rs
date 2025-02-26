@@ -514,7 +514,7 @@ fn get_backgrounds() -> String {
 }
 
 #[tauri::command]
-fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
+fn set_background(handle: AppHandle, id: &str, is_custom: Option<bool>) -> Result<String, Error> {
     let mut config = config::read_config(&handle)?;
     let mut battle_net_error: Option<Error> = None;
     let mut steam_error: Option<Error> = None;
@@ -563,6 +563,11 @@ fn set_background(handle: AppHandle, id: &str) -> Result<String, Error> {
 
     config.shared.background.current = Some(id.to_string());
     config.shared.background.is_outdated = false;
+    if is_custom == Some(true) {
+        config.shared.background.custom = Some(id.to_string());
+    } else {
+        config.shared.background.custom = None;
+    }
     config::write_config(&handle, &config)?;
 
     Ok(serde_json::to_string(&config)?)
@@ -614,6 +619,7 @@ fn reset_background(handle: AppHandle) -> Result<String, Error> {
 
     config.shared.background.current = None;
     config.shared.background.is_outdated = false;
+    config.shared.background.custom = None;
     config::write_config(&handle, &config)?;
 
     Ok(serde_json::to_string(&config)?)

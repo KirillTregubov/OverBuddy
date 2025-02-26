@@ -1,9 +1,11 @@
 OverBuddy has been updated and supports Steam!
-- Added Season 15 and China re-release backgrounds.
+- Added an option in Settings to apply custom backgrounds.
+- Added badge to show new backgrounds.
+- Replaced "See New" button with subtle nudge.
 - Fixed various issues and made improvements.
 
 Other changes in this update:
-- Added a "See New" button to view the new backgrounds.
+- Added Season 15 and China re-release backgrounds.
 - Improved stability by only allowing one instance of the app to run.
 - Added support for Steam installations of Overwatch.
 - Added an option in Settings to enable the Overwatch debug console.

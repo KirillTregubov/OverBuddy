@@ -88,6 +88,7 @@ pub mod battle_net {
             background: config::BackgroundConfig {
                 current: None,
                 is_outdated: false,
+                custom: config.shared.background.custom.clone(),
             },
             additional: config::AdditionalConfig {
                 console_enabled: false,
@@ -103,24 +104,19 @@ pub mod battle_net {
             // Get current background from launch arguments
             let current_background = helpers::get_background(launch_args);
 
-            // TODO: Refactor adding custom
-            // if let Some(ref current_background) = current_background {
-            //     config.shared.background.current = Some(current_background.clone());
-
-            //     // NOTE: When adding custom, check if it was set by the user
-            //     if backgrounds::find_background_by_id(current_background).is_none() {
-            //         config.shared.background.is_outdated = true;
-            //     }
-            // }
-
             // Save current background
-            shared_config.background.current =
-                current_background
-                    .as_ref()
-                    .and_then(|current_background_id| {
-                        backgrounds::find_background_by_id(current_background_id)
-                            .map(|background| background.id.to_string())
-                    });
+            shared_config.background.current = current_background.as_ref().and_then(|id| {
+                backgrounds::find_background_by_id(id)
+                    .map(|background| background.id.to_string())
+                    .or_else(|| {
+                        shared_config
+                            .background
+                            .custom
+                            .as_deref()
+                            .filter(|&custom_id| custom_id == id)
+                            .map(ToString::to_string)
+                    })
+            });
             shared_config.background.is_outdated =
                 shared_config.background.current.is_none() && current_background.is_some();
 
@@ -307,6 +303,7 @@ pub mod steam {
             background: config::BackgroundConfig {
                 current: None,
                 is_outdated: false,
+                custom: config.shared.background.custom.clone(),
             },
             additional: config::AdditionalConfig {
                 console_enabled: false,
@@ -333,6 +330,14 @@ pub mod steam {
                             .and_then(|current_background_id| {
                                 backgrounds::find_background_by_id(current_background_id)
                                     .map(|background| background.id.to_string())
+                                    .or_else(|| {
+                                        shared_config
+                                            .background
+                                            .custom
+                                            .as_deref()
+                                            .filter(|&custom_id| custom_id == current_background_id)
+                                            .map(ToString::to_string)
+                                    })
                             });
 
                     if !background_conflict && resolved_background.is_some() {
