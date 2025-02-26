@@ -986,7 +986,10 @@ function CustomBackgroundSetter() {
                 key="revert"
               >
                 Currently using custom background{' '}
-                <code>{config.shared.background.custom}</code>.
+                <code className="select-all">
+                  {config.shared.background.custom}
+                </code>
+                .
               </motion.span>
             ) : (
               <motion.span
@@ -1004,7 +1007,7 @@ function CustomBackgroundSetter() {
         <AnimatePresence>
           {config.shared.background.custom !== null && (
             <motion.button
-              className="-mx-1 rounded px-1 text-zinc-200 underline underline-offset-2 ring-white transition hover:text-white focus-visible:text-white focus-visible:outline-none focus-visible:ring-2 active:scale-95"
+              className="-mx-1 select-none rounded px-1 text-zinc-200 underline underline-offset-2 ring-white transition hover:text-white focus-visible:text-white focus-visible:outline-none focus-visible:ring-2 active:scale-95"
               onClick={() => resetBackground()}
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1, transition: { delay: 0.15 } }}
