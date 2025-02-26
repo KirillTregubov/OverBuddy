@@ -339,7 +339,7 @@ export const useActiveBackgroundMutation = () =>
 export const invalidateActiveBackground = () =>
   queryClient.invalidateQueries(activeBackgroundQueryOptions)
 
-const toastIds = ['background-1', 'background-2']
+export const backgroundToastIds = ['background-1', 'background-2']
 export const useBackgroundMutation = ({
   onError
 }: {
@@ -365,19 +365,19 @@ export const useBackgroundMutation = ({
       }
     },
     onSuccess: (data) => {
-      toast.dismiss(toastIds[toastIndex])
-      const newIndex = (toastIndex + 1) % toastIds.length
+      toast.dismiss(backgroundToastIds[toastIndex])
+      const newIndex = (toastIndex + 1) % backgroundToastIds.length
 
       // TODO: Check https://github.com/emilkowalski/sonner/issues/592 before updating Sonner
       // setTimeout(() => {
       if (data.isCustom) {
         toast.success(
           `Successfully applied custom background ${data.background}.`,
-          { id: toastIds[newIndex], duration: 8000 }
+          { id: backgroundToastIds[newIndex], duration: 8000 }
         )
       } else {
         toast.success(`Successfully applied background.`, {
-          id: toastIds[newIndex]
+          id: backgroundToastIds[newIndex]
         })
       }
       // }, 100)
@@ -408,7 +408,9 @@ export const useResetBackgroundMutation = ({
     },
     onError: (error) => handleError(error),
     onSuccess: () => {
-      toast.success('Successfully reverted to the default background.')
+      toast.success('Successfully reverted to the default background.', {
+        id: 'reset-background'
+      })
       onSuccess?.()
     },
     onSettled

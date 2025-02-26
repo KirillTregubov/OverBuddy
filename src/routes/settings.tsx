@@ -38,12 +38,14 @@ import {
   staggerChildrenVariants
 } from '@/lib/animations'
 import {
+  backgroundToastIds,
   invalidateActiveBackground,
   launchQueryOptions,
   updateQueryOptions,
   useBackgroundMutation,
   useCheckUpdates,
   useDebugConsoleMutation,
+  useResetBackgroundMutation,
   useResetMutation,
   useSetupMutation,
   useUpdateMutation
@@ -908,21 +910,37 @@ function formatCustomBackgroundId(input: string) {
 
 const patternString = '^(0x)?[0-9A-F]{1,16}$'
 const pattern = /^(0x)?[0-9A-F]{1,16}$/
+const MAX_LENGTH = 18
 
 function CustomBackgroundSetter() {
   const [isOpen, setIsOpen] = useState(false)
   const [inputValue, setInputValue] = useState('')
+
+  const { data: config } = useSuspenseQuery(launchQueryOptions)
   const { mutate, status } = useBackgroundMutation()
+  const { mutate: resetBackground, reset } = useResetBackgroundMutation({
+    onSuccess: () => backgroundToastIds.forEach((id) => toast.dismiss(id)),
+    onSettled: () => reset()
+  })
 
   const handleInput = (value: string) => {
-    // setInputValue(value.toUpperCase())
-    if (value.toLowerCase().startsWith('0x')) {
-      const prefix = '0x' // keep prefix lowercase
-      const rest = value.slice(2).toUpperCase()
-      setInputValue(prefix + rest)
+    const match = value.match(/0x[0-9A-Fa-f]+/)
+    let formattedValue = match ? match[0] : value
+
+    if (formattedValue.toLowerCase().startsWith('0x')) {
+      formattedValue = `0x${formattedValue.slice(2).toUpperCase()}`
     } else {
-      setInputValue(value.toUpperCase())
+      formattedValue = formattedValue.toUpperCase()
     }
+
+    if (formattedValue.length > MAX_LENGTH) {
+      toast.error('Background ID cannot be longer than 18 characters.', {
+        id: 'invalid-background-id'
+      })
+      return
+    }
+
+    setInputValue(formattedValue)
   }
 
   const handleOpenChange = (open: boolean) => {
@@ -936,10 +954,12 @@ function CustomBackgroundSetter() {
       return
     }
 
+    toast.dismiss('invalid-background-id')
+    toast.dismiss('reset-background')
     const formattedId = formatCustomBackgroundId(inputValue)
     mutate({ id: formattedId, isCustom: true })
     handleOpenChange(false)
-    // Clear the input after a short delay so the dialog can close smoothly
+
     setTimeout(() => {
       setInputValue('')
     }, 100)
@@ -947,16 +967,55 @@ function CustomBackgroundSetter() {
 
   return (
     <AlertDialog open={isOpen} onOpenChange={handleOpenChange}>
-      <div className="flex w-full items-center gap-4">
+      <motion.div
+        className="flex w-full items-center gap-2"
+        layout
+        transition={{ duration: 0.15 }}
+      >
         <AlertDialogTrigger asChild>
-          <MotionButton className="w-fit min-w-[12rem]">
-            Apply Custom Background
-          </MotionButton>
+          <MotionButton>Apply Custom Background</MotionButton>
         </AlertDialogTrigger>
-        <div className="mt-1 flex select-none items-baseline gap-2 text-zinc-400">
-          <p>Apply a custom lobbyMap background code.</p>
+        <div className="ml-2 flex select-none items-baseline gap-2 whitespace-nowrap text-zinc-400">
+          <AnimatePresence mode="wait">
+            {config.shared.background.custom !== null ? (
+              <motion.span
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                key="revert"
+              >
+                Currently using custom background{' '}
+                <code>{config.shared.background.custom}</code>.
+              </motion.span>
+            ) : (
+              <motion.span
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ duration: 0.15 }}
+                key="apply"
+              >
+                Apply a custom lobbyMap background code.
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
-      </div>
+        <AnimatePresence>
+          {config.shared.background.custom !== null && (
+            <motion.button
+              className="-mx-1 rounded px-1 text-zinc-200 underline underline-offset-2 ring-white transition hover:text-white focus-visible:text-white focus-visible:outline-none focus-visible:ring-2 active:scale-95"
+              onClick={() => resetBackground()}
+              exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ opacity: { duration: 0.15 } }}
+              layout
+            >
+              Revert to Default.
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </motion.div>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Apply Custom Background</AlertDialogTitle>
@@ -975,7 +1034,7 @@ function CustomBackgroundSetter() {
             placeholder="Background ID (Ex: 6C7)"
             className="w-full rounded border border-zinc-700 bg-zinc-800 p-2 text-zinc-50 outline-none ring-zinc-600 transition selection:bg-zinc-500 selection:text-zinc-50 placeholder:text-zinc-500 invalid:text-red-400 invalid:selection:bg-red-950 focus-visible:border-zinc-600 focus-visible:ring-2"
             pattern={patternString}
-            maxLength={18}
+            autoFocus
           />
         </div>
         <AlertDialogFooter>
@@ -988,7 +1047,9 @@ function CustomBackgroundSetter() {
             title={
               !inputValue || !pattern.test(inputValue)
                 ? 'Background ID must be 1 to 18 hexadecimal characters.'
-                : undefined
+                : inputValue.length > 0
+                  ? `Apply ${formatCustomBackgroundId(inputValue)}`
+                  : ''
             }
           >
             Apply
