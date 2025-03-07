@@ -55,6 +55,14 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
             config.shared.background.is_outdated = false;
             config.shared.additional.console_enabled = false;
         }
+
+        if let Some(custom) = config.shared.background.custom.as_deref() {
+            if config.shared.background.current.is_none()
+                || config.shared.background.current.as_deref() != Some(custom)
+            {
+                config.shared.background.custom = None;
+            }
+        }
     }
 
     //NOTE: Temporarily advertise Steam support
@@ -724,11 +732,12 @@ pub fn run() {
             set_debug_console,
             reset
         ])
-        .on_window_event(|window, event| {
-            if let tauri::WindowEvent::ScaleFactorChanged { .. } = event {
-                window.set_size(tauri::LogicalSize::new(1024, 768)).unwrap();
-            }
-        })
+        // NOTE: This was a fix for window size changing across monitors with different display scales, seems to work at the moment
+        // .on_window_event(|window, event| {
+        //     if let tauri::WindowEvent::ScaleFactorChanged { .. } = event {
+        //         window.set_size(tauri::LogicalSize::new(1024, 768)).unwrap();
+        //     }
+        // })
         .run(tauri::generate_context!())
         .expect("Encountered an error while starting OverBuddy");
 }
