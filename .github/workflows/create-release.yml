@@ -80,7 +80,7 @@ jobs:
           tagName: ${{ github.event_name == 'pull_request' && 'v__VERSION__-pre' || 'v__VERSION__' }}
           releaseName: ${{ github.event_name == 'pull_request' && 'OverBuddy v__VERSION__ (Preview)' || 'OverBuddy v__VERSION__' }}
           releaseBody: ${{ env.CHANGELOG_BODY }}
-          releaseDraft: true
+          releaseDraft: ${{ github.event_name == 'pull_request' }}
           prerelease: ${{ github.event_name == 'pull_request' }}
 
       - name: Update Release Body

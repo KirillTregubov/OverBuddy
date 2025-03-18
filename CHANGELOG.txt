@@ -1,5 +1,5 @@
 OverBuddy has been updated!
-- Added the LE SSERAFIM collaboration background.
+- Added LE SSERAFIM collaboration and OWCS Juno backgrounds.
 - Fixed various issues and made improvements.
 
 Other changes in this update:

@@ -503,6 +503,14 @@ const BACKGROUNDS: &[Background] = &[
         tags: &["Collaboration", "Song: So Cynical (Badum) by LE SSERAFIM"],
         new: true,
     },
+    Background {
+        id: "0x080000000000132F",
+        image: "owcs_juno.jpg",
+        name: "OWCS Juno",
+        description: "Champions Clash Hangzhou 2025 Juno Skin",
+        tags: &["Overwatch Champions Series"],
+        new: true,
+    },
 ];
 
 pub fn get_backgrounds() -> &'static [Background] {
