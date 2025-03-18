@@ -1,10 +1,9 @@
-OverBuddy has been updated and supports Steam!
-- Added an option in Settings to apply custom backgrounds.
-- Added badge to show new backgrounds.
+OverBuddy has been updated!
+- Added the LE SSERAFIM collaboration background.
 - Fixed various issues and made improvements.
 
 Other changes in this update:
-- Added Season 15 and China re-release backgrounds.
-- Improved stability by only allowing one instance of the app to run.
 - Added support for Steam installations of Overwatch.
 - Added an option in Settings to enable the Overwatch debug console.
+- Added an option in Settings to apply custom backgrounds.
+- Added badge to show new backgrounds.
