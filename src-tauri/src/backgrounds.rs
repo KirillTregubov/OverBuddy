@@ -495,6 +495,14 @@ const BACKGROUNDS: &[Background] = &[
         tags: &["Animated Art"],
         new: true,
     },
+    Background {
+        id: "0x0800000000001331",
+        image: "le_sserafim_homecoming.jpg",
+        name: "LE SSERAFIM",
+        description: "LE SSERAFIM Homecoming Event (Season 15)",
+        tags: &["Collaboration", "Song: So Cynical (Badum) by LE SSERAFIM"],
+        new: true,
+    },
 ];
 
 pub fn get_backgrounds() -> &'static [Background] {
