@@ -111,8 +111,12 @@ function Settings() {
           <div className="-mr-1 select-none">
             <button
               onClick={() => router.navigate({ to: '/menu', replace: true })}
-              className="group flex items-center gap-0.5 rounded-full pl-1 pr-2 font-medium text-zinc-400 transition duration-150 will-change-transform hover:text-zinc-50 focus-visible:text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95"
+              className="group mx-0.5 -mb-1 flex items-center gap-1.5 rounded-md pb-0.5 font-medium text-zinc-400 transition duration-150 will-change-transform hover:text-zinc-50 focus-visible:text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95"
             >
+              <span className="flex items-center">
+                <XIcon size={22} />
+                <span>Close</span>
+              </span>
               <KeyboardButton
                 isPressed={pressed}
                 className="mb-1"
@@ -120,10 +124,6 @@ function Settings() {
               >
                 Esc
               </KeyboardButton>
-              <span className="flex items-center">
-                <XIcon size={22} />
-                <span>Close</span>
-              </span>
             </button>
           </div>
         </motion.div>
