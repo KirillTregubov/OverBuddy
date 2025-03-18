@@ -349,7 +349,6 @@ export const useBackgroundMutation = ({
 
   return useMutation({
     mutationFn: async (background: { id: string; isCustom?: boolean }) => {
-      // Only send the required id to the backend
       const data = (await invoke('set_background', background)) as string
       const config = LaunchConfig.safeParse(JSON.parse(data))
       if (!config.success) {
