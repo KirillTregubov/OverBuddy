@@ -57,15 +57,20 @@ declare module '@tanstack/react-router' {
 //         }))
 //       )
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
-    <Toaster />
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      {/* <React.Suspense>
-        <TanStackRouterDevtools router={router} />
-      </React.Suspense> */}
-      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
-    </QueryClientProvider>
-  </React.StrictMode>
-)
+const rootElement = document.getElementById('root')!
+if (!rootElement.innerHTML) {
+  const root = ReactDOM.createRoot(rootElement)
+
+  root.render(
+    <React.StrictMode>
+      <Toaster />
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+        {/* <React.Suspense>
+          <TanStackRouterDevtools router={router} />
+        </React.Suspense> */}
+        {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+      </QueryClientProvider>
+    </React.StrictMode>
+  )
+}

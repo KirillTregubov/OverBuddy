@@ -1,4 +1,4 @@
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueryErrorResetBoundary } from '@tanstack/react-query'
 import { useRouter, type ErrorComponentProps } from '@tanstack/react-router'
 import clsx from 'clsx'
 import { LoaderPinwheel } from 'lucide-react'
@@ -11,9 +11,9 @@ import { Button, MotionButton } from './Button'
 import ErrorWrapper from './ErrorWrapper'
 import { ReportButton } from './Reporter'
 
-export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
+export default function ErrorComponent({ error }: ErrorComponentProps) {
   const router = useRouter()
-  const queryClient = useQueryClient()
+  const { reset } = useQueryErrorResetBoundary()
 
   if (typeof error === 'string') {
     error = Error(error)
@@ -28,18 +28,16 @@ export default function ErrorComponent({ error, reset }: ErrorComponentProps) {
           <Button
             primary
             onClick={() => {
-              reset() // reset router error boundary
-              router.invalidate() // reload the loader
-              queryClient.resetQueries() // reset all queries
+              router.invalidate() // reset router
+              reset() // reset queries
             }}
           >
             Reload
           </Button>
           <ReportButton error={error} />
           <ResetButton
-            reset={async () => {
-              await router.invalidate()
-              reset()
+            reset={() => {
+              router.invalidate()
             }}
           />
         </>
@@ -54,11 +52,11 @@ function ResetButton({ reset }: Omit<ErrorComponentProps, 'error'>) {
   const router = useRouter()
   const { mutate, reset: resetMutation } = useResetMutation({
     onSuccess: () => {
+      reset()
       router.navigate({
         to: '/setup',
         replace: true
       })
-      reset()
     },
     onSettled: () => {
       resetMutation()

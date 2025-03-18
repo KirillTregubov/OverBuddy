@@ -108,14 +108,20 @@ function Settings() {
           variants={moveInLessVariants}
         >
           <h1 className="select-none text-2xl font-bold">Settings</h1>
-          <div className="-mr-2.5 select-none">
+          <div className="-mr-1 select-none">
             <button
               onClick={() => router.navigate({ to: '/menu', replace: true })}
-              className="group flex items-center gap-0.5 rounded-full px-1.5 font-medium text-zinc-400 transition duration-100 will-change-transform hover:text-zinc-50 focus-visible:text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95"
+              className="group mx-0.5 -mb-1 flex items-center gap-1.5 rounded-md pb-0.5 font-medium text-zinc-400 transition duration-150 will-change-transform hover:text-zinc-50 focus-visible:text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95"
             >
-              <XIcon size={20} />
-              <span className="mb-px">Close</span>
-              <KeyboardButton isPressed={pressed} className="ml-1.5 mr-1">
+              <span className="flex items-center">
+                <XIcon size={22} />
+                <span>Close</span>
+              </span>
+              <KeyboardButton
+                isPressed={pressed}
+                className="mb-1"
+                shouldTransition={false}
+              >
                 Esc
               </KeyboardButton>
             </button>
@@ -986,7 +992,10 @@ function CustomBackgroundSetter() {
                 key="revert"
               >
                 Currently using custom background{' '}
-                <code>{config.shared.background.custom}</code>.
+                <code className="select-all">
+                  {config.shared.background.custom}
+                </code>
+                .
               </motion.span>
             ) : (
               <motion.span
@@ -1000,22 +1009,23 @@ function CustomBackgroundSetter() {
               </motion.span>
             )}
           </AnimatePresence>
+          <AnimatePresence>
+            {config.shared.background.custom !== null && (
+              <motion.button
+                className="rounded-sm underline underline-offset-2 transition hover:text-white focus-visible:text-white focus-visible:outline-none active:text-zinc-200"
+                // rounded-sm underline underline-offset-2 transition hover:text-white focus-visible:text-white focus-visible:outline-none active:text-zinc-200
+                onClick={() => resetBackground()}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1, transition: { delay: 0.15 } }}
+                exit={{ opacity: 0 }}
+                transition={{ opacity: { duration: 0.15 } }}
+                layout
+              >
+                Revert to Default.
+              </motion.button>
+            )}
+          </AnimatePresence>
         </div>
-        <AnimatePresence>
-          {config.shared.background.custom !== null && (
-            <motion.button
-              className="-mx-1 rounded px-1 text-zinc-200 underline underline-offset-2 ring-white transition hover:text-white focus-visible:text-white focus-visible:outline-none focus-visible:ring-2 active:scale-95"
-              onClick={() => resetBackground()}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1, transition: { delay: 0.15 } }}
-              exit={{ opacity: 0 }}
-              transition={{ opacity: { duration: 0.15 } }}
-              layout
-            >
-              Revert to Default.
-            </motion.button>
-          )}
-        </AnimatePresence>
       </motion.div>
       <AlertDialogContent>
         <AlertDialogHeader>
