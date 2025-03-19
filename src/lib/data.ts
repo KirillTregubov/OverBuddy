@@ -364,6 +364,7 @@ export const useBackgroundMutation = ({
       }
     },
     onSuccess: (data) => {
+      toast.dismiss('reset-background')
       toast.dismiss(backgroundToastIds[toastIndex])
       const newIndex = (toastIndex + 1) % backgroundToastIds.length
 
@@ -407,6 +408,7 @@ export const useResetBackgroundMutation = ({
     },
     onError: (error) => handleError(error),
     onSuccess: () => {
+      backgroundToastIds.forEach((id) => toast.dismiss(id))
       toast.success('Successfully reverted to the default background.', {
         id: 'reset-background'
       })

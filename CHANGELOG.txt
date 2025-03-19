@@ -1,5 +1,5 @@
 OverBuddy has been updated!
-- Added LE SSERAFIM collaboration and OWCS Juno backgrounds.
+- Added LE SSERAFIM, Ember Juno (OWCS), and Widowmaker Dame Chance backgrounds.
 - Fixed various issues and made improvements.
 
 Other changes in this update:
