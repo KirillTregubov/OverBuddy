@@ -956,7 +956,9 @@ function CustomBackgroundSetter() {
   const handleApply = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     if (!pattern.test(inputValue)) {
-      toast.error('Background ID must be 1 to 18 hexadecimal characters.')
+      toast.error('Background ID must be 1 to 18 hexadecimal characters.', {
+        id: 'invalid-background-id'
+      })
       return
     }
 
