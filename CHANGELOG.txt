@@ -1,4 +1,5 @@
 OverBuddy has been updated!
+- Removed broken Thor Reinhardt background.
 - Added LE SSERAFIM, Ember Juno (OWCS), and Widowmaker Dame Chance backgrounds.
 - Fixed various issues and made improvements.
 

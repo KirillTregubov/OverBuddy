@@ -439,14 +439,14 @@ const BACKGROUNDS: &[Background] = &[
         tags: &["Art"],
         new: false,
     },
-    Background {
-        id: "0x08000000000012C7",
-        image: "thor_reinhardt.jpg",
-        name: "Thor Reinhardt",
-        description: "Season 14 Mythic Skin",
-        tags: &["Animated Art"],
-        new: false,
-    },
+    // Background {
+    //     id: "0x08000000000012C7",
+    //     image: "thor_reinhardt.jpg",
+    //     name: "Thor Reinhardt",
+    //     description: "Season 14 Mythic Skin",
+    //     tags: &["Animated Art"],
+    //     new: false,
+    // },
     Background {
         id: "0x08000000000012EA",
         image: "welcome_home_china.jpg",
