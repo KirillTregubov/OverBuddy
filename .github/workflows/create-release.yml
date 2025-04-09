@@ -1,12 +1,10 @@
-name: 'publish'
+name: Create Release
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   create-release:
@@ -18,7 +16,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Read changelog
+      - name: Read Changelog
         run: |
           # Read version
           $version = (Get-Content package.json | ConvertFrom-Json).version
@@ -62,7 +60,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'pnpm'
 
       - name: Install frontend dependencies
