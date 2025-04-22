@@ -440,7 +440,7 @@ function Menu() {
           animate={{ transform: 'translateX(0px)' }}
           transition={{ duration: 0.3 }}
         >
-          <div className="relative">
+          <div className="relative flex">
             <motion.button
               ref={prevButtonRef}
               className={cn(
