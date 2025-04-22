@@ -10,6 +10,9 @@ const packageJsonPath = './package.json'
 const cargoTomlPath = './src-tauri/Cargo.toml'
 const readmePath = './README.md'
 
+const VERSION_HINT =
+  'Please provide a valid semver version or "patch", "minor", or "major".'
+
 async function updateVersion(type: string) {
   // Read package.json and Cargo.toml
   const packageJson = JSON.parse(
@@ -22,18 +25,19 @@ async function updateVersion(type: string) {
   console.log(`Current version: ${currentVersion}`)
 
   // Determine new version
-  let newVersion = ''
-  if (['patch', 'minor', 'major'].includes(type)) {
-    newVersion = semver.inc(currentVersion, type)!
-  } else {
-    newVersion = type // Custom version
+  let newVersion = type // Custom version
+  if (['patch', 'minor', 'major'].includes(newVersion)) {
+    newVersion = semver.inc(currentVersion, newVersion)!
+  }
+
+  if (!newVersion || newVersion.length === 0) {
+    console.error(`No version provided. ${VERSION_HINT}\n`)
+    return
   }
 
   // Ask for confirmation
   if (!semver.valid(newVersion)) {
-    console.log(
-      'Invalid version number. Please provide a valid semver version or "patch", "minor", or "major".'
-    )
+    console.error(`Invalid version number. ${VERSION_HINT}\n`)
     return
   }
   console.log(`New version: ${newVersion}`)
@@ -64,7 +68,7 @@ async function updateVersion(type: string) {
   )
   fs.writeFileSync(readmePath, updatedReadme, 'utf8')
 
-  console.log(`Version updated to ${newVersion} successfully!`)
+  console.log(`Version updated to ${newVersion} successfully!\n`)
 }
 
 // Get version type from command line argument

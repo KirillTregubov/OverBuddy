@@ -505,7 +505,7 @@ const BACKGROUNDS: &[Background] = &[
             "Art",
             "Song: So Cynical (Badum) by LE SSERAFIM",
         ],
-        new: true,
+        new: false,
     },
     Background {
         id: "0x080000000000132D",
@@ -513,7 +513,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Widowmaker Dame Chance",
         description: "Widowmaker Mythic Weapon (Season 15)",
         tags: &["Mythic Weapon"],
-        new: true,
+        new: false,
     },
     Background {
         id: "0x080000000000132F",
@@ -521,6 +521,22 @@ const BACKGROUNDS: &[Background] = &[
         name: "Ember Juno",
         description: "2025 Champions Clash Hangzhou Crowdfunding Skin",
         tags: &["Overwatch Champions Series"],
+        new: false,
+    },
+    Background {
+        id: "0x0800000000001346",
+        image: "stadium.jpg",
+        name: "Stadium",
+        description: "Stadium Release (Season 16)",
+        tags: &["Art"],
+        new: true,
+    },
+    Background {
+        id: "0x0800000000001347",
+        image: "freja.jpg",
+        name: "Freja",
+        description: "Freja Release (Season 16)",
+        tags: &["Animated Art"],
         new: true,
     },
 ];
