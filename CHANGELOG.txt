@@ -1,10 +1,8 @@
 OverBuddy has been updated!
-- Removed broken Thor Reinhardt background.
-- Added LE SSERAFIM, Ember Juno (OWCS), and Widowmaker Dame Chance backgrounds.
+- Added new Stadium and Freja backgrounds.
 - Fixed various issues and made improvements.
 
 Other changes in this update:
-- Added support for Steam installations of Overwatch.
 - Added an option in Settings to enable the Overwatch debug console.
 - Added an option in Settings to apply custom backgrounds.
 - Added badge to show new backgrounds.
