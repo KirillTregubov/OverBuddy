@@ -2,7 +2,7 @@
     <img width="96px" height="96px" src="src-tauri/icons/128x128@2x.png">
     <h1>OverBuddy</h1>
     <p>Customize your Overwatch™ 2 in-game main menu background.</p>
-    <p>Current Version: 2.0.11</p>
+    <p>Current Version: 2.0.12</p>
     <div>
       <a href="https://github.com/KirillTregubov/OverBuddy/releases/latest">Download</a>
       ·
@@ -27,7 +27,7 @@
 
 ## Screenshots
 
-![Screenshot of the App's main screen, with a selection of backgrounds and the ability to apply them](screenshots/screenshot-2.png)
+![Screenshot of the app's main screen, with a selection of backgrounds and the ability to apply them](/screenshots/screenshot-2.png)
 
 ---
 
