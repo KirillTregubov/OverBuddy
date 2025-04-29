@@ -539,6 +539,14 @@ const BACKGROUNDS: &[Background] = &[
         tags: &["Animated Art"],
         new: true,
     },
+    Background {
+        id: "0x0800000000001348",
+        image: "gundam_wing.jpg",
+        name: "Gundam Wing",
+        description: "Gundam Wing Event (Season 16)",
+        tags: &["Collaboration", "Art"],
+        new: true,
+    },
 ];
 
 pub fn get_backgrounds() -> &'static [Background] {

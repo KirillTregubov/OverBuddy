@@ -1,5 +1,5 @@
 OverBuddy has been updated!
-- Added new Stadium and Freja backgrounds.
+- Added new Gundam Wing, Stadium and Freja backgrounds.
 - Fixed various issues and made improvements.
 
 Other changes in this update:
