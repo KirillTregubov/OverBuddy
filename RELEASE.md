@@ -4,7 +4,7 @@
 
 ## Screenshot
 
-![Screenshot of Main Screen with background selector](screenshots/screenshot-2.png)
+![Screenshot of the app's main screen, with a selection of backgrounds and the ability to apply them](/screenshots/screenshot-2.png)
 
 ## Features
 
