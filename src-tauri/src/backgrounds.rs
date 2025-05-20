@@ -529,7 +529,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Stadium",
         description: "Stadium Release (Season 16)",
         tags: &["Art"],
-        new: true,
+        new: false,
     },
     Background {
         id: "0x0800000000001347",
@@ -537,7 +537,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Freja",
         description: "Freja Release (Season 16)",
         tags: &["Animated Art"],
-        new: true,
+        new: false,
     },
     Background {
         id: "0x0800000000001348",
@@ -545,6 +545,22 @@ const BACKGROUNDS: &[Background] = &[
         name: "Gundam Wing",
         description: "Gundam Wing Event (Season 16)",
         tags: &["Collaboration", "Art"],
+        new: false,
+    },
+    Background {
+        id: "0x0800000000001353",
+        image: "street_fighter_6.jpg",
+        name: "Street Fighter 6",
+        description: "Street Fighter 6 Event (Season 16)",
+        tags: &["Collaboration", "Animated Art"],
+        new: true,
+    },
+    Background {
+        id: "0x080000000000134A",
+        image: "mercy_merciful_magitech.jpg",
+        name: "Mercy Merciful Magitech",
+        description: "Mercy Mythic Weapon (Season 16)",
+        tags: &["Mythic Weapon"],
         new: true,
     },
 ];
