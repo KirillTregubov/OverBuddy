@@ -1,11 +1,12 @@
 [package]
 name = "overbuddy"
-version = "2.0.12"
+version = "2.0.13"
 description = "Elevate your Overwatch™ 2 experience by customizing your in-game menu background with ease."
 authors = ["Kirill Tregubov"]
 license = "../LICENSE"
 repository = "https://github.com/KirillTregubov/OverBuddy"
 edition = "2021"
+rust-version = "1.82"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -28,7 +29,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "2.0"
 dunce = "1.0.5"
-sysinfo = "0.34"
+sysinfo = "0.35"
 similar = "2.6.0"
 
 [target."cfg(not(any(target_os = \"android\", target_os = \"ios\")))".dependencies]
