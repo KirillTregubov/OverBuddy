@@ -555,6 +555,14 @@ const BACKGROUNDS: &[Background] = &[
         tags: &["Collaboration", "Animated Art"],
         new: true,
     },
+    Background {
+        id: "0x080000000000134A",
+        image: "mercy_merciful_magitech.jpg",
+        name: "Mercy Merciful Magitech",
+        description: "Mercy Mythic Weapon (Season 16)",
+        tags: &["Mythic Weapon"],
+        new: true,
+    },
 ];
 
 pub fn get_backgrounds() -> &'static [Background] {

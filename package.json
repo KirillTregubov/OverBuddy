@@ -46,7 +46,7 @@
     "@tanstack/router-plugin": "^1.120.5",
     "@tauri-apps/cli": "^2.5.0",
     "@total-typescript/ts-reset": "^0.6.1",
-    "@types/node": "^22.15.19",
+    "@types/node": "^22.15.20",
     "@types/react": "^19.1.4",
     "@types/react-dom": "^19.1.5",
     "@vitejs/plugin-react": "^4.4.1",
