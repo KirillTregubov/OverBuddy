@@ -1,8 +1,3 @@
 OverBuddy has been updated!
-- Added new Gundam Wing, Stadium and Freja backgrounds.
+- Added new Street Fighter 6 background.
 - Fixed various issues and made improvements.
-
-Other changes in this update:
-- Added an option in Settings to enable the Overwatch debug console.
-- Added an option in Settings to apply custom backgrounds.
-- Added badge to show new backgrounds.
