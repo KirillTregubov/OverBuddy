@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 export const Platform = z.enum(['BattleNet', 'Steam'])
 export type Platform = z.infer<typeof Platform>
@@ -11,7 +11,7 @@ const SteamLocalconfig = z.object({
 export const SteamProfile = z.object({
   id: z.string(),
   name: z.string(),
-  avatar: z.string().url().nullable(),
+  avatar: z.url().nullable(),
   has_overwatch: z.boolean()
 })
 export type SteamProfile = z.infer<typeof SteamProfile>
@@ -26,7 +26,7 @@ export const LaunchConfig = z.object({
   steam: z.object({
     enabled: z.boolean(),
     in_setup: z.boolean(),
-    advertised: z.number(),
+    advertised: z.int(),
     install: z.string().nullable(),
     configs: z.array(SteamLocalconfig).nullable(),
     profiles: z.array(SteamProfile).nullable()
@@ -57,8 +57,6 @@ export type Background = z.infer<typeof Background>
 export const BackgroundArray = z.array(Background)
 export type BackgroundArray = z.infer<typeof BackgroundArray>
 
-export const SettingsData = z.object({
-  platforms: z.array(Platform),
-  steam_profiles: z.array(SteamProfile).nullable()
+export const RedirectSearchParam = z.object({
+  redirect: z.string().optional()
 })
-export type SettingsData = z.infer<typeof SettingsData>

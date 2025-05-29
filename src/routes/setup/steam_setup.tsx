@@ -1,7 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { motion } from 'motion/react'
-import { z } from 'zod'
 
 import { MotionButton } from '@/components/Button'
 import SteamProfileComponent from '@/components/SteamProfile'
@@ -15,11 +14,10 @@ import {
   steamQueryOptions,
   useSteamConfirmMutation
 } from '@/lib/data'
+import { RedirectSearchParam } from '@/lib/schemas'
 
 export const Route = createFileRoute('/setup/steam_setup')({
-  validateSearch: z.object({
-    redirect: z.string().optional()
-  }),
+  validateSearch: RedirectSearchParam,
   beforeLoad: async ({ context: { queryClient } }) => {
     const { is_setup, steam } = await queryClient.fetchQuery(launchQueryOptions)
     if (!is_setup || !steam.configs) {

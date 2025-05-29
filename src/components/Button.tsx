@@ -2,7 +2,7 @@ import { createLink, Link } from '@tanstack/react-router'
 import { motion, type HTMLMotionProps } from 'motion/react'
 
 import { buttonClasses } from '@/lib/button'
-import { anchorLinkFix } from '@/lib/linkFix'
+import { linkFix } from '@/lib/linkFix'
 import { cn } from '@/lib/utils'
 
 type ButtonProps = {
@@ -44,7 +44,7 @@ export const LinkButton = createLink(
   }: ButtonProps & React.ComponentProps<typeof Link>) => {
     return (
       <Link
-        {...anchorLinkFix}
+        {...linkFix}
         {...props}
         className={buttonClasses(className, { primary, destructive })}
         role={role}
