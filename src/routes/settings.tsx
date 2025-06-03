@@ -11,7 +11,7 @@ import {
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
@@ -102,6 +102,7 @@ function Settings() {
       initial="hidden"
       animate="show"
     >
+      <div className="pointer-events-none fixed left-0 right-3 top-0 z-10 h-6 bg-easing-t-menu-top" />
       <motion.div className="w-full" variants={staggerChildrenVariants}>
         <motion.div
           className="mb-4 flex justify-between"
@@ -256,7 +257,7 @@ function Settings() {
           </motion.div>
         </motion.div>
       </motion.div>
-      <div className="pointer-events-none fixed bottom-0 left-0 right-3 z-10 h-6 rounded-lg bg-easing-b-menu-top" />
+      <div className="pointer-events-none fixed bottom-0 left-0 right-3 z-10 h-6 bg-easing-b-menu-top" />
     </motion.div>
   )
 }

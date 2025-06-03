@@ -1,5 +1,5 @@
 import { toast } from 'sonner'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 import { mode } from '@/lib/dev'
 import { Platform } from '@/lib/schemas'
@@ -24,13 +24,11 @@ export type ConfigErrorSchema = z.infer<typeof ConfigErrorSchema>
 /* ConfigError Class */
 export class ConfigError extends Error {
   error_key: ConfigErrorSchema['error_key']
-  // error_action: ConfigErrorSchema['error_action']
   platforms: ConfigErrorSchema['platforms']
 
   constructor(public error: ConfigErrorSchema) {
     super(error.message)
     this.error_key = error.error_key
-    // this.error_action = error.error_action
     this.platforms = error.platforms
   }
 }

@@ -1,14 +1,12 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { z } from 'zod'
 
 import { Button, LinkButton } from '@/components/Button'
 import ErrorWrapper from '@/components/ErrorWrapper'
 import { useSteamUndoMutation } from '@/lib/data'
+import { RedirectSearchParam } from '@/lib/schemas'
 
 export const Route = createFileRoute('/setup/NoSteamOverwatch')({
-  validateSearch: z.object({
-    redirect: z.string().optional()
-  }),
+  validateSearch: RedirectSearchParam,
   staleTime: Infinity,
   component: ConfigureComponent
 })

@@ -553,7 +553,6 @@ function Menu() {
           {/* NOTE: hideme if required */}
           <div className="ml-auto w-fit">
             <MotionLink
-              /* @ts-expect-error ref type is wrong */
               ref={settingsButtonRef}
               to="/settings"
               replace

@@ -2,7 +2,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { open } from '@tauri-apps/plugin-dialog'
 import { toast } from 'sonner'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 import { Button } from '@/components/Button'
 import { FormattedError } from '@/components/Error'
@@ -14,13 +14,12 @@ import {
   useSetupErrorMutation
 } from '@/lib/data'
 import { ConfigError, ConfigErrors, handleError } from '@/lib/errors'
-import { Platform } from '@/lib/schemas'
+import { Platform, RedirectSearchParam } from '@/lib/schemas'
 
 export const Route = createFileRoute('/setup/$key')({
-  validateSearch: z.object({
+  validateSearch: RedirectSearchParam.extend({
     message: z.string(),
-    platforms: z.array(Platform).default([]),
-    redirect: z.string().optional()
+    platforms: z.array(Platform).default([])
   }),
   loader: async ({ params: { key }, context: { queryClient } }) => {
     const result = ConfigErrors.safeParse(key)
