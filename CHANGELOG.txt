@@ -1,3 +1,6 @@
 OverBuddy has been updated!
-- Added new Street Fighter 6 and Mercy Merciful Magitech backgrounds.
+- Added new Heart of Hope Juno background.
 - Fixed various issues and made improvements.
+
+Other changes in this update:
+- Added new Street Fighter 6 and Mercy Merciful Magitech backgrounds.

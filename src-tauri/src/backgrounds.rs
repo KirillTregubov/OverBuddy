@@ -167,8 +167,8 @@ const BACKGROUNDS: &[Background] = &[
         id: "0x0800000000001032",
         image: "galactic_emperor_sigma.jpg",
         name: "Galactic Emperor Sigma",
-        description: "Season 4 Mythic Skin",
-        tags: &[],
+        description: "Sigma Mythic Skin (Season 4)",
+        tags: &["Mythic Skin"],
         new: false,
     },
     // Background {
@@ -285,8 +285,8 @@ const BACKGROUNDS: &[Background] = &[
         id: "0x0800000000001200",
         image: "ancient_caller_moira.jpg",
         name: "Ancient Caller Moira",
-        description: "Season 9 Mythic Skin",
-        tags: &["Art"],
+        description: "Moira Mythic Skin (Season 9)",
+        tags: &["Mythic Skin", "Art"],
         new: false,
     },
     Background {
@@ -372,8 +372,8 @@ const BACKGROUNDS: &[Background] = &[
         id: "0x0800000000001277",
         image: "anubis_reaper.jpg",
         name: "Anubis Reaper",
-        description: "Season 12 Mythic Skin",
-        tags: &["Art"],
+        description: "Reaper Mythic Skin (Season 12)",
+        tags: &["Mythic Skin", "Art"],
         new: false,
     },
     Background {
@@ -396,8 +396,8 @@ const BACKGROUNDS: &[Background] = &[
         id: "0x08000000000012A5",
         image: "spellbinder_widowmaker.jpg",
         name: "Spellbinder Widowmaker",
-        description: "Season 13 Mythic Skin",
-        tags: &["Art"],
+        description: "Widowmaker Mythic Skin (Season 13)",
+        tags: &["Mythic Skin", "Art"],
         new: false,
     },
     Background {
@@ -561,6 +561,14 @@ const BACKGROUNDS: &[Background] = &[
         name: "Mercy Merciful Magitech",
         description: "Mercy Mythic Weapon (Season 16)",
         tags: &["Mythic Weapon"],
+        new: true,
+    },
+    Background {
+        id: "0x0800000000001345",
+        image: "heart_of_hope_juno.jpg",
+        name: "Heart of Hope Juno",
+        description: "Juno Mythic Skin (Season 16)",
+        tags: &["Mythic Skin", "Animated Art"],
         new: true,
     },
 ];
