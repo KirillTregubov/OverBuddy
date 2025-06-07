@@ -26,7 +26,6 @@ export const LaunchConfig = z.object({
   steam: z.object({
     enabled: z.boolean(),
     in_setup: z.boolean(),
-    advertised: z.int(),
     install: z.string().nullable(),
     configs: z.array(SteamLocalconfig).nullable(),
     profiles: z.array(SteamProfile).nullable()

@@ -24,11 +24,9 @@ import {
   activeBackgroundQueryOptions,
   backgroundsQueryOptions,
   launchQueryOptions,
-  shouldAdvertiseQueryOptions,
   updateQueryOptions,
   useActiveBackgroundMutation,
   useBackgroundMutation,
-  useDismissAdMutation,
   useResetBackgroundMutation
 } from '@/lib/data'
 import { linkFix } from '@/lib/linkFix'
@@ -57,7 +55,6 @@ export const Route = createFileRoute('/menu')({
   },
   loader: async ({ context: { queryClient } }) => {
     return Promise.allSettled([
-      queryClient.ensureQueryData(shouldAdvertiseQueryOptions),
       queryClient.ensureQueryData(updateQueryOptions(true)),
       queryClient.ensureQueryData(activeBackgroundQueryOptions),
       queryClient.ensureQueryData(backgroundsQueryOptions)
@@ -94,9 +91,6 @@ function Menu() {
     activeBackgroundQueryOptions
   )
   const { data: config } = useSuspenseQuery(launchQueryOptions)
-  const { data: shouldAdvertise } = useSuspenseQuery(
-    shouldAdvertiseQueryOptions
-  )
   const { data: updateAvailable } = useQuery(updateQueryOptions(true))
   const {
     status: setStatus,
@@ -113,7 +107,6 @@ function Menu() {
   })
   const backgroundRefs = useRef<HTMLButtonElement[]>([])
   const { mutate: setActiveBackground } = useActiveBackgroundMutation()
-  const { mutate: dismissAd } = useDismissAdMutation()
 
   const [backgroundIndex, setBackgroundIndex] = useState(0)
 
@@ -122,35 +115,6 @@ function Menu() {
       backgrounds.findIndex((bg) => bg.id === activeBackground.id) || 0
     )
   }, [backgrounds, activeBackground.id])
-
-  // const [newBackground] = useState(
-  //   backgrounds.findIndex((bg) => bg.new) || null
-  // )
-  // const [showNewButton, setShowNewButton] = useState(false)
-  // useEffect(() => {
-  //   if (!newBackground) return
-
-  //   const newBackgroundRef = backgroundRefs.current[newBackground]
-  //   if (!newBackgroundRef) return
-
-  //   const observer = new IntersectionObserver(
-  //     ([entry]) => {
-  //       if (entry?.isIntersecting) setShowNewButton(false)
-  //       else setShowNewButton(true)
-  //     },
-  //     {
-  //       threshold: 0.3
-  //     }
-  //   )
-
-  //   observer.observe(newBackgroundRef)
-
-  //   return () => {
-  //     if (newBackgroundRef) {
-  //       observer.unobserve(newBackgroundRef)
-  //     }
-  //   }
-  // }, [newBackground])
 
   const prevButtonRef = useRef<HTMLButtonElement>(null)
   const prevButtonAnimation = useAnimation()
@@ -274,28 +238,6 @@ function Menu() {
       toast.dismiss('outdated-background')
     }
   }, [config.shared.background.is_outdated, resetBackground])
-  // Advertise Steam feature
-  useEffect(() => {
-    if (shouldAdvertise && config.steam.advertised < 4) {
-      toast.info('OverBuddy now supports Steam. Enable it in the settings.', {
-        id: 'advertise-steam',
-        action: {
-          label: 'Open Settings',
-          onClick: () =>
-            navigate({
-              to: '/settings',
-              replace: true
-            })
-        },
-        onDismiss: () => dismissAd(),
-        duration: 10000
-      })
-    }
-
-    return () => {
-      toast.dismiss('advertise-steam')
-    }
-  }, [shouldAdvertise, config.steam.advertised, navigate, dismissAd])
 
   useLayoutEffect(() => {
     const index = backgrounds.findIndex((bg) => bg.id === activeBackground.id)
@@ -309,7 +251,6 @@ function Menu() {
       requestAnimationFrame(() => {
         ref.scrollIntoView({
           behavior: 'smooth',
-          // block: 'nearest', // Ensures minimal scroll movement
           inline: 'center'
         })
       })
@@ -323,10 +264,6 @@ function Menu() {
   }, [activeBackground, backgrounds])
 
   const handleSelect = (index: number) => {
-    // if (newBackground && index === newBackground) {
-    //   setShowNewButton(false)
-    // }
-
     const ref = backgroundRefs.current[index]
     if (!ref || ref.id === activeBackground.id) return
     const background = backgrounds.at(index)
@@ -375,7 +312,7 @@ function Menu() {
                 'aspect-video w-fit select-none shadow-lg ring-offset-transparent transition-[width,height,box-shadow,filter] duration-200 focus:outline-none',
                 activeBackground.id === background.id
                   ? 'highlight h-36 rounded-xl shadow-orange-600/15'
-                  : 'highlight-base h-28 rounded-lg shadow-orange-600/10 hover:shadow-orange-600/15'
+                  : 'highlight-base h-[7.3125rem] rounded-lg shadow-orange-600/10 hover:shadow-orange-600/15'
               )}
               initial={{ scale: 0.9 }}
               whileInView={{ scale: 1 }}
@@ -427,7 +364,7 @@ function Menu() {
                 </div>
               </div>
               {background.new && (
-                <div className="absolute right-2 top-2 flex items-center gap-1 rounded-[0.1875rem] border border-amber-200/60 bg-amber-300 px-1 text-xs font-bold uppercase tracking-wide text-yellow-950 shadow shadow-amber-700 will-change-transform">
+                <div className="absolute right-2 top-2 flex items-center gap-1 rounded-[0.1875rem] border border-amber-200/60 bg-amber-300 px-1 text-xs font-bold uppercase tracking-wide text-yellow-950 shadow shadow-amber-700 duration-200 will-change-transform">
                   NEW!
                 </div>
               )}
@@ -446,7 +383,7 @@ function Menu() {
               className={cn(
                 'peer pointer-events-auto relative rounded-full bg-zinc-800/70 p-1 text-zinc-100 backdrop-blur transition-colors hover:bg-zinc-700/70 focus-visible:bg-zinc-700/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:bg-zinc-600/70 aria-pressed:bg-zinc-600/70',
                 backgroundIndex === 0 &&
-                  'before:absolute before:inset-0 before:animate-ping before:rounded-full before:border before:border-white before:opacity-50'
+                  'before:absolute before:inset-0 before:animate-ping-border before:rounded-full before:border-zinc-100/50 before:delay-1000'
               )}
               onClick={() => handleNavigate('prev')}
               animate={prevButtonAnimation}
@@ -496,30 +433,6 @@ function Menu() {
             <ChevronRight size={24} />
           </motion.button>
         </motion.div>
-        {/* <AnimatePresence>
-          {showNewButton && (
-            <motion.div
-              className="pointer-events-none absolute right-0 top-6 z-20 flex h-full items-start justify-end"
-              initial={{ transform: 'translateY(8px)', opacity: 0 }}
-              animate={{ transform: 'translateY(0px)', opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <motion.button
-                className="pointer-events-auto select-none rounded-full bg-zinc-100/80 px-3 py-1 text-black backdrop-blur transition-colors will-change-transform hover:bg-white/80 focus-visible:bg-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:bg-white/90"
-                onClick={() => handleSelect(newBackground!)}
-                initial={{ scale: 1 }}
-                whileHover={{ scale: 1.05 }}
-                whileFocus={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ duration: 0.15 }}
-                aria-label="Previous Background"
-              >
-                See New
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence> */}
       </div>
       <motion.div
         className="relative flex h-full min-h-0 w-full flex-1 justify-center"
@@ -542,7 +455,7 @@ function Menu() {
                 transition={{
                   duration: 0.15,
                   ease: 'easeInOut',
-                  transform: { duration: 0.25 }
+                  transform: { duration: 0.3 }
                 }}
                 aria-label={`Selected background tagged as ${tag}`}
               >

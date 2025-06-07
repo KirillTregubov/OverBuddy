@@ -297,7 +297,7 @@ export const backgroundsQueryOptions = queryOptions({
 /**
  * Query for the active background
  *
- * Preconditions:
+ * @preconditions
  * - Launch config must be loaded
  * - Backgrounds must be loaded
  * - Backgrounds is not empty
@@ -565,17 +565,4 @@ export const updateQueryOptions = (enabled: boolean = false) =>
     queryKey: ['check_for_update'],
     queryFn: checkUpdate,
     enabled
-  })
-
-export const shouldAdvertiseQueryOptions = queryOptions({
-  queryKey: ['advertisement'],
-  queryFn: () => true,
-  staleTime: Infinity
-})
-
-export const useDismissAdMutation = () =>
-  useMutation({
-    mutationFn: async () => {
-      queryClient.setQueryData(shouldAdvertiseQueryOptions.queryKey, false)
-    }
   })

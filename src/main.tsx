@@ -1,5 +1,4 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-// import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
@@ -45,18 +44,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-// const TanStackRouterDevtools =
-//   process.env.NODE_ENV === 'production'
-//     ? () => null // Render nothing in production
-//     : React.lazy(() =>
-//         // Lazy load in development
-//         import('@tanstack/router-devtools').then((res) => ({
-//           default: res.TanStackRouterDevtools
-//           // For Embedded Mode
-//           // default: res.TanStackRouterDevtoolsPanel
-//         }))
-//       )
-
 const rootElement = document.getElementById('root')!
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
@@ -66,10 +53,6 @@ if (!rootElement.innerHTML) {
       <Toaster />
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
-        {/* <React.Suspense>
-          <TanStackRouterDevtools router={router} />
-        </React.Suspense> */}
-        {/* <ReactQueryDevtools initialIsOpen={false} /> */}
       </QueryClientProvider>
     </React.StrictMode>
   )
