@@ -222,12 +222,15 @@ function Menu() {
   useEffect(() => {
     if (config.shared.background.is_outdated) {
       toast.warning(
-        'Your background is outdated. This may result in a black screen in game.',
+        'Your background is outdated. This may be a result of the recent Season 17  update. Please revert to the default background.',
         {
           id: 'outdated-background',
           action: {
             label: 'Revert to Default',
             onClick: () => resetBackground()
+          },
+          classNames: {
+            toast: 'max-w-xl'
           },
           duration: Infinity
         }

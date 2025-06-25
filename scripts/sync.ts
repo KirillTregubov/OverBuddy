@@ -34,7 +34,8 @@ const visitedBackgrounds = [
   '123F', // White empty with grid base
   '1276', // Was Juno is now squished OWCS
   '12B9', // Overwatch Classic not shaded
-  '12BA' // Overwatch Classic draft
+  '12BA', // Overwatch Classic draft
+  '1318' // White square in sky
 ]
 
 // Paths

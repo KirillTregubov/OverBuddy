@@ -8,164 +8,62 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-// Import Routes
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as SetupRouteImport } from './routes/setup'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as MenuRouteImport } from './routes/menu'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as SetupIndexRouteImport } from './routes/setup/index'
+import { Route as SetupSteam_setupRouteImport } from './routes/setup/steam_setup'
+import { Route as SetupSelectRouteImport } from './routes/setup/select'
+import { Route as SetupNoSteamOverwatchRouteImport } from './routes/setup/NoSteamOverwatch'
+import { Route as SetupKeyRouteImport } from './routes/setup/$key'
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as SetupImport } from './routes/setup'
-import { Route as SettingsImport } from './routes/settings'
-import { Route as MenuImport } from './routes/menu'
-import { Route as IndexImport } from './routes/index'
-import { Route as SetupIndexImport } from './routes/setup/index'
-import { Route as SetupSteamsetupImport } from './routes/setup/steam_setup'
-import { Route as SetupSelectImport } from './routes/setup/select'
-import { Route as SetupNoSteamOverwatchImport } from './routes/setup/NoSteamOverwatch'
-import { Route as SetupKeyImport } from './routes/setup/$key'
-
-// Create/Update Routes
-
-const SetupRoute = SetupImport.update({
+const SetupRoute = SetupRouteImport.update({
   id: '/setup',
   path: '/setup',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const SettingsRoute = SettingsImport.update({
+const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const MenuRoute = MenuImport.update({
+const MenuRoute = MenuRouteImport.update({
   id: '/menu',
   path: '/menu',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const IndexRoute = IndexImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const SetupIndexRoute = SetupIndexImport.update({
+const SetupIndexRoute = SetupIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => SetupRoute,
 } as any)
-
-const SetupSteamsetupRoute = SetupSteamsetupImport.update({
+const SetupSteam_setupRoute = SetupSteam_setupRouteImport.update({
   id: '/steam_setup',
   path: '/steam_setup',
   getParentRoute: () => SetupRoute,
 } as any)
-
-const SetupSelectRoute = SetupSelectImport.update({
+const SetupSelectRoute = SetupSelectRouteImport.update({
   id: '/select',
   path: '/select',
   getParentRoute: () => SetupRoute,
 } as any)
-
-const SetupNoSteamOverwatchRoute = SetupNoSteamOverwatchImport.update({
+const SetupNoSteamOverwatchRoute = SetupNoSteamOverwatchRouteImport.update({
   id: '/NoSteamOverwatch',
   path: '/NoSteamOverwatch',
   getParentRoute: () => SetupRoute,
 } as any)
-
-const SetupKeyRoute = SetupKeyImport.update({
+const SetupKeyRoute = SetupKeyRouteImport.update({
   id: '/$key',
   path: '/$key',
   getParentRoute: () => SetupRoute,
 } as any)
-
-// Populate the FileRoutesByPath interface
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/menu': {
-      id: '/menu'
-      path: '/menu'
-      fullPath: '/menu'
-      preLoaderRoute: typeof MenuImport
-      parentRoute: typeof rootRoute
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsImport
-      parentRoute: typeof rootRoute
-    }
-    '/setup': {
-      id: '/setup'
-      path: '/setup'
-      fullPath: '/setup'
-      preLoaderRoute: typeof SetupImport
-      parentRoute: typeof rootRoute
-    }
-    '/setup/$key': {
-      id: '/setup/$key'
-      path: '/$key'
-      fullPath: '/setup/$key'
-      preLoaderRoute: typeof SetupKeyImport
-      parentRoute: typeof SetupImport
-    }
-    '/setup/NoSteamOverwatch': {
-      id: '/setup/NoSteamOverwatch'
-      path: '/NoSteamOverwatch'
-      fullPath: '/setup/NoSteamOverwatch'
-      preLoaderRoute: typeof SetupNoSteamOverwatchImport
-      parentRoute: typeof SetupImport
-    }
-    '/setup/select': {
-      id: '/setup/select'
-      path: '/select'
-      fullPath: '/setup/select'
-      preLoaderRoute: typeof SetupSelectImport
-      parentRoute: typeof SetupImport
-    }
-    '/setup/steam_setup': {
-      id: '/setup/steam_setup'
-      path: '/steam_setup'
-      fullPath: '/setup/steam_setup'
-      preLoaderRoute: typeof SetupSteamsetupImport
-      parentRoute: typeof SetupImport
-    }
-    '/setup/': {
-      id: '/setup/'
-      path: '/'
-      fullPath: '/setup/'
-      preLoaderRoute: typeof SetupIndexImport
-      parentRoute: typeof SetupImport
-    }
-  }
-}
-
-// Create and export the route tree
-
-interface SetupRouteChildren {
-  SetupKeyRoute: typeof SetupKeyRoute
-  SetupNoSteamOverwatchRoute: typeof SetupNoSteamOverwatchRoute
-  SetupSelectRoute: typeof SetupSelectRoute
-  SetupSteamsetupRoute: typeof SetupSteamsetupRoute
-  SetupIndexRoute: typeof SetupIndexRoute
-}
-
-const SetupRouteChildren: SetupRouteChildren = {
-  SetupKeyRoute: SetupKeyRoute,
-  SetupNoSteamOverwatchRoute: SetupNoSteamOverwatchRoute,
-  SetupSelectRoute: SetupSelectRoute,
-  SetupSteamsetupRoute: SetupSteamsetupRoute,
-  SetupIndexRoute: SetupIndexRoute,
-}
-
-const SetupRouteWithChildren = SetupRoute._addFileChildren(SetupRouteChildren)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -175,10 +73,9 @@ export interface FileRoutesByFullPath {
   '/setup/$key': typeof SetupKeyRoute
   '/setup/NoSteamOverwatch': typeof SetupNoSteamOverwatchRoute
   '/setup/select': typeof SetupSelectRoute
-  '/setup/steam_setup': typeof SetupSteamsetupRoute
+  '/setup/steam_setup': typeof SetupSteam_setupRoute
   '/setup/': typeof SetupIndexRoute
 }
-
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/menu': typeof MenuRoute
@@ -186,12 +83,11 @@ export interface FileRoutesByTo {
   '/setup/$key': typeof SetupKeyRoute
   '/setup/NoSteamOverwatch': typeof SetupNoSteamOverwatchRoute
   '/setup/select': typeof SetupSelectRoute
-  '/setup/steam_setup': typeof SetupSteamsetupRoute
+  '/setup/steam_setup': typeof SetupSteam_setupRoute
   '/setup': typeof SetupIndexRoute
 }
-
 export interface FileRoutesById {
-  __root__: typeof rootRoute
+  __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/menu': typeof MenuRoute
   '/settings': typeof SettingsRoute
@@ -199,10 +95,9 @@ export interface FileRoutesById {
   '/setup/$key': typeof SetupKeyRoute
   '/setup/NoSteamOverwatch': typeof SetupNoSteamOverwatchRoute
   '/setup/select': typeof SetupSelectRoute
-  '/setup/steam_setup': typeof SetupSteamsetupRoute
+  '/setup/steam_setup': typeof SetupSteam_setupRoute
   '/setup/': typeof SetupIndexRoute
 }
-
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
@@ -238,7 +133,6 @@ export interface FileRouteTypes {
     | '/setup/'
   fileRoutesById: FileRoutesById
 }
-
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MenuRoute: typeof MenuRoute
@@ -246,68 +140,98 @@ export interface RootRouteChildren {
   SetupRoute: typeof SetupRouteWithChildren
 }
 
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/setup': {
+      id: '/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof SetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/menu': {
+      id: '/menu'
+      path: '/menu'
+      fullPath: '/menu'
+      preLoaderRoute: typeof MenuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/setup/': {
+      id: '/setup/'
+      path: '/'
+      fullPath: '/setup/'
+      preLoaderRoute: typeof SetupIndexRouteImport
+      parentRoute: typeof SetupRoute
+    }
+    '/setup/steam_setup': {
+      id: '/setup/steam_setup'
+      path: '/steam_setup'
+      fullPath: '/setup/steam_setup'
+      preLoaderRoute: typeof SetupSteam_setupRouteImport
+      parentRoute: typeof SetupRoute
+    }
+    '/setup/select': {
+      id: '/setup/select'
+      path: '/select'
+      fullPath: '/setup/select'
+      preLoaderRoute: typeof SetupSelectRouteImport
+      parentRoute: typeof SetupRoute
+    }
+    '/setup/NoSteamOverwatch': {
+      id: '/setup/NoSteamOverwatch'
+      path: '/NoSteamOverwatch'
+      fullPath: '/setup/NoSteamOverwatch'
+      preLoaderRoute: typeof SetupNoSteamOverwatchRouteImport
+      parentRoute: typeof SetupRoute
+    }
+    '/setup/$key': {
+      id: '/setup/$key'
+      path: '/$key'
+      fullPath: '/setup/$key'
+      preLoaderRoute: typeof SetupKeyRouteImport
+      parentRoute: typeof SetupRoute
+    }
+  }
+}
+
+interface SetupRouteChildren {
+  SetupKeyRoute: typeof SetupKeyRoute
+  SetupNoSteamOverwatchRoute: typeof SetupNoSteamOverwatchRoute
+  SetupSelectRoute: typeof SetupSelectRoute
+  SetupSteam_setupRoute: typeof SetupSteam_setupRoute
+  SetupIndexRoute: typeof SetupIndexRoute
+}
+
+const SetupRouteChildren: SetupRouteChildren = {
+  SetupKeyRoute: SetupKeyRoute,
+  SetupNoSteamOverwatchRoute: SetupNoSteamOverwatchRoute,
+  SetupSelectRoute: SetupSelectRoute,
+  SetupSteam_setupRoute: SetupSteam_setupRoute,
+  SetupIndexRoute: SetupIndexRoute,
+}
+
+const SetupRouteWithChildren = SetupRoute._addFileChildren(SetupRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MenuRoute: MenuRoute,
   SettingsRoute: SettingsRoute,
   SetupRoute: SetupRouteWithChildren,
 }
-
-export const routeTree = rootRoute
+export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-/* ROUTE_MANIFEST_START
-{
-  "routes": {
-    "__root__": {
-      "filePath": "__root.tsx",
-      "children": [
-        "/",
-        "/menu",
-        "/settings",
-        "/setup"
-      ]
-    },
-    "/": {
-      "filePath": "index.tsx"
-    },
-    "/menu": {
-      "filePath": "menu.tsx"
-    },
-    "/settings": {
-      "filePath": "settings.tsx"
-    },
-    "/setup": {
-      "filePath": "setup.tsx",
-      "children": [
-        "/setup/$key",
-        "/setup/NoSteamOverwatch",
-        "/setup/select",
-        "/setup/steam_setup",
-        "/setup/"
-      ]
-    },
-    "/setup/$key": {
-      "filePath": "setup/$key.tsx",
-      "parent": "/setup"
-    },
-    "/setup/NoSteamOverwatch": {
-      "filePath": "setup/NoSteamOverwatch.tsx",
-      "parent": "/setup"
-    },
-    "/setup/select": {
-      "filePath": "setup/select.tsx",
-      "parent": "/setup"
-    },
-    "/setup/steam_setup": {
-      "filePath": "setup/steam_setup.tsx",
-      "parent": "/setup"
-    },
-    "/setup/": {
-      "filePath": "setup/index.tsx",
-      "parent": "/setup"
-    }
-  }
-}
-ROUTE_MANIFEST_END */
