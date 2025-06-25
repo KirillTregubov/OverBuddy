@@ -8,14 +8,17 @@ export default {
     extend: {
       animation: {
         'spin-cog': 'spin-cog 1.5s ease 1',
-        ping: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite'
+        'ping-border': 'ping-border 1.5s cubic-bezier(0, 0, 0.2, 1) infinite'
       },
       keyframes: {
         'spin-cog': {
           from: { transform: 'rotate(30deg)' },
           to: { transform: 'rotate(390deg)' }
         },
-        ping: {
+        'ping-border': {
+          '0%': {
+            borderWidth: '1px'
+          },
           '75%, 100%': {
             transform: 'scale(1.5)',
             opacity: '0'

@@ -65,14 +65,6 @@ fn get_launch_config(handle: AppHandle) -> Result<String, Error> {
         }
     }
 
-    //NOTE: Temporarily advertise Steam support
-    if config.steam.advertised < 4
-        && config.is_setup
-        && (!config.steam.enabled || !config.steam.in_setup)
-    {
-        config.steam.advertised += 1;
-    }
-
     config::write_config(&handle, &config)?;
 
     Ok(serde_json::to_string(&config)?)
@@ -323,7 +315,6 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         // Disable Steam
         config.steam.profiles = None;
         config.steam.configs = None;
-        config.steam.advertised = 0;
         config.steam.in_setup = false;
         config.steam.enabled = false;
     }
@@ -343,7 +334,6 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         config.shared.additional.console_enabled = false;
     } else {
         config.is_setup = true;
-        config.steam.advertised = 4; // Do not advertise to new users
     }
 
     config::write_config(&handle, &config)?;
@@ -732,12 +722,6 @@ pub fn run() {
             set_debug_console,
             reset
         ])
-        // NOTE: This was a fix for window size changing across monitors with different display scales, seems to work at the moment
-        // .on_window_event(|window, event| {
-        //     if let tauri::WindowEvent::ScaleFactorChanged { .. } = event {
-        //         window.set_size(tauri::LogicalSize::new(1024, 768)).unwrap();
-        //     }
-        // })
         .run(tauri::generate_context!())
         .expect("Encountered an error while starting OverBuddy");
 }

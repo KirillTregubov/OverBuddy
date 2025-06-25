@@ -43,7 +43,6 @@ pub struct SteamProfile {
 pub struct SteamConfig {
     pub enabled: bool,
     pub in_setup: bool,
-    pub advertised: u8,
     pub install: Option<String>,
     pub configs: Option<Vec<SteamLocalconfig>>,
     pub profiles: Option<Vec<SteamProfile>>,
@@ -86,7 +85,6 @@ pub fn get_default_config() -> Config {
         steam: SteamConfig {
             enabled: false,
             in_setup: false,
-            advertised: 0,
             install: None,
             configs: None,
             profiles: None,

@@ -1,6 +1,6 @@
 OverBuddy has been updated!
-- Added new Heart of Hope Juno background.
+- Removed most previous backgrounds that no longer exist in the game.
+- Added new Reaper Mythic Weapon background.
 - Fixed various issues and made improvements.
 
-Other changes in this update:
-- Added new Street Fighter 6 and Mercy Merciful Magitech backgrounds.
+Season 17 is a rebase patch, which means it removed a lot of backgrounds previously available. I apologize for any inconvenience this may have caused!
