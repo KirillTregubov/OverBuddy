@@ -634,6 +634,14 @@ const BACKGROUNDS: &[Background] = &[
         tags: &["Mythic Weapon", "Art"],
         new: true,
     },
+    Background {
+        id: "0x0800000000001379",
+        image: "gi_joe.jpg",
+        name: "G.I. Joe",
+        description: "G.I. Joe Event (Season 17)",
+        tags: &["Collaboration", "Art"],
+        new: true,
+    },
 ];
 
 pub fn get_backgrounds() -> &'static [Background] {
