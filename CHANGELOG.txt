@@ -1,6 +1,6 @@
 OverBuddy has been updated!
 - Removed most previous backgrounds that no longer exist in the game.
-- Added new Reaper Mythic Weapon background.
+- Added new G.I. Joe and Reaper Mythic Weapon backgrounds.
 - Fixed various issues and made improvements.
 
 Season 17 is a rebase patch, which means it removed a lot of backgrounds previously available. I apologize for any inconvenience this may have caused!
