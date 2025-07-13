@@ -27,7 +27,13 @@ async function updateVersion(type: string) {
   // Determine new version
   let newVersion = type // Custom version
   if (['patch', 'minor', 'major'].includes(newVersion)) {
-    newVersion = semver.inc(currentVersion, newVersion)!
+    const increment = semver.inc(currentVersion, newVersion)
+    if (!increment) {
+      console.error(`Failed to calculate new version for type: ${type}\n`)
+      return
+    }
+
+    newVersion = increment
   }
 
   if (!newVersion || newVersion.length === 0) {

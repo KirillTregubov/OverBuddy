@@ -2,7 +2,7 @@ import { queryOptions, useMutation } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api/core'
 import { check } from '@tauri-apps/plugin-updater'
 import { toast } from 'sonner'
-import { z } from 'zod/v4'
+import { z } from 'zod'
 
 import {
   ConfigError,
@@ -310,14 +310,22 @@ export const activeBackgroundQueryOptions = queryOptions({
 
     const backgrounds = queryClient.getQueryData(
       backgroundsQueryOptions.queryKey
-    )!
-    const defaultBackground = backgrounds[0]!
-    const current = queryClient.getQueryData(launchQueryOptions.queryKey)!
-      .shared.background.current
+    )
+    if (!backgrounds) throw new Error('Failed to get backgrounds.')
+
+    const defaultBackground = backgrounds[0]
+    if (!defaultBackground) throw new Error('No default background found.')
+
+    const current = queryClient.getQueryData(launchQueryOptions.queryKey)
+      ?.shared.background.current
     if (current !== null) {
       const index = backgrounds.findIndex((bg) => bg.id === current)
       if (index === -1) return defaultBackground
-      return backgrounds[index]!
+      const currentBackground = backgrounds[index]
+      if (currentBackground) {
+        return currentBackground
+      }
+      console.warn(`Current background ${current} not found in backgrounds.`)
     }
 
     return defaultBackground
@@ -539,7 +547,7 @@ export const useUpdateMutation = ({
       await update.downloadAndInstall((event) => {
         switch (event.event) {
           case 'Started':
-            contentLength = event.data.contentLength!
+            contentLength = event.data.contentLength ?? 0
             onProgress(0)
             break
           case 'Progress':
