@@ -642,6 +642,14 @@ const BACKGROUNDS: &[Background] = &[
         tags: &["Collaboration", "Art"],
         new: true,
     },
+    Background {
+        id: "0x080000000000138A",
+        image: "radiant_angel.jpg",
+        name: "Radiant Angel Mercy",
+        description: "OWCS 2025 Midseason Championship Crowdfunding Skin",
+        tags: &["Overwatch Champions Series"],
+        new: true,
+    },
 ];
 
 pub fn get_backgrounds() -> &'static [Background] {

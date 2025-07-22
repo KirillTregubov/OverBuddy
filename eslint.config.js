@@ -1,3 +1,4 @@
+// @ts-check
 import eslint from '@eslint/js'
 import react from 'eslint-plugin-react'
 import reactCompiler from 'eslint-plugin-react-compiler'
@@ -35,7 +36,6 @@ export default [
   {
     plugins: {
       react,
-      // 'react-refresh': reactRefresh,
       'react-compiler': reactCompiler
     },
     rules: {

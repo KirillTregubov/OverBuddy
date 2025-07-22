@@ -1016,10 +1016,9 @@ function CustomBackgroundSetter() {
             {config.shared.background.custom !== null && (
               <motion.button
                 className="rounded-sm underline underline-offset-2 transition hover:text-white focus-visible:text-white focus-visible:outline-none active:text-zinc-200"
-                // rounded-sm underline underline-offset-2 transition hover:text-white focus-visible:text-white focus-visible:outline-none active:text-zinc-200
                 onClick={() => resetBackground()}
                 initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1, transition: { delay: 0.15 } }}
+                whileInView={{ opacity: 1, transition: { delay: 0.1 } }}
                 exit={{ opacity: 0 }}
                 transition={{ opacity: { duration: 0.15 } }}
                 layout

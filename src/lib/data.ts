@@ -525,7 +525,7 @@ export const useCheckUpdates = ({
     onError: (error) => {
       handleError(error)
     },
-    onSuccess: (data) => onSuccess?.(data)
+    onSuccess: (data) => onSuccess?.(data),
   })
 
 export const useUpdateMutation = ({
