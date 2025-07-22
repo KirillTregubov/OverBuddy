@@ -1,7 +1,9 @@
 OverBuddy has been updated!
 - Added new Radiant Angel Mercy OWCS Crowdfunding skin background.
-- Removed most previous backgrounds that no longer exist in the game.
-- Also added G.I. Joe and Reaper Mythic Weapon backgrounds.
 - Fixed various issues and made improvements.
+
+Other changes in this release:
+- Removed most previous backgrounds and images that are no longer available in-game.
+- Added G.I. Joe and Reaper Mythic Weapon backgrounds.
 
 Season 17 was a rebase patch, meaning it removed a lot of backgrounds previously available. I apologize for any inconvenience this may have caused!
