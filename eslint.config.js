@@ -1,35 +1,49 @@
-import { fixupConfigRules, fixupPluginRules } from '@eslint/compat'
+// @ts-check
 import eslint from '@eslint/js'
-import reactCompilerPlugin from 'eslint-plugin-react-compiler'
-import eslintPluginReactHooks from 'eslint-plugin-react-hooks'
+import react from 'eslint-plugin-react'
+import reactCompiler from 'eslint-plugin-react-compiler'
+import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
-import pluginsJSXRuntime from 'eslint-plugin-react/configs/jsx-runtime.js'
-import pluginReactConfig from 'eslint-plugin-react/configs/recommended.js'
+import jsxRuntimeConfig from 'eslint-plugin-react/configs/jsx-runtime.js'
+import reactRecommended from 'eslint-plugin-react/configs/recommended.js'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 export default [
-  { files: ['**/*.{ts,tsx}'] },
-  { ignores: ['src-tauri/**/*', 'dist/**/*'] },
-  { languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } } },
-  { languageOptions: { globals: globals.browser } },
   eslint.configs.recommended,
-  ...tseslint.configs.recommended,
-  ...fixupConfigRules(pluginReactConfig),
-  ...fixupConfigRules(pluginsJSXRuntime),
+  ...tseslint.configs.strict,
+
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parserOptions: {
+        ecmaFeatures: { jsx: true }
+      },
+      globals: globals.browser
+    }
+  },
+
+  {
+    ignores: ['src-tauri/**/*', 'dist/**/*']
+  },
+
+  reactRecommended,
+  jsxRuntimeConfig,
+
+  reactHooks.configs['recommended-latest'],
+  reactRefresh.configs['recommended'],
+
   {
     plugins: {
-      'react-refresh': reactRefresh,
-      'react-hooks': fixupPluginRules(eslintPluginReactHooks),
-      'react-compiler': reactCompilerPlugin
+      react,
+      'react-compiler': reactCompiler
     },
     rules: {
-      'react-refresh/only-export-components': 'warn',
-      ...eslintPluginReactHooks.configs.recommended.rules,
       '@typescript-eslint/no-unused-vars': [
         'error',
         { caughtErrorsIgnorePattern: '^_' }
       ],
+      'react-refresh/only-export-components': 'warn',
       'react-compiler/react-compiler': 'warn'
     },
     settings: {

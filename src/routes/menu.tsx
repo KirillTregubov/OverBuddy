@@ -331,7 +331,8 @@ function Menu() {
               tabIndex={-1}
               data-index={index}
               ref={(el) => {
-                backgroundRefs.current[index] = el!
+                if (!el) return
+                backgroundRefs.current[index] = el
               }}
             >
               <img

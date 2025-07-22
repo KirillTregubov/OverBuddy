@@ -1,5 +1,5 @@
 import { toast } from 'sonner'
-import { z } from 'zod/v4'
+import { z } from 'zod'
 
 import { mode } from '@/lib/dev'
 import { Platform } from '@/lib/schemas'

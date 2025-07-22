@@ -2,7 +2,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { open } from '@tauri-apps/plugin-dialog'
 import { toast } from 'sonner'
-import { z } from 'zod/v4'
+import { z } from 'zod'
 
 import { Button } from '@/components/Button'
 import { FormattedError } from '@/components/Error'
