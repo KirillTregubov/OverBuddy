@@ -650,6 +650,14 @@ const BACKGROUNDS: &[Background] = &[
         tags: &["Overwatch Champions Series"],
         new: true,
     },
+    Background {
+        id: "0x0800000000001389",
+        image: "nerf.jpg",
+        name: "NERF",
+        description: "NERF Collaboration Event (Season 17)",
+        tags: &["Collaboration", "Art"],
+        new: true,
+    },
 ];
 
 pub fn get_backgrounds() -> &'static [Background] {

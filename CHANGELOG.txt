@@ -1,5 +1,5 @@
 OverBuddy has been updated!
-- Added new Radiant Angel Mercy OWCS Crowdfunding skin background.
+- Added new Nerf Collaboration and Radiant Angel Mercy OWCS Crowdfunding skin backgrounds.
 - Fixed various issues and made improvements.
 
 Other changes in this release:
