@@ -312,6 +312,14 @@ const BACKGROUNDS: &[Background] = &[
     //     tags: &["Mythic Skin", "Art"],
     //     new: false,
     // },
+    Background {
+        id: "0x0800000000001202",
+        image: "cowboby_bebop.jpg",
+        name: "Cowboy Bebop",
+        description: "Cowboy Bebop Event (Season 9)",
+        tags: &["Collaboration", "Art"],
+        new: false,
+    },
     // NOTE: Removed in Season 17 rebase
     // Background {
     //     id: "0x080000000000121A",
@@ -632,7 +640,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Reaper Mythic Weapon",
         description: "Steel Death Reaper Mythic Weapon (Season 17)",
         tags: &["Mythic Weapon", "Art"],
-        new: true,
+        new: false,
     },
     Background {
         id: "0x0800000000001379",
@@ -640,7 +648,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "G.I. Joe",
         description: "G.I. Joe Event (Season 17)",
         tags: &["Collaboration", "Art"],
-        new: true,
+        new: false,
     },
     Background {
         id: "0x080000000000138A",
@@ -648,7 +656,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Radiant Angel Mercy",
         description: "OWCS 2025 Midseason Championship Crowdfunding Skin",
         tags: &["Overwatch Champions Series"],
-        new: true,
+        new: false,
     },
     Background {
         id: "0x0800000000001389",
@@ -656,6 +664,30 @@ const BACKGROUNDS: &[Background] = &[
         name: "NERF",
         description: "NERF Collaboration Event (Season 17)",
         tags: &["Collaboration", "Art"],
+        new: false,
+    },
+    Background {
+        id: "0x080000000000139D",
+        image: "wuyang.jpg",
+        name: "Wuyang",
+        description: "Wuyang Release (Season 18)",
+        tags: &["Art"],
+        new: true,
+    },
+    Background {
+        id: "0x080000000000139F",
+        image: "ultraviolet_sentinel_blazing_sunsetter.jpg",
+        name: "Season 18 Mythics",
+        description: "Ultraviolet Sentinel and Blazing Sunsetter (Season 18)",
+        tags: &["Mythic Skin", "Mythic Weapon"],
+        new: true,
+    },
+    Background {
+        id: "0x08000000000013A2",
+        image: "ultraviolet_sentinel_blazing_sunsetter_art.jpg",
+        name: "Season 18 Mythic Art",
+        description: "Ultraviolet Sentinel and Blazing Sunsetter (Season 18)",
+        tags: &["Mythic Skin", "Mythic Weapon", "Art"],
         new: true,
     },
 ];
