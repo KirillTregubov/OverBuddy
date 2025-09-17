@@ -6,12 +6,13 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import jsxRuntimeConfig from 'eslint-plugin-react/configs/jsx-runtime.js'
 import reactRecommended from 'eslint-plugin-react/configs/recommended.js'
+import { defineConfig } from 'eslint/config'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
-export default [
+export default defineConfig(
   eslint.configs.recommended,
-  ...tseslint.configs.strict,
+  tseslint.configs.recommended,
 
   {
     files: ['**/*.{ts,tsx}'],
@@ -52,4 +53,4 @@ export default [
       }
     }
   }
-]
+)
