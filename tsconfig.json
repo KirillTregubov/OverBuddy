@@ -23,7 +23,12 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true
   },
-  "include": ["src"],
+  "include": [
+    "src",
+    "./index.d.ts",
+    "./tailwind.config.ts",
+    "./eslint.config.js"
+  ],
   "references": [
     {
       "path": "./tsconfig.node.json"

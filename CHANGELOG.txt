@@ -1,4 +1,4 @@
 OverBuddy has been updated!
+- Added new Persona 5 (Phantom Thieves) and Anniversary backgrounds.
 - Added the Cowboy Bebop background back (it was removed in an earlier season).
-- Added new Wuyang and two variants of Ultraviolet Sentinel and Blazing Sunsetter mythic skin backgrounds.
 - Fixed various issues and made improvements.

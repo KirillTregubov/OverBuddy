@@ -672,7 +672,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Wuyang",
         description: "Wuyang Release (Season 18)",
         tags: &["Art"],
-        new: true,
+        new: false,
     },
     Background {
         id: "0x080000000000139F",
@@ -680,7 +680,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Season 18 Mythics",
         description: "Ultraviolet Sentinel and Blazing Sunsetter (Season 18)",
         tags: &["Mythic Skin", "Mythic Weapon"],
-        new: true,
+        new: false,
     },
     Background {
         id: "0x08000000000013A2",
@@ -688,6 +688,22 @@ const BACKGROUNDS: &[Background] = &[
         name: "Season 18 Mythic Art",
         description: "Ultraviolet Sentinel and Blazing Sunsetter (Season 18)",
         tags: &["Mythic Skin", "Mythic Weapon", "Art"],
+        new: false,
+    },
+    Background {
+        id: "0x08000000000013AC",
+        image: "phantom_thieves.jpg",
+        name: "Phantom Thieves",
+        description: "Persona 5 Event (Season 18)",
+        tags: &["Collaboration", "Art", "Song: Phantom by ATLUS Sound Team"],
+        new: true,
+    },
+    Background {
+        id: "0x08000000000013AD",
+        image: "anniversary_2025.jpg",
+        name: "Anniversary",
+        description: "Anniversary Celebration (Season 18)",
+        tags: &["Art", "Song: Overture by Sam Cardon"],
         new: true,
     },
 ];
