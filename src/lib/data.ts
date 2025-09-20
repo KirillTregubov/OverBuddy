@@ -443,15 +443,12 @@ export const useDebugConsoleMutation = () =>
       const id = enableConsole ? 'debug-console' : 'debug-console-disabled'
       const prevId = !enableConsole ? 'debug-console' : 'debug-console-disabled'
       toast.dismiss(prevId)
-      if (enableConsole) {
-        toast.success('The Overwatch debug console has been enabled.', {
+      toast.success(
+        `The Overwatch debug console has been ${enableConsole ? 'enabled' : 'disabled'}.`,
+        {
           id: id
-        })
-      } else {
-        toast.warning('The Overwatch debug console has been disabled.', {
-          id: id
-        })
-      }
+        }
+      )
     }
   })
 
