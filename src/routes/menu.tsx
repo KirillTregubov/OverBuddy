@@ -8,13 +8,7 @@ import {
   SettingsIcon
 } from 'lucide-react'
 import { AnimatePresence, motion, useAnimation } from 'motion/react'
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState
-} from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { toast } from 'sonner'
 
 import placeholder from '@/assets/placeholder.svg'
@@ -108,13 +102,10 @@ function Menu() {
   const backgroundRefs = useRef<HTMLButtonElement[]>([])
   const { mutate: setActiveBackground } = useActiveBackgroundMutation()
 
-  const [backgroundIndex, setBackgroundIndex] = useState(0)
-
-  useEffect(() => {
-    setBackgroundIndex(
-      backgrounds.findIndex((bg) => bg.id === activeBackground.id) || 0
-    )
-  }, [backgrounds, activeBackground.id])
+  const backgroundIndex = useMemo(
+    () => backgrounds.findIndex((bg) => bg.id === activeBackground.id) || 0,
+    [backgrounds, activeBackground.id]
+  )
 
   const prevButtonRef = useRef<HTMLButtonElement>(null)
   const prevButtonAnimation = useAnimation()

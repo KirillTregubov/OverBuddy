@@ -2,7 +2,7 @@ import { queryOptions, useMutation } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api/core'
 import { check } from '@tauri-apps/plugin-updater'
 import { toast } from 'sonner'
-import { z } from 'zod'
+import * as z from 'zod'
 
 import {
   ConfigError,

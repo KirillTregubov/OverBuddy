@@ -65,7 +65,7 @@ export default function useKeyPress({
       lastPressTimeRef.current = currentTime
       if (sharedTimer) {
         // TODO: revisit
-        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/immutability
         sharedTimer.current = currentTime
       }
       setPressed(true)

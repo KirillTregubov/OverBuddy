@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as z from 'zod'
 
 export const Platform = z.enum(['BattleNet', 'Steam'])
 export type Platform = z.infer<typeof Platform>
