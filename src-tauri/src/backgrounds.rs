@@ -696,7 +696,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Phantom Thieves",
         description: "Persona 5 Event (Season 18)",
         tags: &["Collaboration", "Art", "Song: Phantom by ATLUS Sound Team"],
-        new: true,
+        new: false,
     },
     Background {
         id: "0x08000000000013AD",
@@ -704,6 +704,22 @@ const BACKGROUNDS: &[Background] = &[
         name: "Anniversary",
         description: "Anniversary Celebration (Season 18)",
         tags: &["Art", "Song: Overture by Sam Cardon"],
+        new: false,
+    },
+    Background {
+        id: "0x08000000000013B7",
+        image: "divine_druid_spirit_keeper.jpg",
+        name: "Season 19 Mythics",
+        description: "Divine Druid and Spirit Keeper (Season 19)",
+        tags: &["Mythic Skin", "Mythic Weapon"],
+        new: true,
+    },
+    Background {
+        id: "0x08000000000013C4",
+        image: "stadium_gadgets.jpg",
+        name: "Stadium Gadgets",
+        description: "Gadgets Launch in Stadium (Season 19)",
+        tags: &["Art"],
         new: true,
     },
 ];
