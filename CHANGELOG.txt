@@ -1,4 +1,4 @@
 OverBuddy has been updated!
-- Added new Persona 5 (Phantom Thieves) and Anniversary backgrounds.
+- Added new Season 19 Mythics and Stadium Gadgets backgrounds.
 - Added the Cowboy Bebop background back (it was removed in an earlier season).
 - Fixed various issues and made improvements.
