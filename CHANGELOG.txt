@@ -1,4 +1,4 @@
 OverBuddy has been updated!
-- Added new Season 19 Mythics and Stadium Gadgets backgrounds.
-- Added the Cowboy Bebop background back (it was removed in an earlier season).
+- Added new Haunted Masquerade and One-Punch Man backgrounds.
+- Also includes Season 19 Mythics and Stadium Gadgets backgrounds.
 - Fixed various issues and made improvements.

@@ -152,9 +152,7 @@ pub mod battle_net {
             Err(e) => {
                 return Err(Error::Custom(format!(
                     "Failed to open [[{}]] file at [[{}]]: {}. If you have changed your Battle.net installation, please reset settings",
-                    CONFIG_FILE,
-                    battle_net_config,
-                    e
+                    CONFIG_FILE, battle_net_config, e
                 )));
             }
         };
@@ -798,9 +796,9 @@ pub mod steam {
 
             if value_start > value_end {
                 return Err(Error::Custom(format!(
-                        "Failed to read the [[LaunchOptions]] key, inside the [[2357570]] (Overwatch) key in Steam config at [[{}]]",
-                        config_filename
-                    )));
+                    "Failed to read the [[LaunchOptions]] key, inside the [[2357570]] (Overwatch) key in Steam config at [[{}]]",
+                    config_filename
+                )));
             }
 
             let launch_args = &local_config[value_start..value_end];

@@ -362,7 +362,8 @@ fn resolve_setup_error(
         }
         _ => {
             return Err(Error::Custom(format!(
-                "Encountered incorrect setup resolution key [[{}]]. Please report this issue to the developer", key
+                "Encountered incorrect setup resolution key [[{}]]. Please report this issue to the developer",
+                key
             )));
         }
     };
@@ -658,10 +659,10 @@ fn set_debug_console(handle: AppHandle, enable_console: bool) -> Result<String, 
     if steam_error.is_some() {
         if battle_net_error.is_some() {
             return Err(Error::Custom(format!(
-                    "Failed to apply debug console on Battle.net: {}\nAlso failed to apply debug console on Steam: {}",
-                    battle_net_error.unwrap(),
-                    steam_error.unwrap(),
-                )));
+                "Failed to apply debug console on Battle.net: {}\nAlso failed to apply debug console on Steam: {}",
+                battle_net_error.unwrap(),
+                steam_error.unwrap(),
+            )));
         } else {
             return Err(Error::Custom(format!(
                 "Failed to apply debug console: {}",
