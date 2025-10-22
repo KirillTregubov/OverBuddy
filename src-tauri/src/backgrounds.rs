@@ -722,6 +722,22 @@ const BACKGROUNDS: &[Background] = &[
         tags: &["Art"],
         new: true,
     },
+    Background {
+        id: "0x08000000000013C5",
+        image: "haunted_masquerade.jpg",
+        name: "Haunted Masquerade",
+        description: "Halloween Event (Season 19)",
+        tags: &["Art"],
+        new: true,
+    },
+    Background {
+        id: "0x08000000000013C2",
+        image: "one_punch_man.jpg",
+        name: "One-Punch Man",
+        description: "One-Punch Man Event (Season 19)",
+        tags: &["Collaboration", "Art"],
+        new: true,
+    },
 ];
 
 pub fn get_backgrounds() -> &'static [Background] {

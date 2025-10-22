@@ -1,5 +1,5 @@
 use serde::Serialize;
-use serde_json::{from_reader, Serializer, Value};
+use serde_json::{Serializer, Value, from_reader};
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
