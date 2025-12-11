@@ -1,6 +1,6 @@
 ## Downloads
 
-- [Download from GitHub](https://github.com/KirillTregubov/OverBuddy/releases/download/__TAG__/OverBuddy___VERSION___x64_en-US_windows.msi)
+- [Download from GitHub](https://github.com/KirillTregubov/OverBuddy/releases/download/__TAG__/OverBuddy___VERSION___x64_en-US.msi)
 
 ## Screenshot
 
@@ -38,7 +38,7 @@ OverBuddy can enable the Overwatch debug console, accessible in-game using the `
 
 ### Installation
 
-1. [Download this version](https://github.com/KirillTregubov/OverBuddy/releases/download/__TAG__/OverBuddy___VERSION___x64_en-US_windows.msi) of OverBuddy.
+1. [Download this version](https://github.com/KirillTregubov/OverBuddy/releases/download/__TAG__/OverBuddy___VERSION___x64_en-US.msi) of OverBuddy.
 2. Run the Installer. If you see a warning about the app being unsigned, click "More info" and then "Run anyway".
 
 ### Using OverBuddy
