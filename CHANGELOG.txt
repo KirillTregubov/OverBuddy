@@ -1,4 +1,3 @@
 OverBuddy has been updated!
-- Added new Cyber Fuel and Scarlet Flare backgrounds.
-- Adjusted some background metadata.
+- Added new Vendetta, Season 20 Mythics and Winter Wonderland 2025 backgrounds.
 - Fixed various issues and made improvements.

@@ -213,7 +213,7 @@ function Menu() {
   useEffect(() => {
     if (config.shared.background.is_outdated) {
       toast.warning(
-        'Your background is outdated. This may be a result of the recent Season 17  update. Please revert to the default background.',
+        'Your background is outdated or unknown to OverBuddy. For the best experience, please revert to the default background.',
         {
           id: 'outdated-background',
           action: {
@@ -295,7 +295,7 @@ function Menu() {
       <div className="relative">
         <div
           tabIndex={-1}
-          className="scrollbar-hide -mx-3 flex h-48 flex-shrink-0 items-center gap-3 overflow-x-auto scroll-smooth px-14 outline-none before:pointer-events-none before:absolute before:-left-3 before:z-10 before:h-full before:w-6 before:content-[''] before:bg-easing-l-menu-top after:pointer-events-none after:absolute after:-right-3 after:z-10 after:h-full after:w-6 after:content-[''] after:bg-easing-r-menu-top"
+          className="scrollbar-hide -mx-3 flex h-48 flex-shrink-0 items-center gap-3 overflow-x-auto scroll-smooth px-14 outline-none will-change-scroll before:pointer-events-none before:absolute before:-left-3 before:z-10 before:h-full before:w-6 before:content-[''] before:bg-easing-l-menu-top after:pointer-events-none after:absolute after:-right-3 after:z-10 after:h-full after:w-6 after:content-[''] after:bg-easing-r-menu-top"
         >
           {backgrounds.map((background, index) => (
             <motion.button
