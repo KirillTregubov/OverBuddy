@@ -599,6 +599,10 @@ function CheckForUpdates() {
                     <AlertDialogDescription>
                       {(checkData?.body || checkData2?.body) ??
                         'There is no changelog available.'}
+                      <br />
+                      <br />
+                      Please update to ensure only available backgrounds are
+                      shown.
                     </AlertDialogDescription>
                   </pre>
                 </AlertDialogHeader>
@@ -669,7 +673,7 @@ function CheckForUpdates() {
                   key="download"
                 >
                   <AlertDialogAction onClick={() => applyUpdate(setProgress)}>
-                    Download and Install
+                    Update Now
                   </AlertDialogAction>
                 </motion.div>
               ) : updateStatus === 'success' ? (
