@@ -778,6 +778,14 @@ const BACKGROUNDS: &[Background] = &[
         tags: &["Art"],
         new: true,
     },
+    Background {
+        id: "0x0800000000001407",
+        image: "magma_titan.jpg",
+        name: "Magma Titan Doomfist",
+        description: "Doomfist Mythic Skin (Season 20)",
+        tags: &["Mythic Skin"],
+        new: true,
+    },
 ];
 
 pub fn get_backgrounds() -> &'static [Background] {
