@@ -760,7 +760,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Vendetta",
         description: "Vendetta Release (Season 20)",
         tags: &[],
-        new: true,
+        new: false,
     },
     Background {
         id: "0x08000000000013F1",
@@ -768,7 +768,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Season 20 Mythics",
         description: "Divine Desperado and Capsule Cannon (Season 20)",
         tags: &["Mythic Skin", "Mythic Weapon"],
-        new: true,
+        new: false,
     },
     Background {
         id: "0x08000000000013F0",
@@ -776,7 +776,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Winter Wonderland",
         description: "Winter Wonderland 2025 (Season 20)",
         tags: &["Art"],
-        new: true,
+        new: false,
     },
     Background {
         id: "0x0800000000001407",
@@ -784,6 +784,22 @@ const BACKGROUNDS: &[Background] = &[
         name: "Magma Titan Doomfist",
         description: "Doomfist Mythic Skin (Season 20)",
         tags: &["Mythic Skin"],
+        new: false,
+    },
+    Background {
+        id: "0x0800000000001539",
+        image: "celestial_garden.jpg",
+        name: "Celestial Garden",
+        description: "Mercy in Mythic Shop (Season 1: Conquest)",
+        tags: &["Shop", "New Style with Overlay"],
+        new: true,
+    },
+    Background {
+        id: "0x080000000000146D",
+        image: "star_shooter.jpg",
+        name: "Star Shooter",
+        description: "Juno in Mythic Shop (Season 1: Conquest)",
+        tags: &["Shop", "New Style with Overlay"],
         new: true,
     },
 ];

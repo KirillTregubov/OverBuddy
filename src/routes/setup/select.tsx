@@ -111,7 +111,7 @@ function SetupSelect() {
               width="72px"
               height="72px"
               className={clsx(
-                'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
+                'rounded-full ring-zinc-100 grayscale transition will-change-transform group-focus-visible:ring',
                 platforms.includes('BattleNet')
                   ? 'grayscale-0 group-active:grayscale'
                   : 'group-active:grayscale-0'
@@ -166,7 +166,7 @@ function SetupSelect() {
               width="72px"
               height="72px"
               className={clsx(
-                'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
+                'rounded-full ring-zinc-100 grayscale transition will-change-transform group-focus-visible:ring',
                 platforms.includes('Steam')
                   ? 'grayscale-0 group-active:grayscale'
                   : 'group-active:grayscale-0'
