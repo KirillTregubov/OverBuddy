@@ -1,3 +1,6 @@
 OverBuddy has been updated!
-- Added new Magma Titan Doomfist background.
+- Added new Celestial Garden Mercy Mythic and Star Shooter Juno Mythic Weapon backgrounds.
+- Verified compatibility with Season 1: Conquest patch (v2.21.0.0).
 - Fixed various issues and made improvements.
+
+Note: Because of the New Menu experience introduced in Season 1: Conquest, using a custom background will hide the dynamic feed and links to new Event, Shop, and Lore content.

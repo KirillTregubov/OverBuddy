@@ -59,21 +59,25 @@ export const Route = createFileRoute('/menu')({
 })
 
 function onImageError(event: React.SyntheticEvent<HTMLImageElement, Event>) {
-  if (!event?.target) return
-  ;(event.target as HTMLImageElement).src = placeholder
+  if (!event.target) return
+
+  const target = event.target as HTMLImageElement
+  target.src = placeholder
 }
 
-const handleKeyDown = (
-  event: React.KeyboardEvent<HTMLButtonElement>,
-  keys: string[]
-) => {
-  if (
-    keys.includes(event.key) &&
-    !(event.ctrlKey || event.altKey || event.shiftKey || event.metaKey)
-  ) {
-    ;(event.target as HTMLButtonElement).blur()
-  }
-}
+// const handleKeyDown = (
+//   event: React.KeyboardEvent<HTMLButtonElement>,
+//   keys: string[]
+// ) => {
+//   if (
+//     keys.includes(event.key) &&
+//     !(event.ctrlKey || event.altKey || event.shiftKey || event.metaKey)
+//   ) {
+//     const target = event.target as HTMLButtonElement
+//     console.log('blur', target)
+//     target?.blur()
+//   }
+// }
 
 const prevKeys = ['ArrowLeft', 'a']
 const nextKeys = ['ArrowRight', 'd']
@@ -376,7 +380,8 @@ function Menu() {
             <motion.button
               ref={prevButtonRef}
               className={cn(
-                'peer pointer-events-auto relative rounded-full bg-zinc-800/70 p-1 text-zinc-100 backdrop-blur transition-colors hover:bg-zinc-700/70 focus-visible:bg-zinc-700/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:bg-zinc-600/70 aria-pressed:bg-zinc-600/70',
+                'peer pointer-events-auto relative rounded-full bg-zinc-800/70 p-1 text-zinc-100 backdrop-blur transition-colors hover:bg-zinc-700/70 focus-visible:bg-zinc-700/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-100 active:bg-zinc-600/70 aria-pressed:bg-zinc-600/70',
+                // !isDemo &&
                 backgroundIndex === 0 &&
                   'before:absolute before:inset-0 before:animate-ping-border before:rounded-full before:border-zinc-100/50 before:delay-1000'
               )}
@@ -388,7 +393,7 @@ function Menu() {
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.15 }}
               aria-label="Previous Background"
-              onKeyDown={(event) => handleKeyDown(event, nextKeys)}
+              // onKeyDown={(event) => handleKeyDown(event, nextKeys)}
             >
               <ChevronLeft size={24} />
             </motion.button>
@@ -414,7 +419,7 @@ function Menu() {
         >
           <motion.button
             ref={nextButtonRef}
-            className="pointer-events-auto rounded-full bg-zinc-800/70 p-1 text-zinc-100 backdrop-blur transition-colors hover:bg-zinc-700/70 focus-visible:bg-zinc-700/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:bg-zinc-600/60 aria-pressed:bg-zinc-600/60"
+            className="pointer-events-auto rounded-full bg-zinc-800/70 p-1 text-zinc-100 backdrop-blur transition-colors hover:bg-zinc-700/70 focus-visible:bg-zinc-700/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-100 active:bg-zinc-600/60 aria-pressed:bg-zinc-600/60"
             onClick={() => handleNavigate('next')}
             initial={{ scale: 1 }}
             whileHover={{ scale: 1.1 }}
@@ -423,7 +428,7 @@ function Menu() {
             transition={{ duration: 0.15 }}
             animate={nextButtonAnimation}
             aria-label="Next Background"
-            onKeyDown={(event) => handleKeyDown(event, prevKeys)}
+            // onKeyDown={(event) => handleKeyDown(event, prevKeys)}
           >
             <ChevronRight size={24} />
           </motion.button>
@@ -440,23 +445,26 @@ function Menu() {
             className="scrollbar-hide flex h-fit w-fit flex-wrap gap-2 text-sm"
             key={activeBackground.id}
           >
-            {activeBackground.tags.map((tag) => (
-              <motion.p
-                key={tag}
-                className="flex-shrink-0 rounded-md border border-zinc-800/80 bg-zinc-700/80 px-2 py-1 font-medium text-zinc-100 backdrop-blur"
-                initial={{ opacity: 0, transform: 'translateY(-4px)' }}
-                animate={{ opacity: 1, transform: 'translateY(0px)' }}
-                exit={{ opacity: 0, transform: 'translateY(-4px)' }}
-                transition={{
-                  duration: 0.15,
-                  ease: 'easeInOut',
-                  transform: { duration: 0.3 }
-                }}
-                aria-label={`Selected background tagged as ${tag}`}
-              >
-                {tag}
-              </motion.p>
-            ))}
+            {
+              // !isDemo &&
+              activeBackground.tags.map((tag) => (
+                <motion.p
+                  key={tag}
+                  className="flex-shrink-0 rounded-md border border-zinc-800/80 bg-zinc-700/80 px-2 py-1 font-medium text-zinc-100 backdrop-blur"
+                  initial={{ opacity: 0, transform: 'translateY(-4px)' }}
+                  animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                  exit={{ opacity: 0, transform: 'translateY(-4px)' }}
+                  transition={{
+                    duration: 0.15,
+                    ease: 'easeInOut',
+                    transform: { duration: 0.3 }
+                  }}
+                  aria-label={`Selected background tagged as ${tag}`}
+                >
+                  {tag}
+                </motion.p>
+              ))
+            }
           </div>
           {/* NOTE: hideme if required */}
           <div className="ml-auto w-fit">
@@ -552,7 +560,7 @@ function Menu() {
             </button>
           )}
 
-          {/* <button className="group rounded-full border-2 border-orange-900/50 bg-orange-950 p-3.5 text-orange-100 shadow-md ring-white transition will-change-transform hover:scale-105 hover:border-white focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 active:scale-95 active:border-orange-200 active:ring-orange-200">
+          {/* <button className="group rounded-full border-2 border-orange-900/50 bg-orange-950 p-3.5 text-orange-100 shadow-md ring-zinc-100 transition will-change-transform hover:scale-105 hover:border-white focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 active:scale-95 active:border-orange-200 active:ring-orange-200">
               <HeartIcon
                 size={24}
                 className="fill-transparent transition-colors group-hover:fill-current group-focus-visible:fill-current group-active:fill-orange-200 group-active:stroke-orange-200"
@@ -560,7 +568,7 @@ function Menu() {
             </button> */}
           <button
             className={clsx(
-              'h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-white transition will-change-transform hover:scale-105 hover:rounded hover:border-orange-50 focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:!scale-100 disabled:!border-orange-800/40',
+              'h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-orange-100 transition will-change-transform hover:scale-105 hover:rounded hover:border-orange-50 focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:!scale-100 disabled:!border-orange-800/40',
               setStatus === 'pending' && 'cursor-wait'
             )}
             onClick={() => {
@@ -614,7 +622,12 @@ function Menu() {
           <img
             alt={`${activeBackground.name} Background`}
             className="pointer-events-none h-full w-full select-none rounded-lg object-cover shadow-lg"
-            src={`/backgrounds/${activeBackground.image}`}
+            src={
+              // isDemo
+              //   ? `/backgrounds/demo.jpg`
+              //   :
+              `/backgrounds/${activeBackground.image}`
+            }
             onError={onImageError}
             draggable={false}
           />

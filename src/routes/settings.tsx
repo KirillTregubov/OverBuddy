@@ -6,6 +6,7 @@ import {
   CheckCircleIcon,
   CircleIcon,
   LoaderPinwheel,
+  TriangleAlertIcon,
   XIcon
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
@@ -112,7 +113,7 @@ function Settings() {
           <div className="-mr-1 select-none">
             <button
               onClick={() => router.navigate({ to: '/menu', replace: true })}
-              className="group mx-0.5 -mb-1 flex items-center gap-1.5 rounded-md pb-0.5 font-medium text-zinc-400 transition duration-150 will-change-transform hover:text-zinc-50 focus-visible:text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95"
+              className="group mx-0.5 -mb-1 flex items-center gap-1.5 rounded-md pb-0.5 font-medium text-zinc-400 transition duration-150 will-change-transform hover:text-zinc-50 focus-visible:text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-100 active:scale-95"
             >
               <span className="flex items-center">
                 <XIcon size={22} />
@@ -378,7 +379,7 @@ function Platforms() {
               width="64px"
               height="64px"
               className={clsx(
-                'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
+                'rounded-full ring-zinc-100 grayscale transition will-change-transform group-focus-visible:ring',
                 data.battle_net.enabled
                   ? 'grayscale-0 group-active:grayscale'
                   : 'group-active:grayscale-0'
@@ -487,7 +488,7 @@ function Platforms() {
                 width="64px"
                 height="64px"
                 className={clsx(
-                  'rounded-full ring-white grayscale transition will-change-transform group-focus-visible:ring',
+                  'rounded-full ring-zinc-100 grayscale transition will-change-transform group-focus-visible:ring',
                   data.steam.enabled
                     ? 'grayscale-0 group-active:grayscale'
                     : 'group-active:grayscale-0'
@@ -1033,13 +1034,16 @@ function CustomBackgroundSetter() {
           </AnimatePresence>
         </div>
       </motion.div>
-      <AlertDialogContent>
+      <AlertDialogContent className="max-w-lg">
         <AlertDialogHeader>
           <AlertDialogTitle>Apply Custom Background</AlertDialogTitle>
           <AlertDialogDescription>
-            <span className="flex items-center gap-2 rounded bg-amber-950/50 p-2 text-sm text-amber-200/90">
-              ⚠️ Warning: Setting a custom background may result in a broken or
-              undesired menu background. Use at your own risk.
+            <span className="flex items-center gap-2.5 rounded bg-amber-950/50 p-3 text-sm text-amber-200/90">
+              <TriangleAlertIcon className="inline-block size-8 text-amber-200/90" />
+              <span>
+                Setting a custom background may result in a broken or undesired
+                menu background. Use at your own risk.
+              </span>
             </span>
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -1049,7 +1053,7 @@ function CustomBackgroundSetter() {
             value={inputValue}
             onChange={(e) => handleInput(e.target.value)}
             placeholder="Background ID (Ex: 6C7)"
-            className="w-full rounded border border-zinc-700 bg-zinc-800 p-2 text-zinc-50 outline-none ring-zinc-600 transition selection:bg-zinc-500 selection:text-zinc-50 placeholder:text-zinc-500 invalid:text-red-400 invalid:selection:bg-red-950 focus-visible:border-zinc-600 focus-visible:ring-2"
+            className="w-full rounded border border-zinc-700 bg-zinc-800 p-2 text-zinc-50 outline-none ring-zinc-100 transition selection:bg-zinc-500 selection:text-zinc-50 placeholder:text-zinc-500 invalid:text-red-400 invalid:selection:bg-red-950 focus-visible:border-zinc-100 focus-visible:ring-2"
             pattern={patternString}
             autoFocus
           />
