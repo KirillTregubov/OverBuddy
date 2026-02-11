@@ -8,7 +8,9 @@
 
 ## What is OverBuddy
 
-OverBuddy is a free, open source Windows app for customizing your Overwatch™ main menu. Whether you're a Doomfist main who wants Tropical Doomfist back, still can't get over your crush on Cupid Hanzo, or really miss the look and sound of the last collaboration event... OverBuddy has you covered.
+OverBuddy is a free, open source Windows app for customizing your Overwatch™ main menu. Whether you're a Doomfist main who wants Tropical Doomfist back, still can't get over your crush on Cupid Hanzo, or you just miss the look and sound of the last collaboration event... OverBuddy has you covered.
+
+Note: Because of the New Menu experience introduced in Season 1: Conquest, using a custom background will hide the dynamic feed and links to new Event, Shop, and Lore content.
 
 ## What Makes It Special
 

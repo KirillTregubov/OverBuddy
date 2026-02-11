@@ -46,6 +46,7 @@
   },
   "devDependencies": {
     "@eslint/compat": "^2.0.2",
+    "@tanstack/eslint-plugin-router": "^1.155.0",
     "@tanstack/router-plugin": "^1.159.5",
     "@tauri-apps/cli": "^2.10.0",
     "@total-typescript/ts-reset": "^0.6.1",
