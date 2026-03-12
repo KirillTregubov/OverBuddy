@@ -73,7 +73,11 @@
           "http://ipc.localhost",
           "https://ipc.localhost"
         ],
-        "img-src": ["'self'", "https://avatars.akamai.steamstatic.com"],
+        "img-src": [
+          "'self'",
+          "data:",
+          "https://avatars.akamai.steamstatic.com"
+        ],
         "style-src": ["'self'", "'unsafe-inline'"],
         "font-src": "'self'",
         "object-src": "'none'",
@@ -91,7 +95,11 @@
           "https://ipc.localhost",
           "ws://localhost:5173"
         ],
-        "img-src": ["'self'", "https://avatars.akamai.steamstatic.com"],
+        "img-src": [
+          "'self'",
+          "data:",
+          "https://avatars.akamai.steamstatic.com"
+        ],
         "style-src": ["'self'", "'unsafe-inline'"],
         "font-src": "'self'",
         "object-src": "'none'",
