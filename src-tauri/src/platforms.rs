@@ -357,7 +357,7 @@ pub mod steam {
                     }
 
                     // Save debug console state
-                    shared_config.additional.console_enabled =
+                    shared_config.additional.console_enabled |=
                         helpers::get_console_enabled(&launch_args);
                 }
             }

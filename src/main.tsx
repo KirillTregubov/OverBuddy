@@ -48,6 +48,17 @@ const rootElement = document.getElementById('root')
 if (!rootElement) {
   throw new Error('Root element not found')
 }
+
+if (import.meta.env.PROD) {
+  document.addEventListener(
+    'contextmenu',
+    (event) => {
+      event.preventDefault()
+    },
+    { capture: true },
+  )
+}
+
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
 

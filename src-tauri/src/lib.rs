@@ -192,16 +192,16 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
         };
 
         let mut battle_net_was_closed = false;
+        let mut battle_net_config_changed = false;
 
-        // Check and create DefaultStartupScreen if it doesn't exist
+        // Ensure DefaultStartupScreen is enabled when the Client config exists
         if let Some(client_config) = json.get_mut("Client") {
             if client_config.get("DefaultStartupScreen").is_none() {
                 client_config
                     .as_object_mut()
                     .unwrap()
                     .insert("DefaultStartupScreen".to_string(), serde_json::json!("1"));
-
-                battle_net_was_closed = battle_net::close_app();
+                battle_net_config_changed = true;
             } else {
                 let startup_screen = client_config["DefaultStartupScreen"]
                     .as_str()
@@ -212,10 +212,14 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
                         .as_object_mut()
                         .unwrap()
                         .insert("DefaultStartupScreen".to_string(), serde_json::json!("1"));
-
-                    battle_net_was_closed = battle_net::close_app();
+                    battle_net_config_changed = true;
                 }
             }
+        }
+
+        if battle_net_config_changed {
+            battle_net_was_closed = battle_net::close_app();
+            helpers::safe_json_write(battle_net_config.clone(), &json)?;
         }
 
         // Update config
@@ -226,7 +230,6 @@ fn setup(handle: AppHandle, platforms: Vec<&str>, is_initialized: bool) -> Resul
 
         // Cleanup: Reopen Battle.net if it was closed
         if battle_net_was_closed {
-            helpers::safe_json_write(battle_net_config, &json)?;
             Command::new(config.battle_net.install.clone().unwrap())
                 .spawn()
                 .map_err(|_| {

@@ -276,19 +276,6 @@ export const backgroundsQueryOptions = queryOptions({
       throw new Error(`Failed to get backgrounds. ${backgrounds.error.message}`)
     }
 
-    // Preload images
-    await Promise.allSettled(
-      backgrounds.data.map(
-        (background) =>
-          new Promise<void>((resolve, reject) => {
-            const img = new Image()
-            img.onload = () => resolve()
-            img.onerror = () => reject()
-            img.src = `/backgrounds/${background.image}`
-          }),
-      ),
-    )
-
     return backgrounds.data
   },
   staleTime: isDev() ? 0 : Infinity,
@@ -305,19 +292,15 @@ export const backgroundsQueryOptions = queryOptions({
 export const activeBackgroundQueryOptions = queryOptions({
   queryKey: ['active_background'],
   queryFn: async () => {
-    await queryClient.ensureQueryData(launchQueryOptions)
-    await queryClient.ensureQueryData(backgroundsQueryOptions)
-
-    const backgrounds = queryClient.getQueryData(
-      backgroundsQueryOptions.queryKey,
-    )
-    if (!backgrounds) throw new Error('Failed to get backgrounds.')
+    const [launchQuery, backgrounds] = await Promise.all([
+      queryClient.ensureQueryData(launchQueryOptions),
+      queryClient.ensureQueryData(backgroundsQueryOptions),
+    ])
 
     const defaultBackground = backgrounds[0]
     if (!defaultBackground) throw new Error('No default background found.')
 
-    const current = queryClient.getQueryData(launchQueryOptions.queryKey)
-      ?.shared.background.current
+    const current = launchQuery.shared.background.current
     if (current !== null) {
       const index = backgrounds.findIndex((bg) => bg.id === current)
       if (index === -1) return defaultBackground

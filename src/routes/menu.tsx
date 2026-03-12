@@ -23,6 +23,7 @@ import {
   useBackgroundMutation,
   useResetBackgroundMutation,
 } from '@/lib/data'
+import { getNearestBackgrounds, preloadBackgroundImage } from '@/lib/helpers'
 import { linkFix } from '@/lib/linkFix'
 import useKeyPress from '@/lib/useKeyPress'
 import { cn } from '@/lib/utils'
@@ -48,14 +49,30 @@ export const Route = createFileRoute('/menu')({
     }
   },
   loader: async ({ context: { queryClient } }) => {
-    return Promise.allSettled([
+    const [, activeBackground, backgrounds] = await Promise.all([
       queryClient.ensureQueryData(updateQueryOptions(true)),
       queryClient.ensureQueryData(activeBackgroundQueryOptions),
       queryClient.ensureQueryData(backgroundsQueryOptions),
     ])
+
+    const currentBackgroundIndex = backgrounds.findIndex(
+      (bg) => bg.id === activeBackground.id,
+    )
+    const backgroundsToPreload = getNearestBackgrounds(
+      backgrounds,
+      currentBackgroundIndex,
+    )
+
+    // Preload images
+    await Promise.allSettled(
+      backgroundsToPreload.map((background) =>
+        preloadBackgroundImage(background.image),
+      ),
+    )
   },
   component: Menu,
   pendingMs: 0,
+  pendingMinMs: 500,
 })
 
 function onImageError(event: React.SyntheticEvent<HTMLImageElement, Event>) {
@@ -106,10 +123,11 @@ function Menu() {
   const backgroundRefs = useRef<HTMLButtonElement[]>([])
   const { mutate: setActiveBackground } = useActiveBackgroundMutation()
 
-  const backgroundIndex = useMemo(
-    () => backgrounds.findIndex((bg) => bg.id === activeBackground.id) || 0,
-    [backgrounds, activeBackground.id],
-  )
+  const backgroundIndex = useMemo(() => {
+    const index = backgrounds.findIndex((bg) => bg.id === activeBackground.id)
+
+    return index >= 0 ? index : 0
+  }, [backgrounds, activeBackground.id])
 
   const prevButtonRef = useRef<HTMLButtonElement>(null)
   const prevButtonAnimation = useAnimation()
@@ -437,7 +455,7 @@ function Menu() {
       <motion.div
         className="relative flex h-full min-h-0 w-full flex-1 justify-center"
         initial={{ transform: 'scale(.95)' }}
-        whileInView={{ transform: 'scale(1)' }}
+        animate={{ transform: 'scale(1)' }}
         transition={{ duration: 0.3 }}
       >
         <div className="absolute left-0 right-0 top-0 z-10 flex gap-4 p-4">
@@ -538,7 +556,7 @@ function Menu() {
                 {resetStatus === 'pending' || resetStatus === 'success' ? (
                   <motion.span
                     initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
+                    animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
                     key="pending"
@@ -548,7 +566,7 @@ function Menu() {
                 ) : (
                   <motion.span
                     initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
+                    animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
                     key="idle"
@@ -597,7 +615,7 @@ function Menu() {
               ) : setStatus === 'pending' ? (
                 <motion.span
                   initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
+                  animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
                   key="pending"
@@ -607,7 +625,7 @@ function Menu() {
               ) : (
                 <motion.span
                   initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
+                  animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
                   key="idle"

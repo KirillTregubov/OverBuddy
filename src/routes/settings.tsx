@@ -10,7 +10,7 @@ import {
   XIcon,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import * as z from 'zod'
 
@@ -27,7 +27,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/AlertDialog'
-import { ExternalLinkInline, MotionButton } from '@/components/Button'
+import {
+  ExternalLinkInline,
+  MotionButton,
+  MotionLink,
+} from '@/components/Button'
 import type { State } from '@/components/ErrorComponent'
 import KeyboardButton from '@/components/KeyboardButton'
 import { Progress } from '@/components/Progress'
@@ -52,6 +56,7 @@ import {
   useUpdateMutation,
 } from '@/lib/data'
 import { ConfigError, ConfigErrors, SetupError } from '@/lib/errors'
+import { linkFix } from '@/lib/linkFix'
 import preventReload from '@/lib/preventReload'
 import type { Platform } from '@/lib/schemas'
 import useKeyPress from '@/lib/useKeyPress'
@@ -75,22 +80,18 @@ export const Route = createFileRoute('/settings')({
     await Promise.allSettled(promises)
   },
   component: Settings,
+  pendingMs: 0,
+  pendingMinMs: 150,
 })
 
 function Settings() {
-  const router = useRouter()
+  const closeButtonRef = useRef<HTMLAnchorElement>(null)
 
-  const onEscapePress = useCallback(
-    async (event: KeyboardEvent) => {
-      event.preventDefault()
-      await new Promise((resolve) => setTimeout(resolve, 100))
-      router.navigate({
-        to: '/menu',
-        replace: true,
-      })
-    },
-    [router],
-  )
+  const onEscapePress = useCallback(async (event: KeyboardEvent) => {
+    event.preventDefault()
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    closeButtonRef.current?.click()
+  }, [])
   const { pressed } = useKeyPress({
     key: 'Escape',
     onPress: onEscapePress,
@@ -111,8 +112,12 @@ function Settings() {
         >
           <h1 className="select-none text-2xl font-bold">Settings</h1>
           <div className="-mr-1 select-none">
-            <button
-              onClick={() => router.navigate({ to: '/menu', replace: true })}
+            <MotionLink
+              ref={closeButtonRef}
+              to="/menu"
+              replace
+              preload="render"
+              {...linkFix}
               className="group mx-0.5 -mb-1 flex items-center gap-1.5 rounded-md pb-0.5 font-medium text-zinc-400 transition duration-150 will-change-transform hover:text-zinc-50 focus-visible:text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-100 active:scale-95"
             >
               <span className="flex items-center">
@@ -126,7 +131,7 @@ function Settings() {
               >
                 Esc
               </KeyboardButton>
-            </button>
+            </MotionLink>
           </div>
         </motion.div>
 

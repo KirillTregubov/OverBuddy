@@ -64,7 +64,41 @@
       }
     ],
     "security": {
-      "csp": null,
+      "csp": {
+        "default-src": "'self'",
+        "script-src": "'self'",
+        "connect-src": [
+          "'self'",
+          "ipc:",
+          "http://ipc.localhost",
+          "https://ipc.localhost"
+        ],
+        "img-src": ["'self'", "https://avatars.akamai.steamstatic.com"],
+        "style-src": ["'self'", "'unsafe-inline'"],
+        "font-src": "'self'",
+        "object-src": "'none'",
+        "base-uri": "'none'",
+        "frame-ancestors": "'none'",
+        "form-action": "'none'"
+      },
+      "devCsp": {
+        "default-src": "'self'",
+        "script-src": "'self'",
+        "connect-src": [
+          "'self'",
+          "ipc:",
+          "http://ipc.localhost",
+          "https://ipc.localhost",
+          "ws://localhost:5173"
+        ],
+        "img-src": ["'self'", "https://avatars.akamai.steamstatic.com"],
+        "style-src": ["'self'", "'unsafe-inline'"],
+        "font-src": "'self'",
+        "object-src": "'none'",
+        "base-uri": "'none'",
+        "frame-ancestors": "'none'",
+        "form-action": "'none'"
+      },
       "capabilities": ["main-capability"]
     }
   }
