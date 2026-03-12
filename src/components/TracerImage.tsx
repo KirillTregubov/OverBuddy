@@ -10,7 +10,7 @@ export default function TracerImage() {
       alt="logo"
       className={clsx(
         '-ml-4 h-full w-auto pb-6 pt-20 transition-opacity duration-500',
-        imageLoaded ? 'opacity-100' : 'opacity-0'
+        imageLoaded ? 'opacity-100' : 'opacity-0',
       )}
       loading="eager"
       onLoad={() => setImageLoaded(true)}

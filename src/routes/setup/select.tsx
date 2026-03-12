@@ -11,19 +11,19 @@ import { Button } from '@/components/Button'
 import {
   fadeInVariants,
   moveInVariants,
-  staggerChildrenVariants
+  staggerChildrenVariants,
 } from '@/lib/animations'
 import { useSetupMutation } from '@/lib/data'
 import {
   ConfigError,
   ConfigErrors,
   SetupError,
-  handleError
+  handleError,
 } from '@/lib/errors'
 import { Platform } from '@/lib/schemas'
 
 export const Route = createFileRoute('/setup/select')({
-  component: SetupSelect
+  component: SetupSelect,
 })
 
 function SetupSelect() {
@@ -41,13 +41,13 @@ function SetupSelect() {
         navigate({
           to: '/setup/$key',
           params: {
-            key: error.error_key
+            key: error.error_key,
           },
           search: {
             message: error.message,
-            platforms: error.platforms
+            platforms: error.platforms,
           },
-          replace: true
+          replace: true,
         })
         return
       }
@@ -55,9 +55,9 @@ function SetupSelect() {
     onSuccess: () => {
       navigate({
         to: '/menu',
-        replace: true
+        replace: true,
       })
-    }
+    },
   })
 
   return (
@@ -114,7 +114,7 @@ function SetupSelect() {
                 'rounded-full ring-zinc-100 grayscale transition will-change-transform group-focus-visible:ring',
                 platforms.includes('BattleNet')
                   ? 'grayscale-0 group-active:grayscale'
-                  : 'group-active:grayscale-0'
+                  : 'group-active:grayscale-0',
               )}
             />
             <h2
@@ -122,7 +122,7 @@ function SetupSelect() {
                 'flex items-center gap-1.5 text-center font-medium leading-none transition will-change-transform',
                 platforms.includes('BattleNet')
                   ? 'text-white group-active:text-zinc-400'
-                  : 'text-zinc-400 group-active:text-white'
+                  : 'text-zinc-400 group-active:text-white',
               )}
             >
               <AnimatePresence mode="wait">
@@ -169,7 +169,7 @@ function SetupSelect() {
                 'rounded-full ring-zinc-100 grayscale transition will-change-transform group-focus-visible:ring',
                 platforms.includes('Steam')
                   ? 'grayscale-0 group-active:grayscale'
-                  : 'group-active:grayscale-0'
+                  : 'group-active:grayscale-0',
               )}
             />
             <h2
@@ -177,7 +177,7 @@ function SetupSelect() {
                 'flex items-center gap-1.5 text-center font-medium leading-none transition will-change-transform',
                 platforms.includes('Steam')
                   ? 'text-white group-active:text-zinc-400'
-                  : 'text-zinc-400 group-active:text-white'
+                  : 'text-zinc-400 group-active:text-white',
               )}
             >
               <AnimatePresence mode="wait">
@@ -211,7 +211,7 @@ function SetupSelect() {
             onClick={() => {
               if (platforms.length === 0) {
                 toast.warning('You must select at least one platform.', {
-                  id: 'select-at-least-one'
+                  id: 'select-at-least-one',
                 })
                 return
               }

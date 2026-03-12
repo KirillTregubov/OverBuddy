@@ -7,12 +7,12 @@ import SteamProfileComponent from '@/components/SteamProfile'
 import {
   fadeInVariants,
   moveInVariants,
-  staggerChildrenVariants
+  staggerChildrenVariants,
 } from '@/lib/animations'
 import {
   launchQueryOptions,
   steamQueryOptions,
-  useSteamConfirmMutation
+  useSteamConfirmMutation,
 } from '@/lib/data'
 import { RedirectSearchParam } from '@/lib/schemas'
 
@@ -27,7 +27,7 @@ export const Route = createFileRoute('/setup/steam_setup')({
   loader: ({ context: { queryClient } }) => {
     return queryClient.ensureQueryData(steamQueryOptions)
   },
-  component: SteamSetup
+  component: SteamSetup,
 })
 
 function SteamSetup() {
@@ -39,24 +39,24 @@ function SteamSetup() {
       navigate({
         to: '/setup/NoSteamOverwatch',
         search: {
-          redirect
+          redirect,
         },
-        replace: true
+        replace: true,
       })
     },
     onSuccess: () => {
       if (redirect) {
         navigate({
           to: redirect,
-          replace: true
+          replace: true,
         })
       } else {
         navigate({
           to: '/menu',
-          replace: true
+          replace: true,
         })
       }
-    }
+    },
   })
 
   return (

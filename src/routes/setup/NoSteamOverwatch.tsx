@@ -8,7 +8,7 @@ import { RedirectSearchParam } from '@/lib/schemas'
 export const Route = createFileRoute('/setup/NoSteamOverwatch')({
   validateSearch: RedirectSearchParam,
   staleTime: Infinity,
-  component: ConfigureComponent
+  component: ConfigureComponent,
 })
 
 function ConfigureComponent() {
@@ -19,9 +19,9 @@ function ConfigureComponent() {
     onSuccess: () => {
       navigate({
         to: '/setup/select',
-        replace: true
+        replace: true,
       })
-    }
+    },
   })
 
   return (

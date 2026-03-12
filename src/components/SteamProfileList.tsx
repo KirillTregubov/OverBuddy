@@ -9,7 +9,7 @@ import { useIsOverflow } from '@/lib/useIsOverflow'
 
 export default function SteamProfileList({
   steam_profiles,
-  isFetching
+  isFetching,
 }: {
   steam_profiles: SteamProfile[]
   isFetching: boolean
@@ -23,12 +23,12 @@ export default function SteamProfileList({
       key="steam_profiles"
       className={clsx(
         'scroller scroller-settings z-10 -mb-2 -mr-1 flex cursor-auto gap-6 overflow-x-scroll py-2 pr-3',
-        isOverflow ? '' : 'scroller-hidden'
+        isOverflow ? '' : 'scroller-hidden',
       )}
       variants={{
         initial: { opacity: 0 },
         animate: { opacity: 1 },
-        exit: { opacity: 0 }
+        exit: { opacity: 0 },
       }}
       initial="initial"
       animate="animate"
@@ -60,7 +60,7 @@ export default function SteamProfileList({
             whileInView={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{
-              opacity: { duration: 0.15, ease: 'easeInOut' }
+              opacity: { duration: 0.15, ease: 'easeInOut' },
             }}
           >
             <LoaderPinwheel size="1em" className="animate-spin" />

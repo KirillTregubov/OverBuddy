@@ -8,40 +8,40 @@ export default {
     extend: {
       animation: {
         'spin-cog': 'spin-cog 1.5s ease 1',
-        'ping-border': 'ping-border 1.5s cubic-bezier(0, 0, 0.2, 1) infinite'
+        'ping-border': 'ping-border 1.5s cubic-bezier(0, 0, 0.2, 1) infinite',
       },
       keyframes: {
         'spin-cog': {
           from: { transform: 'rotate(30deg)' },
-          to: { transform: 'rotate(390deg)' }
+          to: { transform: 'rotate(390deg)' },
         },
         'ping-border': {
           '0%': {
-            borderWidth: '1px'
+            borderWidth: '1px',
           },
           '75%, 100%': {
             transform: 'scale(1.5)',
-            opacity: '0'
-          }
-        }
-      }
-    }
+            opacity: '0',
+          },
+        },
+      },
+    },
   },
   plugins: [
     twAnimate,
     gradients({
       gradients: {
         'menu-bottom': {
-          color: ['rgba(9, 9, 11, 0)', 'rgba(9, 9, 11, 0.5)']
+          color: ['rgba(9, 9, 11, 0)', 'rgba(9, 9, 11, 0.5)'],
         },
         'menu-top': {
-          color: ['transparent', 'rgb(24, 24, 27)']
+          color: ['transparent', 'rgb(24, 24, 27)'],
         },
         settings: {
-          color: ['rgba(63, 63, 70, 0)', 'rgba(63, 63, 70, 1)']
-        }
+          color: ['rgba(63, 63, 70, 0)', 'rgba(63, 63, 70, 1)'],
+        },
       },
-      easing: 'ease-in-out'
-    })
-  ]
+      easing: 'ease-in-out',
+    }),
+  ],
 }

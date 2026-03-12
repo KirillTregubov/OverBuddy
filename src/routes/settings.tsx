@@ -7,7 +7,7 @@ import {
   CircleIcon,
   LoaderPinwheel,
   TriangleAlertIcon,
-  XIcon
+  XIcon,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useState } from 'react'
@@ -25,7 +25,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger
+  AlertDialogTrigger,
 } from '@/components/AlertDialog'
 import { ExternalLinkInline, MotionButton } from '@/components/Button'
 import type { State } from '@/components/ErrorComponent'
@@ -36,7 +36,7 @@ import Version from '@/components/Version'
 import {
   fadeInFastVariants,
   moveInLessVariants,
-  staggerChildrenVariants
+  staggerChildrenVariants,
 } from '@/lib/animations'
 import {
   backgroundToastIds,
@@ -49,7 +49,7 @@ import {
   useResetBackgroundMutation,
   useResetMutation,
   useSetupMutation,
-  useUpdateMutation
+  useUpdateMutation,
 } from '@/lib/data'
 import { ConfigError, ConfigErrors, SetupError } from '@/lib/errors'
 import preventReload from '@/lib/preventReload'
@@ -58,12 +58,12 @@ import useKeyPress from '@/lib/useKeyPress'
 
 export const Route = createFileRoute('/settings')({
   validateSearch: z.object({
-    update: z.boolean().default(false)
+    update: z.boolean().default(false),
   }),
   loaderDeps: ({ search: { update } }) => ({ update }),
   loader: async ({ context: { queryClient }, deps: { update } }) => {
     const promises: Promise<unknown>[] = [
-      queryClient.ensureQueryData(launchQueryOptions)
+      queryClient.ensureQueryData(launchQueryOptions),
     ]
 
     if (update) {
@@ -74,7 +74,7 @@ export const Route = createFileRoute('/settings')({
 
     await Promise.allSettled(promises)
   },
-  component: Settings
+  component: Settings,
 })
 
 function Settings() {
@@ -86,14 +86,14 @@ function Settings() {
       await new Promise((resolve) => setTimeout(resolve, 100))
       router.navigate({
         to: '/menu',
-        replace: true
+        replace: true,
       })
     },
-    [router]
+    [router],
   )
   const { pressed } = useKeyPress({
     key: 'Escape',
-    onPress: onEscapePress
+    onPress: onEscapePress,
   })
 
   return (
@@ -270,12 +270,12 @@ function Platforms() {
     onError: async (error) => {
       if (error instanceof SetupError) {
         toast.warning(
-          'All platforms were disconnected. You have been returned to the welcome page.'
+          'All platforms were disconnected. You have been returned to the welcome page.',
         )
         invalidateActiveBackground()
         router.navigate({
           to: '/setup',
-          replace: true
+          replace: true,
         })
         return
       } else if (
@@ -285,14 +285,14 @@ function Platforms() {
         router.navigate({
           to: '/setup/$key',
           params: {
-            key: error.error_key
+            key: error.error_key,
           },
           search: {
             message: error.message,
             platforms: error.platforms,
-            redirect: '/settings'
+            redirect: '/settings',
           },
-          replace: true
+          replace: true,
         })
         return
       } else {
@@ -304,13 +304,13 @@ function Platforms() {
         router.navigate({
           to: '/setup/steam_setup',
           search: {
-            redirect: '/settings'
+            redirect: '/settings',
           },
-          replace: true
+          replace: true,
         })
       }
     },
-    throwOnError: false
+    throwOnError: false,
   })
 
   return (
@@ -343,7 +343,7 @@ function Platforms() {
 
                   mutate({
                     platforms: newPlatforms,
-                    isInitialized: true
+                    isInitialized: true,
                   })
                 }}
               >
@@ -367,7 +367,7 @@ function Platforms() {
 
               mutate({
                 platforms: newPlatforms,
-                isInitialized: true
+                isInitialized: true,
               })
             }}
             title={`${data.battle_net.enabled ? 'Disconnect' : 'Connect'} Battle.net`}
@@ -382,7 +382,7 @@ function Platforms() {
                 'rounded-full ring-zinc-100 grayscale transition will-change-transform group-focus-visible:ring',
                 data.battle_net.enabled
                   ? 'grayscale-0 group-active:grayscale'
-                  : 'group-active:grayscale-0'
+                  : 'group-active:grayscale-0',
               )}
             />
             <h2
@@ -390,7 +390,7 @@ function Platforms() {
                 'flex min-w-[6rem] select-none items-center gap-1.5 text-center font-medium leading-none transition',
                 data.battle_net.enabled
                   ? 'text-white group-active:text-zinc-400'
-                  : 'text-zinc-400 group-active:text-white'
+                  : 'text-zinc-400 group-active:text-white',
               )}
             >
               <AnimatePresence mode="wait">
@@ -443,7 +443,7 @@ function Platforms() {
 
                   mutate({
                     platforms: newPlatforms,
-                    isInitialized: true
+                    isInitialized: true,
                   })
                 }}
               >
@@ -454,10 +454,10 @@ function Platforms() {
           <div
             className={clsx(
               "relative z-10 flex min-w-0 items-center justify-center gap-6 p-2 py-3 transition before:pointer-events-none before:absolute before:-left-3 before:-right-1 before:top-0 before:h-full before:rounded-md before:bg-zinc-700 before:shadow-inner before:shadow-zinc-800 before:transition-opacity before:delay-100 before:content-['']",
-              data.steam.enabled ? 'before:opacity-100' : 'before:opacity-0'
+              data.steam.enabled ? 'before:opacity-100' : 'before:opacity-0',
             )}
             style={{
-              transition: 'width 0s ease 0.15s'
+              transition: 'width 0s ease 0.15s',
             }}
           >
             <AlertDialogTrigger
@@ -476,7 +476,7 @@ function Platforms() {
 
                 mutate({
                   platforms: newPlatforms,
-                  isInitialized: true
+                  isInitialized: true,
                 })
               }}
               title={`${data.steam.enabled ? 'Disconnect' : 'Connect'} Steam`}
@@ -491,7 +491,7 @@ function Platforms() {
                   'rounded-full ring-zinc-100 grayscale transition will-change-transform group-focus-visible:ring',
                   data.steam.enabled
                     ? 'grayscale-0 group-active:grayscale'
-                    : 'group-active:grayscale-0'
+                    : 'group-active:grayscale-0',
                 )}
               />
               <h2
@@ -499,7 +499,7 @@ function Platforms() {
                   'flex min-w-[4.5rem] select-none items-center gap-1.5 text-center font-medium leading-none transition',
                   data.steam.enabled
                     ? 'text-white group-active:text-zinc-400'
-                    : 'text-zinc-400 group-active:text-white'
+                    : 'text-zinc-400 group-active:text-white',
                 )}
               >
                 <AnimatePresence mode="wait">
@@ -547,7 +547,7 @@ function CheckForUpdates() {
   const {
     status: checkStatus,
     data: checkData,
-    mutate: checkForUpdates
+    mutate: checkForUpdates,
   } = useCheckUpdates({
     onSuccess: (data) => {
       if (!data) return
@@ -555,15 +555,15 @@ function CheckForUpdates() {
 
       if (data.available === false) {
         toast.success('You are using the latest version of OverBuddy.', {
-          id: 'update-available'
+          id: 'update-available',
         })
       }
-    }
+    },
   })
   const {
     data: updateSuccess,
     status: updateStatus,
-    mutate: applyUpdate
+    mutate: applyUpdate,
   } = useUpdateMutation()
 
   useEffect(() => {
@@ -753,7 +753,7 @@ function ResetButton() {
     onSuccess: () => {
       router.navigate({
         to: '/setup',
-        replace: true
+        replace: true,
       })
     },
     onError: () => {
@@ -762,7 +762,7 @@ function ResetButton() {
     },
     onSettled: () => {
       resetMutation()
-    }
+    },
   })
   const [isConfirming, setIsConfirming] = useState<State>('idle')
 
@@ -818,7 +818,7 @@ function ResetButton() {
                 onClick={handleClick}
                 className={clsx(
                   'w-fit min-w-[28rem]',
-                  isConfirming === 'pending' && 'pointer-events-none'
+                  isConfirming === 'pending' && 'pointer-events-none',
                 )}
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
@@ -895,7 +895,7 @@ function ToggleConsole() {
         <div
           className={clsx(
             'flex select-none items-baseline gap-2 transition-colors',
-            !config.shared.additional.console_enabled && 'text-zinc-600'
+            !config.shared.additional.console_enabled && 'text-zinc-600',
           )}
         >
           <div className="flex items-baseline gap-1">
@@ -932,7 +932,7 @@ function CustomBackgroundSetter() {
   const { mutate, status } = useBackgroundMutation()
   const { mutate: resetBackground, reset } = useResetBackgroundMutation({
     onSuccess: () => backgroundToastIds.forEach((id) => toast.dismiss(id)),
-    onSettled: () => reset()
+    onSettled: () => reset(),
   })
 
   const handleInput = (value: string) => {
@@ -947,7 +947,7 @@ function CustomBackgroundSetter() {
 
     if (formattedValue.length > MAX_LENGTH) {
       toast.error('Background ID cannot be longer than 18 characters.', {
-        id: 'invalid-background-id'
+        id: 'invalid-background-id',
       })
       return
     }
@@ -963,7 +963,7 @@ function CustomBackgroundSetter() {
     e.preventDefault()
     if (!pattern.test(inputValue)) {
       toast.error('Background ID must be 1 to 18 hexadecimal characters.', {
-        id: 'invalid-background-id'
+        id: 'invalid-background-id',
       })
       return
     }

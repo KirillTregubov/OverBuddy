@@ -14,7 +14,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle
+  AlertDialogTitle,
 } from './AlertDialog'
 import { Progress } from './Progress'
 
@@ -25,7 +25,7 @@ export default function CheckForUpdates() {
   const {
     data: updateSuccess,
     status: updateStatus,
-    mutate: applyUpdate
+    mutate: applyUpdate,
   } = useUpdateMutation()
 
   useEffect(() => {
@@ -44,9 +44,9 @@ export default function CheckForUpdates() {
         id: 'update-available',
         action: {
           label: 'View Update',
-          onClick: () => setIsOpen(true)
+          onClick: () => setIsOpen(true),
         },
-        duration: Infinity
+        duration: Infinity,
       })
     }
 

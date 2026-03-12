@@ -5,14 +5,14 @@ export type Platform = z.infer<typeof Platform>
 
 const SteamLocalconfig = z.object({
   id: z.string(),
-  file: z.string()
+  file: z.string(),
 })
 
 export const SteamProfile = z.object({
   id: z.string(),
   name: z.string(),
   avatar: z.url().nullable(),
-  has_overwatch: z.boolean()
+  has_overwatch: z.boolean(),
 })
 export type SteamProfile = z.infer<typeof SteamProfile>
 
@@ -21,25 +21,25 @@ export const LaunchConfig = z.object({
   battle_net: z.object({
     enabled: z.boolean(),
     config: z.string().nullable(),
-    install: z.string().nullable()
+    install: z.string().nullable(),
   }),
   steam: z.object({
     enabled: z.boolean(),
     in_setup: z.boolean(),
     install: z.string().nullable(),
     configs: z.array(SteamLocalconfig).nullable(),
-    profiles: z.array(SteamProfile).nullable()
+    profiles: z.array(SteamProfile).nullable(),
   }),
   shared: z.object({
     background: z.object({
       current: z.string().nullable(),
       is_outdated: z.boolean(),
-      custom: z.string().nullable()
+      custom: z.string().nullable(),
     }),
     additional: z.object({
-      console_enabled: z.boolean()
-    })
-  })
+      console_enabled: z.boolean(),
+    }),
+  }),
 })
 export type LaunchConfig = z.infer<typeof LaunchConfig>
 
@@ -49,7 +49,7 @@ export const Background = z.object({
   name: z.string(),
   description: z.string(),
   tags: z.array(z.string()),
-  new: z.boolean()
+  new: z.boolean(),
 })
 export type Background = z.infer<typeof Background>
 
@@ -57,5 +57,5 @@ export const BackgroundArray = z.array(Background)
 export type BackgroundArray = z.infer<typeof BackgroundArray>
 
 export const RedirectSearchParam = z.object({
-  redirect: z.string().optional()
+  redirect: z.string().optional(),
 })

@@ -7,18 +7,18 @@ export default defineConfig(async () => ({
   plugins: [
     tanstackRouter({
       target: 'react',
-      autoCodeSplitting: false
+      autoCodeSplitting: false,
     }),
     react({
       babel: {
-        plugins: [['babel-plugin-react-compiler', { target: '19' }]]
-      }
-    })
+        plugins: [['babel-plugin-react-compiler', { target: '19' }]],
+      },
+    }),
   ],
   resolve: {
     alias: {
-      '@': '/src'
-    }
+      '@': '/src',
+    },
   },
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   // 1. prevent vite from obscuring rust errors
@@ -30,8 +30,8 @@ export default defineConfig(async () => ({
     host: process.env.TAURI_DEV_HOST || false,
     watch: {
       // 3. tell vite to ignore watching `src-tauri`
-      ignored: ['**/src-tauri/**']
-    }
+      ignored: ['**/src-tauri/**'],
+    },
   },
   envPrefix: ['VITE_', 'TAURI_ENV_*'],
   build: {
@@ -41,15 +41,15 @@ export default defineConfig(async () => ({
     // // don't minify for debug builds
     minify: !process.env.TAURI_ENV_DEBUG ? ('esbuild' as const) : false,
     // // produce sourcemaps for debug builds
-    sourcemap: !!process.env.TAURI_ENV_DEBUG
+    sourcemap: !!process.env.TAURI_ENV_DEBUG,
   },
   define: {
     'import.meta.env.REPOSITORY_URL': JSON.stringify(
       process.env.npm_package_repository ||
-        'https://github.com/KirillTregubov/OverBuddy'
+        'https://github.com/KirillTregubov/OverBuddy',
     ),
     'import.meta.env.PACKAGE_VERSION': JSON.stringify(
-      process.env.npm_package_version
-    )
-  }
+      process.env.npm_package_version,
+    ),
+  },
 }))

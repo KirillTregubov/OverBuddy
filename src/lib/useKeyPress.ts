@@ -21,7 +21,7 @@ export default function useKeyPress({
   debounce = 0,
   capture = false,
   sharedTimer = undefined,
-  avoidModifiers = false
+  avoidModifiers = false,
 }: useKeyPressProps) {
   const lastPressTimeRef = useRef<number>(0)
   const lastReleaseTimeRef = useRef<number>(0)
@@ -37,7 +37,7 @@ export default function useKeyPress({
         event.preventDefault()
       }
     },
-    [key, keys, avoidModifiers]
+    [key, keys, avoidModifiers],
   )
 
   const handleKeyPress = useCallback(
@@ -71,7 +71,7 @@ export default function useKeyPress({
       setPressed(true)
       onPress?.(event)
     },
-    [key, keys, avoidModifiers, debounce, onPress, sharedTimer]
+    [key, keys, avoidModifiers, debounce, onPress, sharedTimer],
   )
 
   const handleKeyRelease = useCallback(
@@ -96,7 +96,7 @@ export default function useKeyPress({
       setPressed(false)
       onPressEnd?.(event)
     },
-    [key, keys, onPressEnd, debounce]
+    [key, keys, onPressEnd, debounce],
   )
 
   useEffect(() => {

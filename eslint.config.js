@@ -14,14 +14,14 @@ export default defineConfig([
     languageOptions: {
       parserOptions: {
         ecmaFeatures: {
-          jsx: true
-        }
+          jsx: true,
+        },
       },
-      globals: globals.browser
-    }
+      globals: globals.browser,
+    },
   },
   {
-    ignores: ['src-tauri/**/*', 'dist/**/*']
+    ignores: ['src-tauri/**/*', 'dist/**/*'],
   },
   reactPlugin.configs.flat.recommended,
   reactPlugin.configs.flat['jsx-runtime'],
@@ -33,26 +33,26 @@ export default defineConfig([
       'createRootRouteWithContext',
       'createLink',
       'createRoute',
-      'createLazyRoute'
-    ]
+      'createLazyRoute',
+    ],
   }),
   reactHooks.configs.flat['recommended-latest'], // Official React team rules
   ...pluginRouter.configs['flat/recommended'],
   {
     plugins: {
-      reactPlugin
+      reactPlugin,
     },
     rules: {
       '@typescript-eslint/no-unused-vars': [
         'error',
-        { caughtErrorsIgnorePattern: '^_' }
+        { caughtErrorsIgnorePattern: '^_' },
       ],
-      'react-refresh/only-export-components': 'warn'
+      'react-refresh/only-export-components': 'warn',
     },
     settings: {
       react: {
-        version: 'detect'
-      }
-    }
-  }
+        version: 'detect',
+      },
+    },
+  },
 ])

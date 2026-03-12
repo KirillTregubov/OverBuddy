@@ -16,7 +16,7 @@ const VERSION_HINT =
 async function updateVersion(type: string) {
   // Read package.json and Cargo.toml
   const packageJson = JSON.parse(
-    fs.readFileSync(packageJsonPath, 'utf8')
+    fs.readFileSync(packageJsonPath, 'utf8'),
   ) as PackageJson
   const cargoToml = fs.readFileSync(cargoTomlPath, 'utf8')
 
@@ -62,7 +62,7 @@ async function updateVersion(type: string) {
   // Update Cargo.toml
   const updatedCargoToml = cargoToml.replace(
     /^version = ".*"/m,
-    `version = "${newVersion}"`
+    `version = "${newVersion}"`,
   )
   fs.writeFileSync(cargoTomlPath, updatedCargoToml)
 
@@ -70,7 +70,7 @@ async function updateVersion(type: string) {
   const readmeContent = fs.readFileSync(readmePath, 'utf8')
   const updatedReadme = readmeContent.replace(
     /Version: .*?(\s|<.*|$)/,
-    `Version: ${newVersion}$1`
+    `Version: ${newVersion}$1`,
   )
   fs.writeFileSync(readmePath, updatedReadme, 'utf8')
 

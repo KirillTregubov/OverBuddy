@@ -7,14 +7,14 @@ import CheckForUpdates from '@/components/CheckForUpdates'
 import {
   fadeInVariants,
   moveInVariants,
-  staggerChildrenVariants
+  staggerChildrenVariants,
 } from '@/lib/animations'
 import { updateQueryOptions } from '@/lib/data'
 
 export const Route = createFileRoute('/setup/')({
   loader: async ({ context: { queryClient } }) =>
     await queryClient.ensureQueryData(updateQueryOptions(true)),
-  component: SetupSplash
+  component: SetupSplash,
 })
 
 function SetupSplash() {

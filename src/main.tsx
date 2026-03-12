@@ -15,18 +15,18 @@ export const queryClient = new QueryClient({
     queries: {
       retry: false,
       refetchOnWindowFocus: false,
-      refetchOnReconnect: false
+      refetchOnReconnect: false,
     },
     mutations: {
-      throwOnError: true
-    }
-  }
+      throwOnError: true,
+    },
+  },
 })
 
 const router = createRouter({
   routeTree,
   context: {
-    queryClient
+    queryClient,
   },
   defaultPreload: 'intent',
   // Since we're using React Query, we don't want loader calls to ever be stale
@@ -35,7 +35,7 @@ const router = createRouter({
   notFoundMode: 'root',
   defaultNotFoundComponent: NotFound,
   defaultErrorComponent: ErrorComponent,
-  defaultPendingComponent: Loading
+  defaultPendingComponent: Loading,
 })
 
 declare module '@tanstack/react-router' {
@@ -57,6 +57,6 @@ if (!rootElement.innerHTML) {
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
       </QueryClientProvider>
-    </React.StrictMode>
+    </React.StrictMode>,
   )
 }

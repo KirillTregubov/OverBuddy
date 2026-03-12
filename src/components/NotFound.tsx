@@ -28,7 +28,7 @@ export default function NotFound() {
           <ReportButton
             error={
               new Error(
-                `Navigated to route "${location.pathname}", which does not exist.`
+                `Navigated to route "${location.pathname}", which does not exist.`,
               )
             }
           />

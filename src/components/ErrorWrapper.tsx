@@ -3,14 +3,14 @@ import { motion } from 'motion/react'
 import {
   fadeInVariants,
   moveInVariants,
-  staggerChildrenVariants
+  staggerChildrenVariants,
 } from '@/lib/animations'
 import TracerImage from './TracerImage'
 
 export default function ErrorWrapper({
   title,
   description,
-  buttons
+  buttons,
 }: {
   title: string
   description: React.ReactNode

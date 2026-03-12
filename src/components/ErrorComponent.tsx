@@ -55,12 +55,12 @@ function ResetButton({ reset }: Omit<ErrorComponentProps, 'error'>) {
       reset()
       router.navigate({
         to: '/setup',
-        replace: true
+        replace: true,
       })
     },
     onSettled: () => {
       resetMutation()
-    }
+    },
   })
   const [isConfirming, setIsConfirming] = useState<State>('idle')
 
