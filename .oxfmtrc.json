@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "semi": false,
+  "singleQuote": true,
+  "trailingComma": "none",
+  "sortTailwindcss": {
+    "functions": ["clsx", "cn"]
+  },
+  "printWidth": 80,
+  "sortPackageJson": true,
+  "ignorePatterns": [
+    "src-tauri/target",
+    "src-tauri/gen",
+    "dist",
+    "pnpm-lock.yaml",
+    "src/routeTree.gen.ts",
+    "*.ts.timestamp*"
+  ]
+}
