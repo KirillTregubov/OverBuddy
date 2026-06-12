@@ -12,6 +12,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { toast } from 'sonner'
 
 import placeholder from '@/assets/placeholder.svg'
+import { BackgroundApplyDialog } from '@/components/BackgroundApplyDialog'
 import { MotionLink } from '@/components/Button'
 import { fadeInVariants } from '@/lib/animations'
 import {
@@ -613,57 +614,59 @@ function Menu() {
                 className="fill-transparent transition-colors group-hover:fill-current group-focus-visible:fill-current group-active:fill-orange-200 group-active:stroke-orange-200"
               />
             </button> */}
-          <button
-            className={clsx(
-              'h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-orange-100 transition will-change-transform hover:scale-105 hover:rounded hover:border-orange-50 focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:!scale-100 disabled:!border-orange-800/40',
-              setStatus === 'pending' && 'cursor-wait',
-            )}
-            onClick={() => {
-              if (setStatus === 'pending') return
-              setBackground({ id: activeBackground.id })
-            }}
-            disabled={
-              config.shared.background.current === activeBackground.id ||
-              setStatus === 'success'
+          <BackgroundApplyDialog
+            onApply={() => setBackground({ id: activeBackground.id })}
+            disabled={setStatus === 'pending'}
+            trigger={
+              <button
+                className={clsx(
+                  'h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-orange-100 transition will-change-transform hover:scale-105 hover:rounded hover:border-orange-50 focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:!scale-100 disabled:!border-orange-800/40',
+                  setStatus === 'pending' && 'cursor-wait',
+                )}
+                disabled={
+                  config.shared.background.current === activeBackground.id ||
+                  setStatus === 'success'
+                }
+                key={activeBackgroundKey}
+              >
+                <AnimatePresence mode="wait" initial={false}>
+                  {config.shared.background.current === activeBackground.id ||
+                  setStatus === 'success' ? (
+                    <motion.span
+                      className="text-orange-100"
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      key="success"
+                    >
+                      Applied
+                    </motion.span>
+                  ) : setStatus === 'pending' ? (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      key="pending"
+                    >
+                      <LoaderPinwheel className="mx-auto animate-spin text-orange-200" />
+                    </motion.span>
+                  ) : (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      key="idle"
+                    >
+                      Apply
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </button>
             }
-            key={activeBackgroundKey}
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              {config.shared.background.current === activeBackground.id ||
-              setStatus === 'success' ? (
-                <motion.span
-                  className="text-orange-100"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  key="success"
-                >
-                  Applied
-                </motion.span>
-              ) : setStatus === 'pending' ? (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  key="pending"
-                >
-                  <LoaderPinwheel className="mx-auto animate-spin text-orange-200" />
-                </motion.span>
-              ) : (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  key="idle"
-                >
-                  Apply
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </button>
+          />
         </div>
         <div className="pointer-events-none h-full w-full select-none">
           <img

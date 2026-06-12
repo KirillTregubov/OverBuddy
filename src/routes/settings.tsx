@@ -16,6 +16,7 @@ import * as z from 'zod'
 
 import BattleNet from '@/assets/BattleNet.svg'
 import Steam from '@/assets/Steam.svg'
+import { BackgroundApplyDialog } from '@/components/BackgroundApplyDialog'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -984,16 +985,55 @@ function CustomBackgroundSetter() {
     }, 100)
   }
 
+  const actionTitle =
+    !inputValue || !pattern.test(inputValue)
+      ? 'Background ID must be 1 to 18 hexadecimal characters.'
+      : inputValue.length > 0
+        ? `Apply ${formatCustomBackgroundId(inputValue)}`
+        : ''
+
   return (
-    <AlertDialog open={isOpen} onOpenChange={handleOpenChange}>
+    <>
       <motion.div
         className="flex w-full items-center gap-2"
         layout
         transition={{ duration: 0.15 }}
       >
-        <AlertDialogTrigger asChild>
-          <MotionButton className="mr-2">Apply Custom Background</MotionButton>
-        </AlertDialogTrigger>
+        <BackgroundApplyDialog
+          open={isOpen}
+          onOpenChange={handleOpenChange}
+          onApply={handleApply}
+          disabled={
+            status === 'pending' || !inputValue || !pattern.test(inputValue)
+          }
+          actionTitle={actionTitle}
+          title="Apply Custom Background"
+          description="OverBuddy keeps this functionality for demonstration only, and applying a background may no longer affect your game."
+          trigger={
+            <MotionButton className="mr-2">
+              Apply Custom Background
+            </MotionButton>
+          }
+        >
+          <div className="flex items-center gap-2.5 rounded bg-amber-950/50 p-3 text-sm text-amber-200/90">
+            <TriangleAlertIcon className="inline-block size-8 text-amber-200/90" />
+            <span>
+              Setting a custom background may result in a broken or undesired
+              menu background. Use at your own risk.
+            </span>
+          </div>
+          <div>
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => handleInput(e.target.value)}
+              placeholder="Background ID (Ex: 6C7)"
+              className="w-full rounded border border-zinc-700 bg-zinc-800 p-2 text-zinc-50 outline-none ring-zinc-100 transition selection:bg-zinc-500 selection:text-zinc-50 placeholder:text-zinc-500 invalid:text-red-400 invalid:selection:bg-red-950 focus-visible:border-zinc-100 focus-visible:ring-2"
+              pattern={patternString}
+              autoFocus
+            />
+          </div>
+        </BackgroundApplyDialog>
         <div className="flex select-none items-baseline gap-2 whitespace-nowrap text-zinc-400">
           <AnimatePresence mode="wait">
             {config.shared.background.custom !== null ? (
@@ -1039,49 +1079,6 @@ function CustomBackgroundSetter() {
           </AnimatePresence>
         </div>
       </motion.div>
-      <AlertDialogContent className="max-w-lg">
-        <AlertDialogHeader>
-          <AlertDialogTitle>Apply Custom Background</AlertDialogTitle>
-          <AlertDialogDescription>
-            <span className="flex items-center gap-2.5 rounded bg-amber-950/50 p-3 text-sm text-amber-200/90">
-              <TriangleAlertIcon className="inline-block size-8 text-amber-200/90" />
-              <span>
-                Setting a custom background may result in a broken or undesired
-                menu background. Use at your own risk.
-              </span>
-            </span>
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <div>
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => handleInput(e.target.value)}
-            placeholder="Background ID (Ex: 6C7)"
-            className="w-full rounded border border-zinc-700 bg-zinc-800 p-2 text-zinc-50 outline-none ring-zinc-100 transition selection:bg-zinc-500 selection:text-zinc-50 placeholder:text-zinc-500 invalid:text-red-400 invalid:selection:bg-red-950 focus-visible:border-zinc-100 focus-visible:ring-2"
-            pattern={patternString}
-            autoFocus
-          />
-        </div>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleApply}
-            disabled={
-              status === 'pending' || !inputValue || !pattern.test(inputValue)
-            }
-            title={
-              !inputValue || !pattern.test(inputValue)
-                ? 'Background ID must be 1 to 18 hexadecimal characters.'
-                : inputValue.length > 0
-                  ? `Apply ${formatCustomBackgroundId(inputValue)}`
-                  : ''
-            }
-          >
-            Apply
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    </>
   )
 }
