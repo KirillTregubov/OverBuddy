@@ -30,6 +30,7 @@ import {
 } from '@/components/AlertDialog'
 import {
   ExternalLinkInline,
+  LinkButton,
   MotionButton,
   MotionLink,
 } from '@/components/Button'
@@ -187,6 +188,23 @@ function Settings() {
             </div>
           </motion.div>
           <motion.div
+            className="flex flex-col gap-2"
+            variants={moveInLessVariants}
+          >
+            <div className="flex items-baseline gap-2.5 text-zinc-400">
+              <h2 className="select-none text-lg font-bold text-white">
+                Archive
+              </h2>
+              <p className="select-none">
+                View a collection of all the OverBuddy app screens.
+              </p>
+            </div>
+            <LinkButton to="/gallery" replace className="mr-auto">
+              Open Page Gallery
+            </LinkButton>
+          </motion.div>
+
+          <motion.div
             className="flex flex-col gap-1.5"
             variants={moveInLessVariants}
           >
@@ -235,6 +253,7 @@ function Settings() {
               </div>
             </div>
           </motion.div>
+
           <motion.div
             className="flex flex-col gap-2"
             variants={moveInLessVariants}

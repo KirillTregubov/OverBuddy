@@ -4,10 +4,7 @@ import { open } from '@tauri-apps/plugin-dialog'
 import { toast } from 'sonner'
 import * as z from 'zod'
 
-import { Button } from '@/components/Button'
-import { FormattedError } from '@/components/Error'
-import ErrorWrapper from '@/components/ErrorWrapper'
-import Highlight from '@/components/Highlight'
+import { SetupIncompleteView } from '@/components/SetupViews'
 import {
   getSetupPath,
   launchQueryOptions,
@@ -81,145 +78,73 @@ function ConfigureComponent() {
   })
 
   return (
-    <ErrorWrapper
-      title="Setup Incomplete"
-      description={
-        <>
-          <p className="mb-2 leading-7">
-            <FormattedError text={message} />
-          </p>
-          <p className="leading-7">
-            {key === 'BattleNetInstall' ? (
-              <>
-                If you have Battle.net installed, please select the{' '}
-                <Highlight>Battle.net Launcher.exe</Highlight> file, which is
-                located in your Battle.net installation directory
-                {!!path && (
-                  <>
-                    {' '}
-                    (defaults to <Highlight>{path}</Highlight>)
-                  </>
-                )}
-                .
-              </>
-            ) : key === 'BattleNetConfig' ? (
-              <>
-                Please select the <Highlight>Battle.net.config</Highlight> file
-                {!!path && (
-                  <>
-                    , which is expected to be located in{' '}
-                    <Highlight>{path}</Highlight>
-                  </>
-                )}
-                .
-              </>
-            ) : key === 'SteamInstall' ? (
-              <>
-                If you have Steam installed, please select the{' '}
-                <Highlight>steam.exe</Highlight> file, which is located in your
-                Steam installation directory (defaults to{' '}
-                <Highlight>{path}</Highlight>).
-              </>
-            ) : (
-              key === 'SteamAccount' && (
-                <>
-                  Please ensure you have logged into an account on Steam. If you
-                  have already done so, please select the correct{' '}
-                  <Highlight>steam.exe</Highlight> file, which is located in
-                  your Steam installation directory (defaults to{' '}
-                  <Highlight>{path}</Highlight>).
-                </>
-              )
-            )}
-          </p>
-        </>
-      }
-      buttons={
-        <>
-          <Button
-            onClick={() => {
-              if (is_setup) {
-                if (redirect) {
-                  navigate({
-                    to: redirect,
-                    replace: true,
-                  })
-                } else {
-                  navigate({
-                    to: '/menu',
-                    replace: true,
-                  })
-                }
-              } else {
-                navigate({
-                  to: '/setup/select',
-                  replace: true,
-                })
-              }
-            }}
-          >
-            Go Back
-          </Button>
-          {key === 'SteamAccount' && (
-            <Button
-              onClick={() => {
-                mutate({
-                  key,
-                  path: undefined,
-                  platforms,
-                })
-              }}
-            >
-              Retry Setup
-            </Button>
-          )}
-          <Button
-            primary
-            onClick={async () => {
-              const selected = await open({
-                filters: [
-                  {
-                    name:
-                      key === 'BattleNetInstall'
-                        ? 'Battle.net Launcher'
-                        : key === 'BattleNetConfig'
-                          ? 'Configuration File'
-                          : 'steam',
-                    extensions: [key.endsWith('Config') ? 'config' : 'exe'],
-                  },
-                ],
-                defaultPath: defaultPath || undefined,
-              })
-              if (!selected) return
-              const file =
+    <SetupIncompleteView
+      issue={key}
+      message={message}
+      path={path}
+      defaultPath={defaultPath}
+      isSetup={is_setup}
+      onBack={() => {
+        if (is_setup) {
+          if (redirect) {
+            navigate({
+              to: redirect,
+              replace: true,
+            })
+          } else {
+            navigate({
+              to: '/menu',
+              replace: true,
+            })
+          }
+        } else {
+          navigate({
+            to: '/setup/select',
+            replace: true,
+          })
+        }
+      }}
+      onRetry={() => {
+        mutate({
+          key,
+          path: undefined,
+          platforms,
+        })
+      }}
+      onSelect={async () => {
+        const selected = await open({
+          filters: [
+            {
+              name:
                 key === 'BattleNetInstall'
-                  ? 'Battle.net Launcher.exe'
+                  ? 'Battle.net Launcher'
                   : key === 'BattleNetConfig'
-                    ? 'Battle.net.config'
-                    : 'steam.exe'
-              if (selected.indexOf(file) === -1) {
-                toast.error(`Please select the "${file}" file.`, {
-                  closeButton: false,
-                })
-                return
-              }
-              mutate({
-                key,
-                path: selected as string,
-                platforms,
-              })
-            }}
-          >
-            Select{' '}
-            {key === 'BattleNetInstall'
-              ? 'Battle.net Launcher.exe'
-              : key === 'BattleNetConfig'
-                ? 'Battle.net.config'
-                : 'steam.exe'}
-          </Button>
-          {/* TODO: report issue */}
-        </>
-      }
+                    ? 'Configuration File'
+                    : 'steam',
+              extensions: [key.endsWith('Config') ? 'config' : 'exe'],
+            },
+          ],
+          defaultPath: defaultPath || undefined,
+        })
+        if (!selected) return
+        const file =
+          key === 'BattleNetInstall'
+            ? 'Battle.net Launcher.exe'
+            : key === 'BattleNetConfig'
+              ? 'Battle.net.config'
+              : 'steam.exe'
+        if (selected.indexOf(file) === -1) {
+          toast.error(`Please select the "${file}" file.`, {
+            closeButton: false,
+          })
+          return
+        }
+        mutate({
+          key,
+          path: selected as string,
+          platforms,
+        })
+      }}
     />
   )
 }

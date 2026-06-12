@@ -4,14 +4,19 @@
   <p>Customize your Overwatch™ in-game menu background.</p>
   <p>Current Version: 2.1.12</p>
   <div>
-    <a href="https://github.com/KirillTregubov/OverBuddy/releases/latest">Download Now</a>
+    <a href="https://github.com/KirillTregubov/OverBuddy/releases/latest">Final Release</a>
     ·
     <a href="https://kirilltregubov.com/overbuddy#gallery">Browse Gallery</a>
     ·
-    <a href="https://github.com/KirillTregubov/OverBuddy/issues/new">Report Issue</a>
+    <a href="https://github.com/KirillTregubov/OverBuddy/issues">View Issues</a>
   </div>
 </div>
 <br />
+
+> [!WARNING]
+> OverBuddy is deprecated and no longer actively maintained due to the removal of menu customization in Season 2: Summit (2026).
+>
+> This repository and its final release are preserved as a demonstration of the app's past functionality, but the app is not expected to keep working with current or future Overwatch updates.
 
 ![Screenshot of the app's main screen, with a selection of backgrounds and the ability to apply them](/screenshots/screenshot-2.png)
 
@@ -19,43 +24,43 @@
 
 ## What is OverBuddy
 
-OverBuddy is a free, open source Windows app for customizing your Overwatch™ main menu. Whether you're a Doomfist main who wants Tropical Doomfist back, still can't get over your crush on Cupid Hanzo, or you just miss the look and sound of the last collaboration event... OverBuddy has you covered.
+OverBuddy was a free, open source Windows app for customizing your Overwatch™ main menu. Whether you were a Doomfist main who wanted Tropical Doomfist back, still couldn't get over your crush on Cupid Hanzo, or you just missed the look and sound of the last collaboration event... OverBuddy had you covered.
 
 Note: Because of the New Menu experience introduced in Season 1: Conquest, using a custom background will hide the dynamic feed and links to new Event, Shop, and Lore content.
 
-## What Makes It Special
+## What Made It Special
 
 ### Works on PC
 
-OverBuddy works seamlessly with both Battle.net® and Steam® installations of Overwatch™ on Windows.
+OverBuddy worked with both Battle.net® and Steam® installations of Overwatch™ on Windows.
 
 ### Personalize your Experience
 
-Browse all available Overwatch main menu backgrounds and apply your favourite to see it in game the next time you play.
+You could browse available Overwatch main menu backgrounds and apply your favourite to see it in game the next time you played.
 
 ### Built with Privacy in Mind
 
-To change the menu background, OverBuddy updates your Battle.net® and/or Steam® configuration files. It does **NOT** modify any game files and does **NOT** collect your personal data. Changes are applied after OverBuddy automatically restarts your Battle.net and/or Steam client.
+To change the menu background, OverBuddy updated your Battle.net® and/or Steam® configuration files. It did **NOT** modify any game files and did **NOT** collect your personal data. Changes were applied after OverBuddy automatically restarted your Battle.net and/or Steam client.
 
-You don't have to take my word for it! The source code is openly available for anyone, including you, to review and contribute to. The app you install is built via an automated build pipeline that you can find [here](https://github.com/KirillTregubov/OverBuddy/actions/workflows/create-release.yml).
+You don't have to take my word for it! The source code remains openly available for anyone, including you, to review. The published app was built via an automated build pipeline that you can find [here](https://github.com/KirillTregubov/OverBuddy/actions/workflows/create-release.yml).
 
 ### One-Click Revert
 
-Change your mind? Click the `Revert to Default` button at any time to remove all customizations.
+Changed your mind? You could click the `Revert to Default` button at any time to remove all customizations.
 
 ### Debug Console
 
-OverBuddy can enable the Overwatch debug console, accessible in-game using the `Alt` + `~` hotkey.
+OverBuddy could enable the Overwatch debug console, accessible in-game using the `Alt` + `~` hotkey.
 
-### Continuous Updates
+### Archived Project
 
-OverBuddy is updated regularly to ensure all backgrounds are still available after new Overwatch patches.
+OverBuddy is deprecated and no longer receives compatibility updates for new Overwatch patches. The project remains available for reference, historical interest, and demonstrating how the app worked.
 
 ## Getting Started
 
 ### Installation
 
-1. [Download the latest version](https://github.com/KirillTregubov/OverBuddy/releases/latest) of OverBuddy.
+1. [Download the final release](https://github.com/KirillTregubov/OverBuddy/releases/latest) of OverBuddy.
 2. Run the Installer. If you see a warning about the app being unsigned, click "More info" and then "Run anyway".
 
 ### Using OverBuddy
