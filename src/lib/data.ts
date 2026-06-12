@@ -11,14 +11,14 @@ import {
   SetupError,
   SetupPathResponse,
   SteamSetupError,
-  handleError
+  handleError,
 } from '@/lib/errors'
 import {
   Background,
   BackgroundArray,
   LaunchConfig,
   SteamProfile,
-  type Platform
+  type Platform,
 } from '@/lib/schemas'
 import { queryClient } from '@/main'
 import { useState } from 'react'
@@ -46,7 +46,7 @@ export const launchQueryOptions = queryOptions({
 
     return config.data
   },
-  staleTime: Infinity
+  staleTime: Infinity,
 })
 
 type SetupResponse = {
@@ -56,7 +56,7 @@ type SetupResponse = {
 
 const setupMutation = async ({
   platforms,
-  isInitialized = false
+  isInitialized = false,
 }: {
   platforms: Platform[]
   isInitialized?: boolean
@@ -78,9 +78,9 @@ const setupMutation = async ({
       }
 
       throw new Error(
-        `Failed to setup. Received: [[${JSON.stringify(parsed)}]], Error: [[${configError.error.message}]]`
+        `Failed to setup. Received: [[${JSON.stringify(parsed)}]], Error: [[${configError.error.message}]]`,
       )
-    }
+    },
   )
 
   const config = LaunchConfig.safeParse(JSON.parse(data as string))
@@ -99,7 +99,7 @@ const setupMutation = async ({
 export const useSetupMutation = ({
   onError,
   onSuccess,
-  throwOnError = true
+  throwOnError = true,
 }: {
   isInitialized?: boolean
   onError?: (error: Error | ConfigError) => void
@@ -110,7 +110,7 @@ export const useSetupMutation = ({
     mutationFn: setupMutation,
     onError,
     onSuccess,
-    throwOnError
+    throwOnError,
   })
 
 export const getSetupPath = (key: ConfigErrors) =>
@@ -120,7 +120,7 @@ export const getSetupPath = (key: ConfigErrors) =>
       try {
         const data = await invoke('get_setup_path', { key })
         const setupPath = SetupPathResponse.safeParse(
-          JSON.parse(data as string)
+          JSON.parse(data as string),
         )
         if (!setupPath.success) {
           throw new Error(setupPath.error.message)
@@ -132,12 +132,12 @@ export const getSetupPath = (key: ConfigErrors) =>
         if (typeof error === 'string') throw new Error(error)
       }
       throw new Error('Failed to get setup paths.')
-    }
+    },
   })
 
 export const useSetupErrorMutation = ({
   onError,
-  onSuccess
+  onSuccess,
 }: {
   onError?: (error: Error | ConfigError) => void
   onSuccess?: (data: SetupResponse) => void
@@ -146,7 +146,7 @@ export const useSetupErrorMutation = ({
     mutationFn: async ({
       key,
       path,
-      platforms
+      platforms,
     }: {
       key: ConfigErrorSchema['error_key']
       path: string | undefined
@@ -161,7 +161,7 @@ export const useSetupErrorMutation = ({
       const data = await invoke('resolve_setup_error', {
         key,
         path,
-        platforms
+        platforms,
       }).catch((error) => {
         if (typeof error !== 'string') throw error
 
@@ -189,7 +189,7 @@ export const useSetupErrorMutation = ({
       return { platforms, config: config.data }
     },
     onError,
-    onSuccess
+    onSuccess,
   })
 
 export const steamQueryOptions = queryOptions({
@@ -201,12 +201,12 @@ export const steamQueryOptions = queryOptions({
       throw new Error(`Failed to get Steam accounts. ${accounts.error.message}`)
     }
     return accounts.data satisfies SteamProfile[]
-  }
+  },
 })
 
 export const useSteamConfirmMutation = ({
   onError,
-  onSuccess
+  onSuccess,
 }: {
   onError?: (err: Error) => void
   onSuccess?: () => void
@@ -223,8 +223,8 @@ export const useSteamConfirmMutation = ({
           toast.warning(
             'Cannot enable Steam support: No Overwatch installation found.',
             {
-              id: 'no-steam-overwatch'
-            }
+              id: 'no-steam-overwatch',
+            },
           )
         }
       }
@@ -232,7 +232,7 @@ export const useSteamConfirmMutation = ({
       const config = LaunchConfig.safeParse(JSON.parse(data))
       if (!config.success) {
         throw new Error(
-          `Failed to save background change. ${config.error.message}`
+          `Failed to save background change. ${config.error.message}`,
         )
       }
       updateLaunchConfig(config.data)
@@ -245,11 +245,11 @@ export const useSteamConfirmMutation = ({
 
       handleError(error)
     },
-    onSuccess
+    onSuccess,
   })
 
 export const useSteamUndoMutation = ({
-  onSuccess
+  onSuccess,
 }: {
   onSuccess?: () => void
 } = {}) =>
@@ -259,12 +259,12 @@ export const useSteamUndoMutation = ({
       const config = LaunchConfig.safeParse(JSON.parse(data))
       if (!config.success) {
         throw new Error(
-          `Failed to save background change. ${config.error.message}`
+          `Failed to save background change. ${config.error.message}`,
         )
       }
       updateLaunchConfig(config.data)
     },
-    onSuccess
+    onSuccess,
   })
 
 export const backgroundsQueryOptions = queryOptions({
@@ -276,22 +276,9 @@ export const backgroundsQueryOptions = queryOptions({
       throw new Error(`Failed to get backgrounds. ${backgrounds.error.message}`)
     }
 
-    // Preload images
-    await Promise.allSettled(
-      backgrounds.data.map(
-        (background) =>
-          new Promise<void>((resolve, reject) => {
-            const img = new Image()
-            img.onload = () => resolve()
-            img.onerror = () => reject()
-            img.src = `/backgrounds/${background.image}`
-          })
-      )
-    )
-
     return backgrounds.data
   },
-  staleTime: isDev() ? 0 : Infinity
+  staleTime: isDev() ? 0 : Infinity,
 })
 
 /**
@@ -305,19 +292,15 @@ export const backgroundsQueryOptions = queryOptions({
 export const activeBackgroundQueryOptions = queryOptions({
   queryKey: ['active_background'],
   queryFn: async () => {
-    await queryClient.ensureQueryData(launchQueryOptions)
-    await queryClient.ensureQueryData(backgroundsQueryOptions)
-
-    const backgrounds = queryClient.getQueryData(
-      backgroundsQueryOptions.queryKey
-    )
-    if (!backgrounds) throw new Error('Failed to get backgrounds.')
+    const [launchQuery, backgrounds] = await Promise.all([
+      queryClient.ensureQueryData(launchQueryOptions),
+      queryClient.ensureQueryData(backgroundsQueryOptions),
+    ])
 
     const defaultBackground = backgrounds[0]
     if (!defaultBackground) throw new Error('No default background found.')
 
-    const current = queryClient.getQueryData(launchQueryOptions.queryKey)
-      ?.shared.background.current
+    const current = launchQuery.shared.background.current
     if (current !== null) {
       const index = backgrounds.findIndex((bg) => bg.id === current)
       if (index === -1) return defaultBackground
@@ -330,7 +313,7 @@ export const activeBackgroundQueryOptions = queryOptions({
 
     return defaultBackground
   },
-  staleTime: Infinity
+  staleTime: Infinity,
 })
 
 export const useActiveBackgroundMutation = () =>
@@ -338,10 +321,10 @@ export const useActiveBackgroundMutation = () =>
     mutationFn: async (background: Background) => {
       queryClient.setQueryData(
         activeBackgroundQueryOptions.queryKey,
-        background
+        background,
       )
       return
-    }
+    },
   })
 
 export const invalidateActiveBackground = () =>
@@ -349,7 +332,7 @@ export const invalidateActiveBackground = () =>
 
 export const backgroundToastIds = ['background-1', 'background-2']
 export const useBackgroundMutation = ({
-  onError
+  onError,
 }: {
   onError?: (error: Error) => void
 } = {}) => {
@@ -361,14 +344,14 @@ export const useBackgroundMutation = ({
       const config = LaunchConfig.safeParse(JSON.parse(data))
       if (!config.success) {
         throw new Error(
-          `Failed to save background change. ${config.error.message}`
+          `Failed to save background change. ${config.error.message}`,
         )
       }
       updateLaunchConfig(config.data)
 
       return {
         background: background.id,
-        isCustom: background.isCustom
+        isCustom: background.isCustom,
       }
     },
     onSuccess: (data) => {
@@ -381,11 +364,11 @@ export const useBackgroundMutation = ({
       if (data.isCustom) {
         toast.success(
           `Successfully applied custom background ${data.background}.`,
-          { id: backgroundToastIds[newIndex], duration: 8000 }
+          { id: backgroundToastIds[newIndex], duration: 8000 },
         )
       } else {
         toast.success(`Successfully applied background.`, {
-          id: backgroundToastIds[newIndex]
+          id: backgroundToastIds[newIndex],
         })
       }
       // }, 100)
@@ -394,13 +377,13 @@ export const useBackgroundMutation = ({
     },
     onError: (error) => {
       onError?.(error)
-    }
+    },
   })
 }
 
 export const useResetBackgroundMutation = ({
   onSuccess,
-  onSettled
+  onSettled,
 }: {
   onSuccess?: () => void
   onSettled?: () => void
@@ -418,11 +401,11 @@ export const useResetBackgroundMutation = ({
     onSuccess: () => {
       backgroundToastIds.forEach((id) => toast.dismiss(id))
       toast.success('Successfully reverted to the default background.', {
-        id: 'reset-background'
+        id: 'reset-background',
       })
       onSuccess?.()
     },
-    onSettled
+    onSettled,
   })
 
 export const useDebugConsoleMutation = () =>
@@ -432,7 +415,7 @@ export const useDebugConsoleMutation = () =>
       const config = LaunchConfig.safeParse(JSON.parse(query))
       if (!config.success) {
         throw new Error(
-          `Failed to save debug console change. ${config.error.message}`
+          `Failed to save debug console change. ${config.error.message}`,
         )
       }
       updateLaunchConfig(config.data)
@@ -446,16 +429,16 @@ export const useDebugConsoleMutation = () =>
       toast.success(
         `The Overwatch debug console has been ${enableConsole ? 'enabled' : 'disabled'}.`,
         {
-          id: id
-        }
+          id: id,
+        },
       )
-    }
+    },
   })
 
 export const useResetMutation = ({
   onSuccess,
   onError,
-  onSettled
+  onSettled,
 }: {
   onSuccess?: () => void
   onError?: (error: Error) => void
@@ -479,7 +462,7 @@ export const useResetMutation = ({
       toast.success('All settings have been reset to default.')
       onSuccess?.()
     },
-    onSettled
+    onSettled,
   })
 
 type useCheckUpdatesReturnType =
@@ -503,17 +486,17 @@ const checkUpdate = async () => {
     return {
       available: update.available,
       version: update.version,
-      body: update.body
+      body: update.body,
     } satisfies useCheckUpdatesReturnType
   }
 
   return {
-    available: false
+    available: false,
   } satisfies useCheckUpdatesReturnType
 }
 
 export const useCheckUpdates = ({
-  onSuccess
+  onSuccess,
 }: {
   onSuccess?: (data?: useCheckUpdatesReturnType) => void
 } = {}) =>
@@ -522,17 +505,17 @@ export const useCheckUpdates = ({
     onError: (error) => {
       handleError(error)
     },
-    onSuccess: (data) => onSuccess?.(data)
+    onSuccess: (data) => onSuccess?.(data),
   })
 
 export const useUpdateMutation = ({
-  onSuccess
+  onSuccess,
 }: {
   onSuccess?: (data: boolean) => void
 } = {}) =>
   useMutation({
     mutationFn: async (
-      onProgress: (progress: number | ((prevState: number) => number)) => void
+      onProgress: (progress: number | ((prevState: number) => number)) => void,
     ) => {
       const update = await check()
       if (!update || !update.available) {
@@ -562,12 +545,12 @@ export const useUpdateMutation = ({
     onError: (error) => {
       handleError(error)
     },
-    onSuccess: (data) => onSuccess?.(data)
+    onSuccess: (data) => onSuccess?.(data),
   })
 
 export const updateQueryOptions = (enabled: boolean = false) =>
   queryOptions({
     queryKey: ['check_for_update'],
     queryFn: checkUpdate,
-    enabled
+    enabled,
   })

@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MutableRefObject,
+} from 'react'
 
 type Key =
   | { key: string; keys?: undefined }
@@ -9,7 +15,7 @@ type useKeyPressProps = {
   onPressEnd?: (event: KeyboardEvent) => void
   debounce?: number
   capture?: boolean
-  sharedTimer?: RefObject<number>
+  sharedTimer?: MutableRefObject<number>
   avoidModifiers?: boolean
 } & Key
 
@@ -21,7 +27,7 @@ export default function useKeyPress({
   debounce = 0,
   capture = false,
   sharedTimer = undefined,
-  avoidModifiers = false
+  avoidModifiers = false,
 }: useKeyPressProps) {
   const lastPressTimeRef = useRef<number>(0)
   const lastReleaseTimeRef = useRef<number>(0)
@@ -37,10 +43,12 @@ export default function useKeyPress({
         event.preventDefault()
       }
     },
-    [key, keys, avoidModifiers]
+    [key, keys, avoidModifiers],
   )
 
   const handleKeyPress = useCallback(
+    // sharedTimer is an intentional mutable debounce channel across hook instances.
+    // eslint-disable-next-line react-hooks/immutability
     (event: KeyboardEvent) => {
       if (
         event.repeat ||
@@ -64,14 +72,13 @@ export default function useKeyPress({
 
       lastPressTimeRef.current = currentTime
       if (sharedTimer) {
-        // TODO: revisit
         // eslint-disable-next-line react-hooks/immutability
         sharedTimer.current = currentTime
       }
       setPressed(true)
       onPress?.(event)
     },
-    [key, keys, avoidModifiers, debounce, onPress, sharedTimer]
+    [key, keys, avoidModifiers, debounce, onPress, sharedTimer],
   )
 
   const handleKeyRelease = useCallback(
@@ -96,7 +103,7 @@ export default function useKeyPress({
       setPressed(false)
       onPressEnd?.(event)
     },
-    [key, keys, onPressEnd, debounce]
+    [key, keys, onPressEnd, debounce],
   )
 
   useEffect(() => {

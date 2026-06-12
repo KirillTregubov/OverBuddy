@@ -5,7 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LoaderPinwheel,
-  SettingsIcon
+  SettingsIcon,
 } from 'lucide-react'
 import { AnimatePresence, motion, useAnimation } from 'motion/react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
@@ -21,14 +21,15 @@ import {
   updateQueryOptions,
   useActiveBackgroundMutation,
   useBackgroundMutation,
-  useResetBackgroundMutation
+  useResetBackgroundMutation,
 } from '@/lib/data'
+import { getNearestBackgrounds, preloadBackgroundImage } from '@/lib/helpers'
 import { linkFix } from '@/lib/linkFix'
 import useKeyPress from '@/lib/useKeyPress'
 import { cn } from '@/lib/utils'
 
 const buttonTapAnimation = {
-  scale: 0.9
+  scale: 0.9,
 }
 
 export const Route = createFileRoute('/menu')({
@@ -48,14 +49,30 @@ export const Route = createFileRoute('/menu')({
     }
   },
   loader: async ({ context: { queryClient } }) => {
-    return Promise.allSettled([
+    const [, activeBackground, backgrounds] = await Promise.all([
       queryClient.ensureQueryData(updateQueryOptions(true)),
       queryClient.ensureQueryData(activeBackgroundQueryOptions),
-      queryClient.ensureQueryData(backgroundsQueryOptions)
+      queryClient.ensureQueryData(backgroundsQueryOptions),
     ])
+
+    const currentBackgroundIndex = backgrounds.findIndex(
+      (bg) => bg.id === activeBackground.id,
+    )
+    const backgroundsToPreload = getNearestBackgrounds(
+      backgrounds,
+      currentBackgroundIndex,
+    )
+
+    // Preload images
+    await Promise.allSettled(
+      backgroundsToPreload.map((background) =>
+        preloadBackgroundImage(background.image),
+      ),
+    )
   },
   component: Menu,
-  pendingMs: 0
+  pendingMs: 0,
+  pendingMinMs: 500,
 })
 
 function onImageError(event: React.SyntheticEvent<HTMLImageElement, Event>) {
@@ -86,30 +103,31 @@ function Menu() {
   const navigate = useNavigate()
   const { data: backgrounds } = useSuspenseQuery(backgroundsQueryOptions)
   const { data: activeBackground } = useSuspenseQuery(
-    activeBackgroundQueryOptions
+    activeBackgroundQueryOptions,
   )
   const { data: config } = useSuspenseQuery(launchQueryOptions)
   const { data: updateAvailable } = useQuery(updateQueryOptions(true))
   const {
     status: setStatus,
     mutate: setBackground,
-    reset: resetSetBackground
+    reset: resetSetBackground,
   } = useBackgroundMutation()
   const {
     status: resetStatus,
     mutate: resetBackground,
-    reset
+    reset,
   } = useResetBackgroundMutation({
     onSuccess: () => resetSetBackground(),
-    onSettled: () => reset()
+    onSettled: () => reset(),
   })
-  const backgroundRefs = useRef<HTMLButtonElement[]>([])
+  const backgroundButtonsRef = useRef<HTMLButtonElement[]>([])
   const { mutate: setActiveBackground } = useActiveBackgroundMutation()
 
-  const backgroundIndex = useMemo(
-    () => backgrounds.findIndex((bg) => bg.id === activeBackground.id) || 0,
-    [backgrounds, activeBackground.id]
-  )
+  const backgroundIndex = useMemo(() => {
+    const index = backgrounds.findIndex((bg) => bg.id === activeBackground.id)
+
+    return index >= 0 ? index : 0
+  }, [backgrounds, activeBackground.id])
 
   const prevButtonRef = useRef<HTMLButtonElement>(null)
   const prevButtonAnimation = useAnimation()
@@ -133,7 +151,7 @@ function Menu() {
       prevButtonRef.current.ariaPressed = 'false'
       await prevButtonAnimation.start({ scale: 1 })
     },
-    [prevButtonRef, prevButtonAnimation]
+    [prevButtonRef, prevButtonAnimation],
   )
   useKeyPress({
     keys: prevKeys,
@@ -141,7 +159,7 @@ function Menu() {
     debounce: 50,
     sharedTimer: sharedTimerRef,
     avoidModifiers: true,
-    capture: true
+    capture: true,
   })
 
   const onRightPress = useCallback(
@@ -158,7 +176,7 @@ function Menu() {
       nextButtonRef.current.ariaPressed = 'false'
       await nextButtonAnimation.start({ scale: 1 })
     },
-    [nextButtonRef, nextButtonAnimation]
+    [nextButtonRef, nextButtonAnimation],
   )
   useKeyPress({
     keys: nextKeys,
@@ -166,7 +184,7 @@ function Menu() {
     debounce: 50,
     sharedTimer: sharedTimerRef,
     avoidModifiers: true,
-    capture: true
+    capture: true,
   })
 
   const onEscapePress = useCallback(
@@ -182,11 +200,11 @@ function Menu() {
       settingsButtonAnimation.start('initial')
       settingsButtonRef.current.click()
     },
-    [settingsButtonRef, settingsButtonAnimation]
+    [settingsButtonRef, settingsButtonAnimation],
   )
   useKeyPress({
     key: 'Escape',
-    onPress: onEscapePress
+    onPress: onEscapePress,
   })
 
   // Update toast
@@ -200,12 +218,12 @@ function Menu() {
             navigate({
               to: '/settings',
               search: {
-                update: true
-              }
+                update: true,
+              },
             })
-          }
+          },
         },
-        duration: Infinity
+        duration: Infinity,
       })
     }
 
@@ -222,13 +240,13 @@ function Menu() {
           id: 'outdated-background',
           action: {
             label: 'Revert to Default',
-            onClick: () => resetBackground()
+            onClick: () => resetBackground(),
           },
           classNames: {
-            toast: 'max-w-xl'
+            toast: 'max-w-xl',
           },
-          duration: Infinity
-        }
+          duration: Infinity,
+        },
       )
     }
 
@@ -239,7 +257,7 @@ function Menu() {
 
   useLayoutEffect(() => {
     const index = backgrounds.findIndex((bg) => bg.id === activeBackground.id)
-    const ref = backgroundRefs.current[index]
+    const ref = backgroundButtonsRef.current[index]
 
     if (!ref) return
 
@@ -249,7 +267,7 @@ function Menu() {
       requestAnimationFrame(() => {
         ref.scrollIntoView({
           behavior: 'smooth',
-          inline: 'center'
+          inline: 'center',
         })
       })
     }
@@ -262,7 +280,7 @@ function Menu() {
   }, [activeBackground, backgrounds])
 
   const handleSelect = (index: number) => {
-    const ref = backgroundRefs.current[index]
+    const ref = backgroundButtonsRef.current[index]
     if (!ref || ref.id === activeBackground.id) return
     const background = backgrounds.at(index)
     if (!background) return
@@ -273,7 +291,7 @@ function Menu() {
 
   const handleNavigate = (direction: 'prev' | 'next') => {
     const currentIndex = backgrounds.findIndex(
-      (bg) => bg.id === activeBackground.id
+      (bg) => bg.id === activeBackground.id,
     )
     let newIndex
 
@@ -310,24 +328,24 @@ function Menu() {
                 'aspect-video w-fit select-none shadow-lg ring-offset-transparent transition-[width,height,box-shadow,filter] duration-200 focus:outline-none',
                 activeBackground.id === background.id
                   ? 'highlight h-36 rounded-xl shadow-orange-600/15'
-                  : 'highlight-base h-[7.3125rem] rounded-lg shadow-orange-600/10 hover:shadow-orange-600/15'
+                  : 'highlight-base h-[7.3125rem] rounded-lg shadow-orange-600/10 hover:shadow-orange-600/15',
               )}
               initial={{ scale: 0.9 }}
               whileInView={{ scale: 1 }}
               whileHover={{
                 scale: activeBackground.id === background.id ? 1 : 1.05,
-                transition: { duration: 0.2 }
+                transition: { duration: 0.2 },
               }}
               whileTap={{
                 scale: 1,
-                transition: { duration: 0.2 }
+                transition: { duration: 0.2 },
               }}
               transition={{ duration: 0.3 }}
               tabIndex={-1}
               data-index={index}
               ref={(el) => {
                 if (!el) return
-                backgroundRefs.current[index] = el
+                backgroundButtonsRef.current[index] = el
               }}
             >
               <img
@@ -337,7 +355,7 @@ function Menu() {
                   'pointer-events-none h-full w-full transform-gpu select-none object-cover transition-[border-radius]',
                   activeBackground.id === background.id
                     ? 'rounded-xl'
-                    : 'rounded-lg'
+                    : 'rounded-lg',
                 )}
                 src={`/backgrounds/${background.image}`}
                 onError={onImageError}
@@ -348,7 +366,7 @@ function Menu() {
                   'pointer-events-none absolute bottom-0 left-0 right-0 select-none truncate text-ellipsis bg-gradient-to-t from-zinc-950/50 to-transparent p-1 pb-2 pt-1.5 text-center text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] transition-[border-radius] duration-200',
                   activeBackground.id === background.id
                     ? 'rounded-b-xl'
-                    : 'rounded-b-lg'
+                    : 'rounded-b-lg',
                 )}
               >
                 <div
@@ -356,7 +374,7 @@ function Menu() {
                     'font-bold transition-[font-size] duration-200 will-change-transform',
                     activeBackground.id === background.id
                       ? 'text-sm/4'
-                      : 'text-xs'
+                      : 'text-xs',
                   )}
                 >
                   {background.name}
@@ -383,7 +401,7 @@ function Menu() {
                 'peer pointer-events-auto relative rounded-full bg-zinc-800/70 p-1 text-zinc-100 backdrop-blur transition-colors hover:bg-zinc-700/70 focus-visible:bg-zinc-700/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-100 active:bg-zinc-600/70 aria-pressed:bg-zinc-600/70',
                 // !isDemo &&
                 backgroundIndex === 0 &&
-                  'before:absolute before:inset-0 before:animate-ping-border before:rounded-full before:border-zinc-100/50 before:delay-1000'
+                  'before:absolute before:inset-0 before:animate-ping-border before:rounded-full before:border-zinc-100/50 before:delay-1000',
               )}
               onClick={() => handleNavigate('prev')}
               animate={prevButtonAnimation}
@@ -402,7 +420,7 @@ function Menu() {
               className={cn(
                 'absolute -left-4 -top-6 select-none whitespace-nowrap rounded-md bg-zinc-800/70 px-2 py-1 text-xs font-medium text-zinc-100 opacity-0 shadow-lg backdrop-blur transition duration-300',
                 backgroundIndex === 0 &&
-                  'peer-hover:-translate-y-2 peer-hover:opacity-100 peer-focus:-translate-y-2 peer-focus:opacity-100'
+                  'peer-hover:-translate-y-2 peer-hover:opacity-100 peer-focus:-translate-y-2 peer-focus:opacity-100',
               )}
               aria-hidden={backgroundIndex !== 0}
               role="tooltip"
@@ -437,7 +455,7 @@ function Menu() {
       <motion.div
         className="relative flex h-full min-h-0 w-full flex-1 justify-center"
         initial={{ transform: 'scale(.95)' }}
-        whileInView={{ transform: 'scale(1)' }}
+        animate={{ transform: 'scale(1)' }}
         transition={{ duration: 0.3 }}
       >
         <div className="absolute left-0 right-0 top-0 z-10 flex gap-4 p-4">
@@ -457,7 +475,7 @@ function Menu() {
                   transition={{
                     duration: 0.15,
                     ease: 'easeInOut',
-                    transform: { duration: 0.3 }
+                    transform: { duration: 0.3 },
                   }}
                   aria-label={`Selected background tagged as ${tag}`}
                 >
@@ -479,7 +497,7 @@ function Menu() {
                 initial: { scale: 1 },
                 whileHover: { scale: 1.05 },
                 whileFocus: { scale: 1.05 },
-                whileTap: { scale: 0.95 }
+                whileTap: { scale: 0.95 },
               }}
               initial="initial"
               whileHover="whileHover"
@@ -495,7 +513,7 @@ function Menu() {
                   initial: { rotate: 30 },
                   whileHover: { rotate: 390 },
                   whileFocus: { rotate: 390 },
-                  whileTap: { rotate: 390 }
+                  whileTap: { rotate: 390 },
                 }}
                 transition={{ rotate: { duration: 0.75, ease: 'easeOut' } }}
               >
@@ -529,7 +547,7 @@ function Menu() {
               className={clsx(
                 'relative h-14 w-48 select-none text-center text-lg font-medium uppercase tracking-wider transition will-change-transform hover:text-zinc-300 focus-visible:text-zinc-300 focus-visible:outline-none active:scale-95 disabled:pointer-events-none',
                 resetStatus === 'idle' &&
-                  'underline-fade-in after:bottom-4 after:left-1.5 after:right-1.5 after:w-[calc(100%-0.75rem)] after:bg-zinc-300'
+                  'underline-fade-in after:bottom-4 after:left-1.5 after:right-1.5 after:w-[calc(100%-0.75rem)] after:bg-zinc-300',
               )}
               onClick={() => resetBackground()}
               disabled={resetStatus !== 'idle'}
@@ -538,7 +556,7 @@ function Menu() {
                 {resetStatus === 'pending' || resetStatus === 'success' ? (
                   <motion.span
                     initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
+                    animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
                     key="pending"
@@ -548,7 +566,7 @@ function Menu() {
                 ) : (
                   <motion.span
                     initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
+                    animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
                     key="idle"
@@ -569,7 +587,7 @@ function Menu() {
           <button
             className={clsx(
               'h-14 w-40 select-none rounded-[0.2rem] border-2 border-orange-800/40 bg-orange-500 px-10 text-center text-lg font-medium uppercase tracking-wider text-orange-50 shadow-md ring-orange-100 transition will-change-transform hover:scale-105 hover:rounded hover:border-orange-50 focus-visible:scale-105 focus-visible:border-white focus-visible:outline-none focus-visible:ring-1 active:scale-95 disabled:!scale-100 disabled:!border-orange-800/40',
-              setStatus === 'pending' && 'cursor-wait'
+              setStatus === 'pending' && 'cursor-wait',
             )}
             onClick={() => {
               if (setStatus === 'pending') return
@@ -597,7 +615,7 @@ function Menu() {
               ) : setStatus === 'pending' ? (
                 <motion.span
                   initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
+                  animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
                   key="pending"
@@ -607,7 +625,7 @@ function Menu() {
               ) : (
                 <motion.span
                   initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
+                  animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
                   key="idle"

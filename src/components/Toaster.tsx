@@ -11,9 +11,9 @@ export default function Toaster() {
         // duration: 2000,
         classNames: {
           toast: 'select-none',
-          actionButton: '!ml-1 font-semibold'
+          actionButton: '!ml-1 font-semibold',
         },
-        closeButton: true
+        closeButton: true,
       }}
       offset="0.75rem"
     />

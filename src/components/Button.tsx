@@ -53,7 +53,7 @@ export const LinkButton = createLink(
         {children}
       </Link>
     )
-  }
+  },
 )
 
 type MotionButtonProps = ButtonProps & HTMLMotionProps<'button'>
@@ -95,7 +95,7 @@ export function ExternalLinkInline({
       {...props}
       className={cn(
         'rounded-sm underline underline-offset-2 transition hover:text-white focus-visible:text-white focus-visible:outline-none active:text-zinc-200',
-        className
+        className,
       )}
       target="_blank"
       rel="noreferrer"

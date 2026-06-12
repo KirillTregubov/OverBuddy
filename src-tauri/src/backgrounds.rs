@@ -792,7 +792,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Celestial Garden",
         description: "Mercy Mythic Skin (Season 1: Conquest)",
         tags: &["Mythic Skin", "Shop", "Has Overlay"],
-        new: true,
+        new: false,
     },
     Background {
         id: "0x080000000000146D",
@@ -800,7 +800,7 @@ const BACKGROUNDS: &[Background] = &[
         name: "Star Shooter",
         description: "Juno Mythic Weapon (Season 1: Conquest)",
         tags: &["Mythic Weapon", "Shop", "Has Overlay"],
-        new: true,
+        new: false,
     },
 ];
 

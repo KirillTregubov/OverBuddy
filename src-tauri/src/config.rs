@@ -105,8 +105,8 @@ pub fn get_default_config() -> Config {
 static CONFIG_FILE: &str = "data.json";
 
 fn merge(a: &mut Value, b: Value) {
-    if let Value::Object(a) = a {
-        if let Value::Object(b) = b {
+    match (a, b) {
+        (Value::Object(a), Value::Object(b)) => {
             for (k, v) in b {
                 if v.is_null() {
                     a.remove(&k);
@@ -114,12 +114,11 @@ fn merge(a: &mut Value, b: Value) {
                     merge(a.entry(k).or_insert(Value::Null), v);
                 }
             }
-
-            return;
+        }
+        (a, b) => {
+            *a = b;
         }
     }
-
-    *a = b;
 }
 
 pub fn read_config(handle: &AppHandle) -> Result<Config, Error> {

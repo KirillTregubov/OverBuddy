@@ -1,6 +1,6 @@
 // @ts-check
+import eslintReact from '@eslint-react/eslint-plugin'
 import pluginRouter from '@tanstack/eslint-plugin-router'
-import reactPlugin from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import { reactRefresh } from 'eslint-plugin-react-refresh'
 import { defineConfig } from 'eslint/config'
@@ -14,17 +14,25 @@ export default defineConfig([
     languageOptions: {
       parserOptions: {
         ecmaFeatures: {
-          jsx: true
-        }
+          jsx: true,
+        },
       },
-      globals: globals.browser
-    }
+      globals: globals.browser,
+    },
   },
   {
-    ignores: ['src-tauri/**/*', 'dist/**/*']
+    ignores: ['src-tauri/**/*', 'dist/**/*'],
   },
-  reactPlugin.configs.flat.recommended,
-  reactPlugin.configs.flat['jsx-runtime'],
+  {
+    ...eslintReact.configs['recommended-typescript'],
+    files: ['**/*.{jsx,tsx}'],
+    rules: {
+      ...eslintReact.configs['recommended-typescript'].rules,
+      '@eslint-react/exhaustive-deps': 'off',
+      '@eslint-react/rules-of-hooks': 'off',
+      '@eslint-react/use-memo': 'off',
+    },
+  },
   reactRefresh.configs.vite({
     extraHOCs: [
       'createFileRoute',
@@ -33,26 +41,18 @@ export default defineConfig([
       'createRootRouteWithContext',
       'createLink',
       'createRoute',
-      'createLazyRoute'
-    ]
+      'createLazyRoute',
+    ],
   }),
   reactHooks.configs.flat['recommended-latest'], // Official React team rules
   ...pluginRouter.configs['flat/recommended'],
   {
-    plugins: {
-      reactPlugin
-    },
     rules: {
       '@typescript-eslint/no-unused-vars': [
         'error',
-        { caughtErrorsIgnorePattern: '^_' }
+        { caughtErrorsIgnorePattern: '^_' },
       ],
-      'react-refresh/only-export-components': 'warn'
+      'react-refresh/only-export-components': 'warn',
     },
-    settings: {
-      react: {
-        version: 'detect'
-      }
-    }
-  }
+  },
 ])

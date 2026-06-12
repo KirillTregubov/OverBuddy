@@ -3,10 +3,10 @@ export const fadeInVariants = {
   show: {
     opacity: 1,
     transition: {
-      duration: 0.3
+      duration: 0.3,
       // ease: 'easeInOut'
-    }
-  }
+    },
+  },
 }
 
 export const fadeInFastVariants = {
@@ -14,18 +14,18 @@ export const fadeInFastVariants = {
   show: {
     opacity: 1,
     transition: {
-      duration: 0.2
+      duration: 0.2,
       // ease: 'easeInOut'
-    }
-  }
+    },
+  },
 }
 
 export const staggerChildrenVariants = {
   show: {
     transition: {
-      staggerChildren: 0.02
-    }
-  }
+      staggerChildren: 0.02,
+    },
+  },
 }
 
 export const moveInVariants = {
@@ -33,9 +33,9 @@ export const moveInVariants = {
   show: {
     transform: 'translateY(0)',
     transition: {
-      duration: 0.3
-    }
-  }
+      duration: 0.3,
+    },
+  },
 }
 
 export const moveInLessVariants = {
@@ -43,18 +43,18 @@ export const moveInLessVariants = {
   show: {
     transform: 'translateY(0)',
     transition: {
-      duration: 0.3
-    }
-  }
+      duration: 0.3,
+    },
+  },
 }
 
 export const fadeMoveInVariants = {
   hidden: {
     ...fadeInVariants.hidden,
-    ...moveInVariants.hidden
+    ...moveInVariants.hidden,
   },
   show: {
     ...fadeInVariants.show,
-    ...moveInVariants.show
-  }
+    ...moveInVariants.show,
+  },
 }

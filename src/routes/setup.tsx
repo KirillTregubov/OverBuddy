@@ -20,7 +20,7 @@ export const Route = createFileRoute('/setup')({
       throw redirect({ to: '/menu' })
     }
   },
-  component: Setup
+  component: Setup,
 })
 
 function Setup() {

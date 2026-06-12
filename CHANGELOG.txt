@@ -1,6 +1,3 @@
-OverBuddy has been updated!
-- Added new Celestial Garden Mercy Mythic and Star Shooter Juno Mythic Weapon backgrounds.
-- Verified compatibility with Season 1: Conquest patch (v2.21.0.0).
-- Fixed various issues and made improvements.
+This is the final release of OverBuddy. Recent Overwatch updates have removed the ability to change your in-game menu background from the New Menu experience introduced in Season 1: Conquest.
 
-Note: Because of the New Menu experience introduced in Season 1: Conquest, using a custom background will hide the dynamic feed and links to new Event, Shop, and Lore content.
+Thank you to everyone who has used OverBuddy, I hope you enjoyed using it to personalize your game as much as I enjoyed making it!

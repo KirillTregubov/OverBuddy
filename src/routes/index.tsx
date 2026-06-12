@@ -11,5 +11,5 @@ export const Route = createFileRoute('/')({
       throw redirect({ to: '/setup' })
     }
   },
-  pendingMs: 0
+  pendingMs: 0,
 })

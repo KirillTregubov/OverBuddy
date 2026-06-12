@@ -6,7 +6,7 @@ import type { SteamProfile } from '@/lib/schemas'
 
 export default function SteamProfileComponent({
   account,
-  large = false
+  large = false,
 }: {
   account: SteamProfile
   large?: boolean
@@ -26,7 +26,7 @@ export default function SteamProfileComponent({
             onError={() => setIsError(true)}
             className={clsx(
               'block rounded shadow-inner brightness-50',
-              large ? 'h-28 w-28' : 'size-16'
+              large ? 'h-28 w-28' : 'size-16',
             )}
             draggable={false}
           />
@@ -34,7 +34,7 @@ export default function SteamProfileComponent({
           <div
             className={clsx(
               'flex items-center justify-center rounded bg-zinc-700 shadow-inner brightness-[0.25]',
-              large ? 'size-28' : 'size-16'
+              large ? 'size-28' : 'size-16',
             )}
           >
             <UserRoundIcon size={large ? 96 : 48} />
@@ -46,7 +46,7 @@ export default function SteamProfileComponent({
               'absolute flex items-center rounded',
               large
                 ? 'inset-0 justify-center bg-orange-950/25'
-                : 'bottom-1 left-1 right-1 justify-end'
+                : 'bottom-1 left-1 right-1 justify-end',
             )}
             title="Found Overwatch Data"
           >
@@ -64,7 +64,7 @@ export default function SteamProfileComponent({
               'absolute flex items-center rounded',
               large
                 ? 'inset-0 justify-center bg-zinc-950/20'
-                : 'bottom-1 left-1 right-1 justify-end'
+                : 'bottom-1 left-1 right-1 justify-end',
             )}
             title="No Overwatch Data Found"
           >

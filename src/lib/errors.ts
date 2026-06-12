@@ -9,7 +9,7 @@ export const ConfigErrors = z.enum([
   'BattleNetConfig',
   'BattleNetInstall',
   'SteamInstall',
-  'SteamAccount'
+  'SteamAccount',
 ])
 export type ConfigErrors = z.infer<typeof ConfigErrors>
 
@@ -17,7 +17,7 @@ export type ConfigErrors = z.infer<typeof ConfigErrors>
 export const ConfigErrorSchema = z.object({
   error_key: ConfigErrors.or(z.enum(['NoOverwatch'])),
   message: z.string(),
-  platforms: z.array(Platform)
+  platforms: z.array(Platform),
 })
 export type ConfigErrorSchema = z.infer<typeof ConfigErrorSchema>
 
@@ -42,7 +42,7 @@ export class SetupError extends Error {
 
 export const SetupPathResponse = z.object({
   path: z.string().nullable(),
-  defaultPath: z.string().nullable()
+  defaultPath: z.string().nullable(),
 })
 export type SetupPathResponse = z.infer<typeof SetupPathResponse>
 
@@ -63,9 +63,9 @@ export function handleError(error: unknown) {
       (/[.!?]$/.test(error as string) ? '' : '.'),
     {
       classNames: {
-        toast: '!max-w-[28rem] !select-auto'
-      }
-    }
+        toast: '!max-w-[28rem] !select-auto',
+      },
+    },
   )
   // , {
   //   action: reportable
@@ -81,7 +81,7 @@ export function handleError(error: unknown) {
 export function getReportURL(error: Error) {
   const formattedError = error.message.replaceAll(/\[\[|\]\]/g, '"')
   const body = encodeURIComponent(
-    `**Encountered Error**\n\`\`\`${formattedError}\`\`\`\n\n**Describe your issue**\n\n<!--Please describe how you ran into this issue and leave any other comments.-->\n\n\n**App Context:**\n**OverBuddy Version:** \`\`\`Version ${import.meta.env.PACKAGE_VERSION} (${mode})\`\`\`\n**Route:** \`\`\`${window.location.pathname}\`\`\``
+    `**Encountered Error**\n\`\`\`${formattedError}\`\`\`\n\n**Describe your issue**\n\n<!--Please describe how you ran into this issue and leave any other comments.-->\n\n\n**App Context:**\n**OverBuddy Version:** \`\`\`Version ${import.meta.env.PACKAGE_VERSION} (${mode})\`\`\`\n**Route:** \`\`\`${window.location.pathname}\`\`\``,
   )
   return `https://github.com/KirillTregubov/OverBuddy/issues/new?body=${body}`
 }

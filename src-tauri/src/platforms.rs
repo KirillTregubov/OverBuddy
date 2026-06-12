@@ -41,7 +41,7 @@ pub mod battle_net {
         });
 
         // Read config file
-        let mut json = read_config(&config)?;
+        let mut json = read_config(config)?;
 
         // Check Overwatch installation on Battle.net
         let overwatch_config = match json
@@ -132,11 +132,11 @@ pub mod battle_net {
         if config.battle_net.enabled {
             // Reset background
             if config.shared.background.current.is_some() {
-                set_launch_args(&config, None, helpers::generate_background_launch_args)?;
+                set_launch_args(config, None, helpers::generate_background_launch_args)?;
             }
             // Reset debug console state
             if config.shared.additional.console_enabled {
-                set_launch_args(&config, false, helpers::generate_console_launch_args)?;
+                set_launch_args(config, false, helpers::generate_console_launch_args)?;
             }
         }
 
@@ -294,7 +294,7 @@ pub mod steam {
         }
 
         // Update profiles
-        config.steam.profiles = Some(get_profiles(&config)?);
+        config.steam.profiles = Some(get_profiles(config)?);
 
         // Update configuration state
         let mut shared_config = config::SharedConfig {
@@ -338,26 +338,26 @@ pub mod steam {
                                     })
                             });
 
-                    if !background_conflict && resolved_background.is_some() {
-                        if shared_config.background.current.is_some() {
-                            if resolved_background.unwrap()
-                                != shared_config.background.current.clone().unwrap()
-                            {
-                                shared_config.background.current = None;
-                                shared_config.background.is_outdated = false;
+                    if let Some(resolved_background) = resolved_background {
+                        if !background_conflict {
+                            if let Some(current_background) = &shared_config.background.current {
+                                if resolved_background != *current_background {
+                                    shared_config.background.current = None;
+                                    shared_config.background.is_outdated = false;
 
-                                background_conflict = true;
+                                    background_conflict = true;
+                                }
+                            } else {
+                                shared_config.background.current = Some(resolved_background);
+                                shared_config.background.is_outdated = false;
                             }
-                        } else {
-                            shared_config.background.current = resolved_background;
-                            shared_config.background.is_outdated = false;
                         }
-                    } else if resolved_background.is_none() && current_background.is_some() {
+                    } else if current_background.is_some() {
                         shared_config.background.is_outdated = true;
                     }
 
                     // Save debug console state
-                    shared_config.additional.console_enabled =
+                    shared_config.additional.console_enabled |=
                         helpers::get_console_enabled(&launch_args);
                 }
             }
@@ -384,17 +384,18 @@ pub mod steam {
         // Fetch Steam userdata
         static CONFIG_FILE: &str = "localconfig.vdf";
         let userdata_path = steam_path.join("userdata");
-        if userdata_path.exists() && userdata_path.is_dir() {
-            if let Ok(entries) = fs::read_dir(&userdata_path) {
-                for entry in entries.filter_map(Result::ok) {
-                    let config_path = entry.path().join("config");
-                    let config_file_path = config_path.join(CONFIG_FILE);
-                    if config_file_path.exists() && config_file_path.is_file() {
-                        configs.push(config::SteamLocalconfig {
-                            id: entry.file_name().to_string_lossy().to_string(),
-                            file: config_file_path.to_string_lossy().to_string(),
-                        });
-                    }
+        if userdata_path.exists()
+            && userdata_path.is_dir()
+            && let Ok(entries) = fs::read_dir(&userdata_path)
+        {
+            for entry in entries.filter_map(Result::ok) {
+                let config_path = entry.path().join("config");
+                let config_file_path = config_path.join(CONFIG_FILE);
+                if config_file_path.exists() && config_file_path.is_file() {
+                    configs.push(config::SteamLocalconfig {
+                        id: entry.file_name().to_string_lossy().to_string(),
+                        file: config_file_path.to_string_lossy().to_string(),
+                    });
                 }
             }
         }
@@ -407,11 +408,11 @@ pub mod steam {
         if config.steam.enabled {
             // Reset background
             if config.shared.background.current.is_some() {
-                set_launch_args(&config, None, helpers::generate_background_launch_args)?;
+                set_launch_args(config, None, helpers::generate_background_launch_args)?;
             }
             // Reset debug console state
             if config.shared.additional.console_enabled {
-                set_launch_args(&config, false, helpers::generate_console_launch_args)?;
+                set_launch_args(config, false, helpers::generate_console_launch_args)?;
             }
         }
 
@@ -438,59 +439,51 @@ pub mod steam {
         let middle_key = "\n\t\"friends\"";
         let id = steam_config.id.as_str();
 
-        if let Some(outer_start) = contents.to_lowercase().find(&outer_key.to_lowercase()) {
-            if let Some(middle_start) = contents[outer_start..]
+        if let Some(outer_start) = contents.to_lowercase().find(&outer_key.to_lowercase())
+            && let Some(middle_start) = contents[outer_start..]
                 .to_lowercase()
                 .find(&middle_key.to_lowercase())
-            {
-                if let Some(id_start) =
-                    contents[outer_start + middle_start..].find(&format!("\"{}\"", id))
-                {
-                    let object_start = outer_start + middle_start + id_start;
-                    if let Some(open_brace_index) = contents[object_start..].find('{') {
-                        let object_start = object_start + open_brace_index;
-                        let mut open_braces = 1;
-                        let mut in_quotes = false;
+            && let Some(id_start) =
+                contents[outer_start + middle_start..].find(&format!("\"{}\"", id))
+            && let Some(open_brace_index) =
+                contents[outer_start + middle_start + id_start..].find('{')
+        {
+            let object_start = outer_start + middle_start + id_start + open_brace_index;
+            let mut open_braces = 1;
+            let mut in_quotes = false;
 
-                        for (i, c) in contents[object_start + 1..].chars().enumerate() {
-                            match c {
-                                '{' if !in_quotes => open_braces += 1,
-                                '}' if !in_quotes => {
-                                    open_braces -= 1;
-                                    if open_braces == 0 {
-                                        let end_index = object_start + i + 2;
-                                        let object_str = &contents[object_start..end_index];
+            for (i, c) in contents[object_start + 1..].chars().enumerate() {
+                match c {
+                    '{' if !in_quotes => open_braces += 1,
+                    '}' if !in_quotes => {
+                        open_braces -= 1;
+                        if open_braces == 0 {
+                            let end_index = object_start + i + 2;
+                            let object_str = &contents[object_start..end_index];
 
-                                        let avatar =
-                                            extract_value(object_str, "avatar").map(|avatar| {
-                                                format!("{}/{}_full.jpg", STEAM_AVATAR_URL, avatar)
-                                            });
+                            let avatar = extract_value(object_str, "avatar")
+                                .map(|avatar| format!("{}/{}_full.jpg", STEAM_AVATAR_URL, avatar));
 
-                                        let mut name = extract_name_history(object_str);
-                                        if name.is_none() || name.as_ref().unwrap().is_empty() {
-                                            name = extract_value(object_str, "name");
-                                        }
-                                        if name.is_none() || name.as_ref().unwrap().is_empty() {
-                                            return Err(Error::Custom(
-                                                "Failed to find profile name".into(),
-                                            ));
-                                        }
-
-                                        let has_overwatch = get_overwatch_installed(&contents)?;
-
-                                        return Ok(SteamProfile {
-                                            id: id.to_string(),
-                                            name: name.unwrap(),
-                                            avatar,
-                                            has_overwatch,
-                                        });
-                                    }
-                                }
-                                '"' => in_quotes = !in_quotes,
-                                _ => {}
+                            let mut name = extract_name_history(object_str);
+                            if name.is_none() || name.as_ref().unwrap().is_empty() {
+                                name = extract_value(object_str, "name");
                             }
+                            if name.is_none() || name.as_ref().unwrap().is_empty() {
+                                return Err(Error::Custom("Failed to find profile name".into()));
+                            }
+
+                            let has_overwatch = get_overwatch_installed(&contents)?;
+
+                            return Ok(SteamProfile {
+                                id: id.to_string(),
+                                name: name.unwrap(),
+                                avatar,
+                                has_overwatch,
+                            });
                         }
                     }
+                    '"' => in_quotes = !in_quotes,
+                    _ => {}
                 }
             }
         }
@@ -676,9 +669,9 @@ pub mod steam {
         }
     }
 
-    fn get_config_launch_args(
-        config_filename: &str,
-    ) -> Result<(Option<String>, Option<usize>, Option<usize>), Error> {
+    type LaunchArgsInfo = (Option<String>, Option<usize>, Option<usize>);
+
+    fn get_config_launch_args(config_filename: &str) -> Result<LaunchArgsInfo, Error> {
         let mut file = fs::OpenOptions::new()
             .read(true)
             .write(true)
@@ -802,13 +795,13 @@ pub mod steam {
             }
 
             let launch_args = &local_config[value_start..value_end];
-            return Ok((
+            Ok((
                 Some(launch_args.to_string()),
                 Some(value_start),
                 Some(value_end),
-            ));
+            ))
         } else {
-            return Ok((Some(String::new()), Some(block_start + 1), None));
+            Ok((Some(String::new()), Some(block_start + 1), None))
         }
     }
 
@@ -898,17 +891,18 @@ pub mod steam {
             }
 
             // Verify backup file
-            let config_changed = verify_file_diff(&config_filename, &backup_path);
-            if config_changed.is_err() {
-                return Err(Error::Custom(format!(
-                    "Failed to verify the backup file at [[{}]], {}",
-                    backup_path,
-                    config_changed.unwrap_err()
-                )));
-            }
+            let config_changed = verify_file_diff(config_filename, &backup_path);
+            let config_changed = match config_changed {
+                Ok(config_changed) => config_changed,
+                Err(error) => {
+                    return Err(Error::Custom(format!(
+                        "Failed to verify the backup file at [[{}]], {}",
+                        backup_path, error
+                    )));
+                }
+            };
 
-            // Apply backup file
-            if !config_changed.unwrap() {
+            if !config_changed {
                 return Ok(());
             }
         }
@@ -920,6 +914,6 @@ pub mod steam {
                 config_filename, e
             )));
         }
-        return Ok(());
+        Ok(())
     }
 }

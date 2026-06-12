@@ -14,7 +14,7 @@ const Progress = ({
   <ProgressPrimitive.Root
     className={cn(
       'relative h-3 w-full overflow-hidden rounded-full bg-zinc-800',
-      className
+      className,
     )}
     {...props}
   >

@@ -35,7 +35,7 @@ const visitedBackgrounds = [
   '1276', // Was Juno is now squished OWCS
   '12B9', // Overwatch Classic not shaded
   '12BA', // Overwatch Classic draft
-  '1318' // White square in sky
+  '1318', // White square in sky
 ]
 
 // Paths
@@ -57,7 +57,7 @@ function runDataTool(): Promise<string> {
           reject(`Stderr: ${stderr}`)
         }
         resolve(stdout)
-      }
+      },
     )
   })
 }
@@ -68,7 +68,7 @@ function normalizeId(id: string): string {
 
 // Function to extract IDs from backgrounds.rs
 async function extractBackgroundIds(
-  backgroundsFile: string
+  backgroundsFile: string,
 ): Promise<string[]> {
   const content = await readFile(backgroundsFile, 'utf-8')
   const idRegex = /^\s*(?:\/\/\s*)?id: "0x[0-9A-Fa-f]+",/gm
@@ -93,7 +93,7 @@ function extractMapIds(output: string): { id: string; name: string }[] {
 
   return matches.map((match) => ({
     name: match[1].trim(), // Capture the map name (everything before the colon)
-    id: match[2] // Capture the map ID (3 or 4 hex characters)
+    id: match[2], // Capture the map ID (3 or 4 hex characters)
   }))
 }
 
@@ -115,12 +115,12 @@ try {
   console.log('Collected Background IDs', mapIds)
   console.log(
     'Map names',
-    mapData.map((data) => data.name)
+    mapData.map((data) => data.name),
   )
 
   // Step 4: List extra IDs in DataTool output that are not in backgrounds.rs
   const extraIds = mapData.filter(
-    ({ id }) => !backgroundIds.includes(id) && !visitedBackgrounds.includes(id)
+    ({ id }) => !backgroundIds.includes(id) && !visitedBackgrounds.includes(id),
   )
 
   if (extraIds.length > 0) {
@@ -128,7 +128,7 @@ try {
       .map(({ id, name }) => `${id} (${name})`)
       .join('\n')
     console.log(
-      `IDs in DataTool output but not in backgrounds.rs:\n${extraIdOutput}\n`
+      `IDs in DataTool output but not in backgrounds.rs:\n${extraIdOutput}\n`,
     )
   } else {
     console.log('All IDs from DataTool output are present in backgrounds.rs.\n')
@@ -139,7 +139,7 @@ try {
 
   if (missingIds.length > 0) {
     console.log(
-      `IDs in backgrounds.rs but not in DataTool output: ${missingIds.join(', ')}.`
+      `IDs in backgrounds.rs but not in DataTool output: ${missingIds.join(', ')}.`,
     )
   } else {
     console.log('All IDs from backgrounds.rs are present in DataTool output.')

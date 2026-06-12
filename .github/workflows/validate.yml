@@ -8,28 +8,35 @@ on:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Setup Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: 24
           cache: 'pnpm'
 
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile --strict-peer-dependencies
 
-      - name: Run TypeScript compiler
-        run: pnpm tsc
+      - name: Validate frontend (Typecheck and Build, Linting, Formatting)
+        run: pnpm validate:frontend
 
-      - name: Run ESLint
-        run: pnpm lint
-
-      - name: Run Prettier
-        run: pnpm format:check
+      - name: Validate Rust (Clippy, Formatting, and Build)
+        run: pnpm validate:rust

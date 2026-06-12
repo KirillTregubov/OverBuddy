@@ -4,7 +4,7 @@ import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient
 }>()({
-  component: RootComponent
+  component: RootComponent,
 })
 
 function RootComponent() {

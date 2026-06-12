@@ -11,7 +11,7 @@ import Highlight from '@/components/Highlight'
 import {
   getSetupPath,
   launchQueryOptions,
-  useSetupErrorMutation
+  useSetupErrorMutation,
 } from '@/lib/data'
 import { ConfigError, ConfigErrors, handleError } from '@/lib/errors'
 import { Platform, RedirectSearchParam } from '@/lib/schemas'
@@ -19,7 +19,7 @@ import { Platform, RedirectSearchParam } from '@/lib/schemas'
 export const Route = createFileRoute('/setup/$key')({
   validateSearch: RedirectSearchParam.extend({
     message: z.string(),
-    platforms: z.array(Platform).default([])
+    platforms: z.array(Platform).default([]),
   }),
   loader: async ({ params: { key }, context: { queryClient } }) => {
     const result = ConfigErrors.safeParse(key)
@@ -29,7 +29,7 @@ export const Route = createFileRoute('/setup/$key')({
     await queryClient.ensureQueryData(getSetupPath(result.data))
   },
   staleTime: Infinity,
-  component: ConfigureComponent
+  component: ConfigureComponent,
 })
 
 function ConfigureComponent() {
@@ -37,10 +37,10 @@ function ConfigureComponent() {
   const { key } = Route.useParams() as { key: ConfigErrors }
   const { message, platforms, redirect } = Route.useSearch()
   const {
-    data: { path, defaultPath }
+    data: { path, defaultPath },
   } = useSuspenseQuery(getSetupPath(key))
   const {
-    data: { is_setup }
+    data: { is_setup },
   } = useSuspenseQuery(launchQueryOptions)
 
   const { mutate, reset } = useSetupErrorMutation({
@@ -48,12 +48,12 @@ function ConfigureComponent() {
       if (redirect) {
         navigate({
           to: redirect,
-          replace: true
+          replace: true,
         })
       } else {
         navigate({
           to: '/menu',
-          replace: true
+          replace: true,
         })
       }
     },
@@ -65,19 +65,19 @@ function ConfigureComponent() {
         navigate({
           to: '/setup/$key',
           params: {
-            key: error.error_key
+            key: error.error_key,
           },
           search: {
             message: error.message,
-            platforms: error.platforms
+            platforms: error.platforms,
           },
-          replace: true
+          replace: true,
         })
       }
 
       handleError(error)
       reset()
-    }
+    },
   })
 
   return (
@@ -142,18 +142,18 @@ function ConfigureComponent() {
                 if (redirect) {
                   navigate({
                     to: redirect,
-                    replace: true
+                    replace: true,
                   })
                 } else {
                   navigate({
                     to: '/menu',
-                    replace: true
+                    replace: true,
                   })
                 }
               } else {
                 navigate({
                   to: '/setup/select',
-                  replace: true
+                  replace: true,
                 })
               }
             }}
@@ -166,7 +166,7 @@ function ConfigureComponent() {
                 mutate({
                   key,
                   path: undefined,
-                  platforms
+                  platforms,
                 })
               }}
             >
@@ -185,10 +185,10 @@ function ConfigureComponent() {
                         : key === 'BattleNetConfig'
                           ? 'Configuration File'
                           : 'steam',
-                    extensions: [key.endsWith('Config') ? 'config' : 'exe']
-                  }
+                    extensions: [key.endsWith('Config') ? 'config' : 'exe'],
+                  },
                 ],
-                defaultPath: defaultPath || undefined
+                defaultPath: defaultPath || undefined,
               })
               if (!selected) return
               const file =
@@ -199,14 +199,14 @@ function ConfigureComponent() {
                     : 'steam.exe'
               if (selected.indexOf(file) === -1) {
                 toast.error(`Please select the "${file}" file.`, {
-                  closeButton: false
+                  closeButton: false,
                 })
                 return
               }
               mutate({
                 key,
                 path: selected as string,
-                platforms
+                platforms,
               })
             }}
           >

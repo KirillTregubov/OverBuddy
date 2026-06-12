@@ -14,9 +14,10 @@ jobs:
     environment: release
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Read Changelog
+        id: changelog
         run: |
           # Read version
           $version = (Get-Content package.json | ConvertFrom-Json).version
@@ -26,24 +27,31 @@ jobs:
             $tag = "v$version"
           }
 
-          # Export changelog
-          echo "CHANGELOG_BODY<<EOF" >> $env:GITHUB_ENV
           $changelog = Get-Content CHANGELOG.txt -Raw
-          echo "$changelog" >> $env:GITHUB_ENV
-          echo "EOF" >> $env:GITHUB_ENV
+          $releaseNotes = (Get-Content RELEASE.md -Raw) `
+            -replace '__VERSION__', $version `
+            -replace '__TAG__', $tag
+
+          $releaseBody = @"
+          $changelog
+
+          $releaseNotes
+          "@
 
           # Export tag name
-          echo "TAG_NAME=$tag" >> $env:GITHUB_ENV
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "tag_name=$tag"
 
-          # Export changelog + release notes
-          echo "RELEASE_BODY<<EOF" >> $env:GITHUB_ENV
-          echo "$changelog" >> $env:GITHUB_ENV
-          echo "" >> $env:GITHUB_ENV
-          (Get-Content RELEASE.md -Raw) -replace '__VERSION__', "$version" -replace '__TAG__', "$tag" >> $env:GITHUB_ENV
-          echo "EOF" >> $env:GITHUB_ENV
+          # Export changelog
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "changelog_body<<EOF"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value $changelog
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "EOF"
 
-          # Print success message
-          echo "Successfully read changelog"
+          # Export release notes
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "release_body<<EOF"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value $releaseBody
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "EOF"
+
+          Write-Host "Successfully read changelog"
         shell: pwsh
 
       - name: Install Rust
@@ -58,9 +66,9 @@ jobs:
         uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: 'pnpm'
 
       - name: Install frontend dependencies
@@ -77,7 +85,7 @@ jobs:
           tauriScript: pnpm tauri
           tagName: ${{ github.event_name == 'pull_request' && 'v__VERSION__-pre' || 'v__VERSION__' }}
           releaseName: ${{ github.event_name == 'pull_request' && 'OverBuddy v__VERSION__ (Preview)' || 'OverBuddy v__VERSION__' }}
-          releaseBody: ${{ env.CHANGELOG_BODY }}
+          releaseBody: ${{ steps.changelog.outputs.release_body }}
           releaseDraft: ${{ github.event_name == 'pull_request' }}
           prerelease: ${{ github.event_name == 'pull_request' }}
 
@@ -90,8 +98,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INPUT_REPO: ${{ github.repository }}
           INPUT_RELEASE_ID: ${{ steps.tauri.outputs.releaseId }}
-          INPUT_BODY: ${{ toJSON(env.RELEASE_BODY) }}
-          INPUT_TAG_NAME: ${{ env.TAG_NAME }}
+          INPUT_BODY: ${{ toJSON(steps.changelog.outputs.release_body) }}
+          INPUT_TAG_NAME: ${{ steps.changelog.outputs.tag_name }}
 
       - name: Handle Update Release Success
         run: echo "Successfully updated release body"
