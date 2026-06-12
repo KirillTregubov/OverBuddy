@@ -50,6 +50,7 @@ export const Background = z.object({
   description: z.string(),
   tags: z.array(z.string()),
   new: z.boolean(),
+  removed: z.string().nullable(),
 })
 export type Background = z.infer<typeof Background>
 

@@ -2498,7 +2498,7 @@ dependencies = [
 
 [[package]]
 name = "overbuddy"
-version = "2.1.12"
+version = "2.2.0"
 dependencies = [
  "dunce",
  "serde",
