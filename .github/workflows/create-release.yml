@@ -63,7 +63,7 @@ jobs:
           workspaces: './src-tauri -> target'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -91,7 +91,7 @@ jobs:
 
       - name: Update Release Body
         id: update_release
-        uses: octokit/request-action@v2.x
+        uses: octokit/request-action@v3.x
         with:
           route: PATCH /repos/{repo}/releases/{release_id}
         env:
