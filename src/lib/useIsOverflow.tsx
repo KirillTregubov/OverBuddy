@@ -1,28 +1,35 @@
-import { useLayoutEffect, useState } from 'react'
+import { useCallback, useSyncExternalStore } from 'react'
 
 export const useIsOverflow = (
   ref: React.RefObject<HTMLElement | null>,
   callback?: (isOverflow: boolean) => void,
 ) => {
-  const [isOverflow, setIsOverflow] = useState<boolean | null>(null)
-
-  useLayoutEffect(() => {
+  const getSnapshot = useCallback(() => {
     const { current } = ref
-    if (!current) return
+    if (!current) return null
 
-    const trigger = () => {
-      const hasOverflow = current.scrollWidth > current.clientWidth // current.scrollHeight > current.clientHeight
+    return current.scrollWidth > current.clientWidth
+  }, [ref])
 
-      setIsOverflow(hasOverflow)
-      if (callback) callback(hasOverflow)
-    }
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => {
+      const { current } = ref
+      if (!current) return () => {}
 
-    if ('ResizeObserver' in window) {
-      new ResizeObserver(trigger).observe(current)
-    }
+      const trigger = () => {
+        onStoreChange()
+        callback?.(current.scrollWidth > current.clientWidth)
+      }
+      const observer =
+        'ResizeObserver' in window ? new ResizeObserver(trigger) : undefined
 
-    trigger()
-  }, [callback, ref])
+      observer?.observe(current)
+      trigger()
 
-  return isOverflow
+      return () => observer?.disconnect()
+    },
+    [callback, ref],
+  )
+
+  return useSyncExternalStore(subscribe, getSnapshot, () => null)
 }

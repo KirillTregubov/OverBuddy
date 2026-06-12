@@ -120,7 +120,7 @@ function Menu() {
     onSuccess: () => resetSetBackground(),
     onSettled: () => reset(),
   })
-  const backgroundRefs = useRef<HTMLButtonElement[]>([])
+  const backgroundButtonsRef = useRef<HTMLButtonElement[]>([])
   const { mutate: setActiveBackground } = useActiveBackgroundMutation()
 
   const backgroundIndex = useMemo(() => {
@@ -257,7 +257,7 @@ function Menu() {
 
   useLayoutEffect(() => {
     const index = backgrounds.findIndex((bg) => bg.id === activeBackground.id)
-    const ref = backgroundRefs.current[index]
+    const ref = backgroundButtonsRef.current[index]
 
     if (!ref) return
 
@@ -280,7 +280,7 @@ function Menu() {
   }, [activeBackground, backgrounds])
 
   const handleSelect = (index: number) => {
-    const ref = backgroundRefs.current[index]
+    const ref = backgroundButtonsRef.current[index]
     if (!ref || ref.id === activeBackground.id) return
     const background = backgrounds.at(index)
     if (!background) return
@@ -345,7 +345,7 @@ function Menu() {
               data-index={index}
               ref={(el) => {
                 if (!el) return
-                backgroundRefs.current[index] = el
+                backgroundButtonsRef.current[index] = el
               }}
             >
               <img

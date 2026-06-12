@@ -1,9 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
     "target": "ES2022",
     "useDefineForClassFields": true,
@@ -24,7 +23,7 @@
     "noUncheckedIndexedAccess": true
   },
   "include": [
-    "src",
+    "./src",
     "./index.d.ts",
     "./tailwind.config.ts",
     "./eslint.config.js"

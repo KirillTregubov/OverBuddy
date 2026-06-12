@@ -8,10 +8,20 @@ on:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Setup Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -25,11 +35,5 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile --strict-peer-dependencies
 
-      - name: Run TypeScript compiler
-        run: pnpm tsc
-
-      - name: Run ESLint
-        run: pnpm lint
-
-      - name: Run Prettier
-        run: pnpm format:check
+      - name: Run validation
+        run: pnpm validate
