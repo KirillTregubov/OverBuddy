@@ -99,6 +99,9 @@ function onImageError(event: React.SyntheticEvent<HTMLImageElement, Event>) {
 const prevKeys = ['ArrowLeft', 'a']
 const nextKeys = ['ArrowRight', 'd']
 
+const getBackgroundKey = (background: { id: string; image: string }) =>
+  `${background.id}-${background.image}`
+
 function Menu() {
   const navigate = useNavigate()
   const { data: backgrounds } = useSuspenseQuery(backgroundsQueryOptions)
@@ -107,6 +110,7 @@ function Menu() {
   )
   const { data: config } = useSuspenseQuery(launchQueryOptions)
   const { data: updateAvailable } = useQuery(updateQueryOptions(true))
+  const activeBackgroundKey = getBackgroundKey(activeBackground)
   const {
     status: setStatus,
     mutate: setBackground,
@@ -124,10 +128,12 @@ function Menu() {
   const { mutate: setActiveBackground } = useActiveBackgroundMutation()
 
   const backgroundIndex = useMemo(() => {
-    const index = backgrounds.findIndex((bg) => bg.id === activeBackground.id)
+    const index = backgrounds.findIndex(
+      (bg) => getBackgroundKey(bg) === activeBackgroundKey,
+    )
 
     return index >= 0 ? index : 0
-  }, [backgrounds, activeBackground.id])
+  }, [backgrounds, activeBackgroundKey])
 
   const prevButtonRef = useRef<HTMLButtonElement>(null)
   const prevButtonAnimation = useAnimation()
@@ -256,7 +262,9 @@ function Menu() {
   }, [config.shared.background.is_outdated, resetBackground])
 
   useLayoutEffect(() => {
-    const index = backgrounds.findIndex((bg) => bg.id === activeBackground.id)
+    const index = backgrounds.findIndex(
+      (bg) => getBackgroundKey(bg) === activeBackgroundKey,
+    )
     const ref = backgroundButtonsRef.current[index]
 
     if (!ref) return
@@ -277,13 +285,16 @@ function Menu() {
     return () => {
       window.removeEventListener('resize', handleResize)
     }
-  }, [activeBackground, backgrounds])
+  }, [activeBackgroundKey, backgrounds])
 
   const handleSelect = (index: number) => {
     const ref = backgroundButtonsRef.current[index]
-    if (!ref || ref.id === activeBackground.id) return
     const background = backgrounds.at(index)
     if (!background) return
+    if (getBackgroundKey(background) === activeBackgroundKey) {
+      return
+    }
+    if (!ref) return
 
     setActiveBackground(background)
     resetSetBackground()
@@ -291,7 +302,7 @@ function Menu() {
 
   const handleNavigate = (direction: 'prev' | 'next') => {
     const currentIndex = backgrounds.findIndex(
-      (bg) => bg.id === activeBackground.id,
+      (bg) => getBackgroundKey(bg) === activeBackgroundKey,
     )
     let newIndex
 
@@ -319,74 +330,73 @@ function Menu() {
           tabIndex={-1}
           className="scrollbar-hide -mx-3 flex h-48 flex-shrink-0 items-center gap-3 overflow-x-auto scroll-smooth px-14 outline-none will-change-scroll before:pointer-events-none before:absolute before:-left-3 before:z-10 before:h-full before:w-6 before:content-[''] before:bg-easing-l-menu-top after:pointer-events-none after:absolute after:-right-3 after:z-10 after:h-full after:w-6 after:content-[''] after:bg-easing-r-menu-top"
         >
-          {backgrounds.map((background, index) => (
-            <motion.button
-              key={background.id}
-              onClick={() => handleSelect(index)}
-              aria-label={`${background.name} Background`}
-              className={clsx(
-                'aspect-video w-fit select-none shadow-lg ring-offset-transparent transition-[width,height,box-shadow,filter] duration-200 focus:outline-none',
-                activeBackground.id === background.id
-                  ? 'highlight h-36 rounded-xl shadow-orange-600/15'
-                  : 'highlight-base h-[7.3125rem] rounded-lg shadow-orange-600/10 hover:shadow-orange-600/15',
-              )}
-              initial={{ scale: 0.9 }}
-              whileInView={{ scale: 1 }}
-              whileHover={{
-                scale: activeBackground.id === background.id ? 1 : 1.05,
-                transition: { duration: 0.2 },
-              }}
-              whileTap={{
-                scale: 1,
-                transition: { duration: 0.2 },
-              }}
-              transition={{ duration: 0.3 }}
-              tabIndex={-1}
-              data-index={index}
-              ref={(el) => {
-                if (!el) return
-                backgroundButtonsRef.current[index] = el
-              }}
-            >
-              <img
-                id={background.id}
-                alt={background.name}
+          {backgrounds.map((background, index) => {
+            const backgroundKey = getBackgroundKey(background)
+            const isActiveBackground = activeBackgroundKey === backgroundKey
+
+            return (
+              <motion.button
+                key={backgroundKey}
+                onClick={() => handleSelect(index)}
+                aria-label={`${background.name} Background`}
                 className={clsx(
-                  'pointer-events-none h-full w-full transform-gpu select-none object-cover transition-[border-radius]',
-                  activeBackground.id === background.id
-                    ? 'rounded-xl'
-                    : 'rounded-lg',
+                  'aspect-video w-fit select-none shadow-lg ring-offset-transparent transition-[width,height,box-shadow,filter] duration-200 focus:outline-none',
+                  isActiveBackground
+                    ? 'highlight h-36 rounded-xl shadow-orange-600/15'
+                    : 'highlight-base h-[7.3125rem] rounded-lg shadow-orange-600/10 hover:shadow-orange-600/15',
                 )}
-                src={`/backgrounds/${background.image}`}
-                onError={onImageError}
-                aria-hidden
-              />
-              <div
-                className={clsx(
-                  'pointer-events-none absolute bottom-0 left-0 right-0 select-none truncate text-ellipsis bg-gradient-to-t from-zinc-950/50 to-transparent p-1 pb-2 pt-1.5 text-center text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] transition-[border-radius] duration-200',
-                  activeBackground.id === background.id
-                    ? 'rounded-b-xl'
-                    : 'rounded-b-lg',
-                )}
+                initial={{ scale: 0.9 }}
+                whileInView={{ scale: 1 }}
+                whileHover={{
+                  scale: isActiveBackground ? 1 : 1.05,
+                  transition: { duration: 0.2 },
+                }}
+                whileTap={{
+                  scale: 1,
+                  transition: { duration: 0.2 },
+                }}
+                transition={{ duration: 0.3 }}
+                tabIndex={-1}
+                data-index={index}
+                ref={(el) => {
+                  if (!el) return
+                  backgroundButtonsRef.current[index] = el
+                }}
               >
+                <img
+                  id={background.id}
+                  alt={background.name}
+                  className={clsx(
+                    'pointer-events-none h-full w-full transform-gpu select-none object-cover transition-[border-radius]',
+                    isActiveBackground ? 'rounded-xl' : 'rounded-lg',
+                  )}
+                  src={`/backgrounds/${background.image}`}
+                  onError={onImageError}
+                  aria-hidden
+                />
                 <div
                   className={clsx(
-                    'font-bold transition-[font-size] duration-200 will-change-transform',
-                    activeBackground.id === background.id
-                      ? 'text-sm/4'
-                      : 'text-xs',
+                    'pointer-events-none absolute bottom-0 left-0 right-0 select-none truncate text-ellipsis bg-gradient-to-t from-zinc-950/50 to-transparent p-1 pb-2 pt-1.5 text-center text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] transition-[border-radius] duration-200',
+                    isActiveBackground ? 'rounded-b-xl' : 'rounded-b-lg',
                   )}
                 >
-                  {background.name}
+                  <div
+                    className={clsx(
+                      'font-bold transition-[font-size] duration-200 will-change-transform',
+                      isActiveBackground ? 'text-sm/4' : 'text-xs',
+                    )}
+                  >
+                    {background.name}
+                  </div>
                 </div>
-              </div>
-              {background.new && (
-                <div className="absolute right-2 top-2 flex items-center gap-1 rounded-[0.1875rem] border border-amber-200/60 bg-amber-300 px-1 text-xs font-bold uppercase tracking-wide text-yellow-950 shadow shadow-amber-700 duration-200 will-change-transform">
-                  NEW!
-                </div>
-              )}
-            </motion.button>
-          ))}
+                {background.new && (
+                  <div className="absolute right-2 top-2 flex items-center gap-1 rounded-[0.1875rem] border border-amber-200/60 bg-amber-300 px-1 text-xs font-bold uppercase tracking-wide text-yellow-950 shadow shadow-amber-700 duration-200 will-change-transform">
+                    NEW!
+                  </div>
+                )}
+              </motion.button>
+            )
+          })}
         </div>
         <motion.div
           className="pointer-events-none absolute left-0 top-0 z-20 flex h-full items-center"
@@ -461,8 +471,26 @@ function Menu() {
         <div className="absolute left-0 right-0 top-0 z-10 flex gap-4 p-4">
           <div
             className="scrollbar-hide flex h-fit w-fit flex-wrap gap-2 text-sm"
-            key={activeBackground.id}
+            key={activeBackgroundKey}
           >
+            {activeBackground.removed && (
+              <motion.p
+                key={activeBackground.removed}
+                className="flex-shrink-0 rounded-md border border-red-300/50 bg-red-950/80 px-2 py-1 font-medium text-red-100 backdrop-blur"
+                initial={{ opacity: 0, transform: 'translateY(-4px)' }}
+                animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                exit={{ opacity: 0, transform: 'translateY(-4px)' }}
+                transition={{
+                  duration: 0.15,
+                  ease: 'easeInOut',
+                  transform: { duration: 0.3 },
+                }}
+                aria-label={`Selected background status: ${activeBackground.removed}`}
+              >
+                {activeBackground.removed}
+              </motion.p>
+            )}
+            {/*
             {
               // !isDemo &&
               activeBackground.tags.map((tag) => (
@@ -483,6 +511,7 @@ function Menu() {
                 </motion.p>
               ))
             }
+            */}
           </div>
           {/* NOTE: hideme if required */}
           <div className="ml-auto w-fit">
@@ -530,8 +559,8 @@ function Menu() {
         <div className="absolute bottom-0 z-10 flex w-full items-center gap-5 rounded-b-lg bg-zinc-950/50 p-4 pt-0 before:absolute before:-top-7 before:left-0 before:h-7 before:w-full before:content-[''] before:bg-easing-b-menu-bottom">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
-              key={`${activeBackground.id}-description`}
-              className="mr-auto flex flex-col"
+              key={`${activeBackgroundKey}-description`}
+              className="mr-auto flex min-w-0 flex-col"
               initial={{ opacity: 0, transform: 'translateY(8px)' }}
               animate={{ opacity: 1, transform: 'translateY(0px)' }}
               transition={{ duration: 0.15, ease: 'easeInOut' }}
@@ -597,7 +626,7 @@ function Menu() {
               config.shared.background.current === activeBackground.id ||
               setStatus === 'success'
             }
-            key={activeBackground.id}
+            key={activeBackgroundKey}
           >
             <AnimatePresence mode="wait" initial={false}>
               {config.shared.background.current === activeBackground.id ||
