@@ -63,7 +63,7 @@ jobs:
           workspaces: './src-tauri -> target'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -85,13 +85,13 @@ jobs:
           tauriScript: pnpm tauri
           tagName: ${{ github.event_name == 'pull_request' && 'v__VERSION__-pre' || 'v__VERSION__' }}
           releaseName: ${{ github.event_name == 'pull_request' && 'OverBuddy v__VERSION__ (Preview)' || 'OverBuddy v__VERSION__' }}
-          releaseBody: ${{ steps.changelog.outputs.release_body }}
+          releaseBody: ${{ steps.changelog.outputs.changelog_body }}
           releaseDraft: ${{ github.event_name == 'pull_request' }}
           prerelease: ${{ github.event_name == 'pull_request' }}
 
       - name: Update Release Body
         id: update_release
-        uses: octokit/request-action@v2.x
+        uses: octokit/request-action@v3.x
         with:
           route: PATCH /repos/{repo}/releases/{release_id}
         env:

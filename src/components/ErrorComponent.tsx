@@ -20,26 +20,46 @@ export default function ErrorComponent({ error }: ErrorComponentProps) {
   }
 
   return (
+    <AppErrorView
+      error={error}
+      onReload={() => {
+        router.invalidate() // reset router
+        reset() // reset queries
+      }}
+      reportButton={<ReportButton error={error} />}
+      resetButton={
+        <ResetButton
+          reset={() => {
+            router.invalidate()
+          }}
+        />
+      }
+    />
+  )
+}
+
+export function AppErrorView({
+  error,
+  onReload,
+  reportButton,
+  resetButton,
+}: {
+  error: Error
+  onReload: () => void
+  reportButton: React.ReactNode
+  resetButton: React.ReactNode
+}) {
+  return (
     <ErrorWrapper
       title="Oops! Something went wrong."
       description={<FormattedError text={error.message} />}
       buttons={
         <>
-          <Button
-            primary
-            onClick={() => {
-              router.invalidate() // reset router
-              reset() // reset queries
-            }}
-          >
+          <Button primary onClick={onReload}>
             Reload
           </Button>
-          <ReportButton error={error} />
-          <ResetButton
-            reset={() => {
-              router.invalidate()
-            }}
-          />
+          {reportButton}
+          {resetButton}
         </>
       }
     />
