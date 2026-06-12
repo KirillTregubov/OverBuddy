@@ -35,5 +35,8 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile --strict-peer-dependencies
 
-      - name: Run validation
-        run: pnpm validate
+      - name: Validate frontend (Typecheck and Build, Linting, Formatting)
+        run: pnpm validate:frontend
+
+      - name: Validate Rust (Clippy, Formatting, and Build)
+        run: pnpm validate:rust

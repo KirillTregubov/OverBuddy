@@ -57,7 +57,7 @@ pnpm validate
 This runs:
 
 - `pnpm validate:frontend`: TypeScript, production Vite build, ESLint, and formatting checks.
-- `pnpm validate:rust`: Rust formatting and Clippy with warnings treated as errors.
+- `pnpm validate:rust`: Rust formatting checks and Clippy with warnings treated as errors.
 
 You can run either half directly while iterating:
 
@@ -102,33 +102,9 @@ The project is configured to create Tauri updater artifacts:
   - `TAURI_SIGNING_PRIVATE_KEY`
   - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`
 
-These values sign the updater artifacts so the app can verify that future updates came from the trusted private key. This is not the same thing as Windows Authenticode code signing. The app is still distributed as an unsigned Windows installer unless a separate Windows code-signing certificate/signing setup is added.
+The key files are the persistent local copy. The environment variables are temporary build inputs: set them only in the shell or CI environment that is running `pnpm tauri build`. These values sign the updater artifacts so the app can verify that future updates came from the trusted private key. The app is distributed as an unsigned Windows installer.
 
 Tauri updater signing docs: https://v2.tauri.app/plugin/updater/#signing-updates
-
-### Generate a signing key
-
-If you need to create a new updater signing key:
-
-```powershell
-pnpm tauri signer generate -- -w "$HOME\.tauri\overbuddy.key"
-```
-
-The command prints a public key. Put that public key in `src-tauri/tauri.conf.json` at `plugins.updater.pubkey`.
-
-Keep the private key secret. Anyone with the private key can sign updates accepted by installed apps.
-
-### Build locally with updater signing
-
-Set the signing environment variables in the same PowerShell session before building:
-
-```powershell
-$env:TAURI_SIGNING_PRIVATE_KEY="$HOME\.tauri\overbuddy.key"
-$env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD="your-key-password"
-pnpm tauri build
-```
-
-`TAURI_SIGNING_PRIVATE_KEY` can be either the private key content or a path to the private key file. `.env` files are not used for this by Tauri; the values must be available in the build environment.
 
 ### Configure GitHub release secrets
 
